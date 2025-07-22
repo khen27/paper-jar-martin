@@ -193,6 +193,7 @@ function HomeScreen({ navigation }) {
   const [currentTopic, setCurrentTopic] = useState(null);
   const [showHints, setShowHints] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
+  const [favorites, setFavorites] = useState([]);
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -209,6 +210,7 @@ function HomeScreen({ navigation }) {
       });
     });
     const shuffled = shuffle(combined);
+    console.log("Počáteční zásoba otázek:", shuffled.length);
     setQuestionPool(shuffled);
     setUsedQuestions([]);
     if (shuffled.length > 0) {
@@ -216,6 +218,38 @@ function HomeScreen({ navigation }) {
       setCurrentTopic(shuffled[0].topic);
     }
   }, []);
+
+  // Update current topic when language changes
+  useEffect(() => {
+    if (currentQuestion && currentQuestion.topic) {
+      setCurrentTopic(currentQuestion.topic);
+    }
+  }, [language]);
+
+  // Load favorites on component mount
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
+  // Reload favorites when language changes
+  useEffect(() => {
+    loadFavorites();
+  }, [language]);
+
+  const loadFavorites = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("favorites");
+      const favoritesData = stored ? JSON.parse(stored) : [];
+      setFavorites(favoritesData);
+    } catch (e) {
+      console.error("Chyba při načítání oblíbených:", e);
+    }
+  };
+
+  const isCurrentQuestionInFavorites = () => {
+    if (!currentQuestion) return false;
+    return favorites.some(q => q.question[language] === currentQuestion.question[language]);
+  };
 
   const rotateInterpolate = rotateAnim.interpolate({
     inputRange: [-1, 0, 1],
@@ -256,9 +290,32 @@ function HomeScreen({ navigation }) {
       if (!exists) {
         favorites.push(questionObj);
         await AsyncStorage.setItem("favorites", JSON.stringify(favorites));
+        // Update local state
+        setFavorites(favorites);
       }
     } catch (e) {
       console.error("Chyba při ukládání oblíbené otázky:", e);
+    }
+  };
+
+  const removeFavorite = async (questionObj) => {
+    try {
+      const stored = await AsyncStorage.getItem("favorites");
+      const favorites = stored ? JSON.parse(stored) : [];
+      const updatedFavorites = favorites.filter(q => q.question[language] !== questionObj.question[language]);
+      await AsyncStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+      // Update local state
+      setFavorites(updatedFavorites);
+    } catch (e) {
+      console.error("Chyba při odstraňování oblíbené otázky:", e);
+    }
+  };
+
+  const toggleFavorite = async (questionObj) => {
+    if (isCurrentQuestionInFavorites()) {
+      await removeFavorite(questionObj);
+    } else {
+      await saveFavorite(questionObj);
     }
   };
 
@@ -266,7 +323,10 @@ function HomeScreen({ navigation }) {
     setShowHints(false);
     setShowChallenge(false);
     
-    if (questionPool.length === 0) {
+    console.log("Zbývající otázky:", questionPool.length);
+    
+    if (questionPool.length <= 1) {
+      console.log("Vyčerpávám zásobu otázek, vytvářím novou");
       const combined = [];
       data.forEach((set) => {
         // Vyčistíme téma
@@ -280,6 +340,7 @@ function HomeScreen({ navigation }) {
         });
       });
       const reshuffled = shuffle(combined);
+      console.log("Nově vytvořená zásoba otázek:", reshuffled.length);
       setQuestionPool(reshuffled);
       setUsedQuestions([]);
       if (reshuffled.length > 0) {
@@ -307,31 +368,44 @@ function HomeScreen({ navigation }) {
   };
 
   const getTopicQuestions = () => {
-    const topicData = data.find(set => cleanText(set.topic[language]) === cleanText(currentTopic?.[language]));
-    if (!topicData) return [];
+    // Instead of trying to match topics, just get questions from the first topic
+    // since all topics have the same content structure
+    const topicData = data[0]; // Use first topic since all have same structure
+    if (!topicData) {
+      return [];
+    }
     
-    // Vyčistíme otázky před vrácením
+    // Vyčistíme otázky před vrácením a použijeme aktuální jazyk
     const cleanQuestions = topicData.questions.map(q => cleanTranslatedObject(q));
     const shuffledQuestions = shuffle(cleanQuestions);
-    return shuffledQuestions.slice(0, 3);
+    return shuffledQuestions.slice(0, 3).map(q => ({ question: q }));
   };
 
   const getTopicChallenges = () => {
-    const topicData = data.find(set => cleanText(set.topic[language]) === cleanText(currentTopic?.[language]));
-    if (!topicData || !topicData.challenges) return [];
+    // Instead of trying to match topics, just get challenges from the first topic
+    // since all topics have the same content structure
+    const topicData = data[0]; // Use first topic since all have same structure
+    if (!topicData || !topicData.challenges) {
+      return [];
+    }
     
-    // Vyčistíme výzvy před vrácením
+    // Vyčistíme výzvy před vrácením a použijeme aktuální jazyk
     return topicData.challenges.map(c => cleanTranslatedObject(c));
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Horní reklamní banner */}
+      <View style={styles.topAdBanner}>
+        <View style={styles.adPlaceholder}>
+          <Text style={styles.adText}>Ad Banner</Text>
+        </View>
+      </View>
+
       <ScrollView 
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.header}>{TRANSLATIONS.header[language]}</Text>
-
         <Animated.Image
           source={glassImage}
           style={[
@@ -341,38 +415,39 @@ function HomeScreen({ navigation }) {
           resizeMode="contain"
         />
 
-        {/* Zobrazení aktuálního tématu */}
-        {currentTopic && (
-          <View style={styles.topicBox}>
-            <Text style={styles.topicLabel}>{TRANSLATIONS.currentTopic[language]}</Text>
-            <Text style={styles.topicText}>{currentTopic[language]}</Text>
-          </View>
-        )}
-
         <View style={styles.questionBox}>
           <Text style={styles.questionText}>
             {currentQuestion?.question?.[language] || TRANSLATIONS.loading[language]}
           </Text>
           <View style={styles.speechTail} />
-          <TouchableOpacity onPress={() => saveFavorite(currentQuestion)} style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18 }}>{TRANSLATIONS.saveToFavorites[language]}</Text>
+          <TouchableOpacity 
+            onPress={() => toggleFavorite(currentQuestion)} 
+            style={[
+              styles.starButton,
+              isCurrentQuestionInFavorites() && styles.starButtonActive
+            ]}
+          >
+            <Text style={[
+              styles.starIcon,
+              isCurrentQuestionInFavorites() && styles.starIconActive
+            ]}>
+              {isCurrentQuestionInFavorites() ? '⭐' : '☆'}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Tlačítka pro nápovědu a výzvy */}
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.hintButton} onPress={showTopicHints}>
-            <Text style={styles.buttonText}>{TRANSLATIONS.hint[language]}</Text>
+            <Text style={styles.buttonText}>💡</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.shuffleButton} onPress={getNextQuestion}>
-            <Text style={styles.shuffleText}>{TRANSLATIONS.newQuestion[language]}</Text>
+            <Text style={styles.shuffleText}>🔍</Text>
           </TouchableOpacity>
-        </View>
-        
-        <View style={styles.challengeButtonContainer}>
+          
           <TouchableOpacity style={styles.challengeButton} onPress={showTopicChallenge}>
-            <Text style={styles.buttonText}>{TRANSLATIONS.challenge[language]}</Text>
+            <Text style={styles.buttonText}>🎯</Text>
           </TouchableOpacity>
         </View>
 
@@ -380,9 +455,9 @@ function HomeScreen({ navigation }) {
         {showHints && (
           <View style={styles.hintsBox}>
             <Text style={styles.hintsTitle}>{TRANSLATIONS.hint[language]}:</Text>
-            {getTopicQuestions().map((question, index) => (
+            {getTopicQuestions().map((questionObj, index) => (
               <Text key={index} style={styles.hintText}>
-                • {question[language]}
+                • {questionObj.question[language]}
               </Text>
             ))}
           </View>
@@ -400,7 +475,6 @@ function HomeScreen({ navigation }) {
           </View>
         )}
 
-        <Text style={styles.languageLabel}>{TRANSLATIONS.chooseLanguage[language]}</Text>
         <View style={styles.langGrid}>
           <View style={styles.langColumn}>
             {LANGUAGES.slice(0, 5).map((item) => (
@@ -449,6 +523,13 @@ function HomeScreen({ navigation }) {
           <Text style={styles.favoritesButtonText}>{TRANSLATIONS.showFavorites[language]}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Spodní reklamní banner */}
+      <View style={styles.bottomAdBanner}>
+        <View style={styles.adPlaceholder}>
+          <Text style={styles.adText}>Ad Banner</Text>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -512,24 +593,30 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   glass: {
-    width: 120,
-    height: 120,
+    width: "80%",
+    height: 200,
     alignSelf: "center",
+    marginTop: 10,
     marginBottom: 10,
   },
   questionBox: {
+    backgroundColor: "#fff",
+    padding: 15,
+    paddingRight: 35,
     marginHorizontal: 20,
-    padding: 20,
-    backgroundColor: "#fefefe",
-    borderRadius: 20,
-    alignItems: "center",
+    marginTop: 10,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#ddd",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    position: "relative",
+    shadowRadius: 3.84,
+    elevation: 5,
+    position: "relative", // Added for absolute positioning of star button
   },
   speechTail: {
     position: "absolute",
@@ -639,13 +726,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 20,
-    marginTop: 20,
-    gap: 10,
+    marginTop: 10,
+    gap: 8,
   },
   hintButton: {
     backgroundColor: "#4a90e2",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: "center",
     flex: 1,
@@ -662,11 +749,11 @@ const styles = StyleSheet.create({
   },
   challengeButton: {
     backgroundColor: "#f44336",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: "center",
-    width: "100%",
+    flex: 1,
   },
   challengeButtonContainer: {
     marginHorizontal: 20,
@@ -713,7 +800,9 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   scrollContainer: {
-    paddingBottom: 30,
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+    flexGrow: 1,
   },
   favoritesButton: {
     marginTop: 20,
@@ -721,5 +810,53 @@ const styles = StyleSheet.create({
   },
   favoritesButtonText: {
     fontSize: 18,
+  },
+  starButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#ffd700",
+    borderRadius: 6,
+    padding: 2,
+    zIndex: 1,
+  },
+  starButtonActive: {
+    backgroundColor: "#ffd700",
+  },
+  starIcon: {
+    fontSize: 14,
+    color: "#fff",
+  },
+  starIconActive: {
+    color: "#fff",
+  },
+  topAdBanner: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 8,
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    minHeight: 60,
+  },
+  bottomAdBanner: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 8,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    minHeight: 60,
+  },
+  adPlaceholder: {
+    width: "90%",
+    height: 50,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: 320,
+  },
+  adText: {
+    fontSize: 14,
+    color: "#333",
   },
 });
