@@ -18,6 +18,7 @@ import { dataset } from '../full_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 import BackIcon from '../components/BackIcon';
+import AdBanner, { BANNER_HEIGHT } from '../components/AdBanner';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
@@ -187,7 +188,12 @@ const GameScreen = ({ route, navigation }) => {
       setCurrentQuestionObject(questionObject);
 
       // Return question in current language or fallback, with prefixes removed
+      console.log('GameScreen: Attempting to get text for language:', language);
+      console.log('GameScreen: Available languages in question:', Object.keys(questionObject));
       const text = questionObject[language] || questionObject.en || questionObject.cs;
+      console.log('GameScreen: Selected text source:', 
+        questionObject[language] ? `${language} (primary)` : 
+        questionObject.en ? 'en (fallback 1)' : 'cs (fallback 2)');
       console.log('GameScreen: Raw text before cleaning:', text);
       const cleanedText = cleanText(text);
       console.log('GameScreen: Cleaned text:', cleanedText);
@@ -344,6 +350,14 @@ const GameScreen = ({ route, navigation }) => {
     }, 2000);
   };
 
+  const handleAdPress = (adData) => {
+    logAction('AD_BANNER_CLICKED', { 
+      adId: adData.id, 
+      headline: adData.headline 
+    });
+    showToastNotification(`Fake ad clicked: ${adData.headline}`);
+  };
+
   // Initialize first question only once when component mounts
   useEffect(() => {
     console.log('GameScreen: Initializing first question');
@@ -351,14 +365,18 @@ const GameScreen = ({ route, navigation }) => {
     setCurrentQuestion(initialQuestion);
   }, []); // Empty dependency array - only run once on mount
 
-  // Log language changes but don't auto-generate new questions
+  // Auto-generate new question when language changes
   useEffect(() => {
-    if (currentQuestion) { // Only log if we already have a question (not on initial mount)
+    if (currentQuestion) { // Only update if we already have a question (not on initial mount)
       console.log('GameScreen: Language changed to:', language);
       logAction('LANGUAGE_CHANGED', { newLanguage: language });
-      // Note: Not calling triggerShake() here - user must manually trigger new questions
+      
+      // Get new question in the new language
+      const newQuestion = getRandomQuestion();
+      setCurrentQuestion(newQuestion);
+      console.log('GameScreen: Updated question for new language:', newQuestion);
     }
-  }, [language]); // Remove logAction from dependencies to prevent loops
+  }, [language]); // Only depend on language changes // Remove logAction from dependencies to prevent loops
 
   // Check if current question is in favorites
   const isFavorite = currentQuestion && currentQuestionObject && favorites.some(f => {
@@ -410,7 +428,7 @@ const GameScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: BANNER_HEIGHT + 70 }]}>
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -533,6 +551,9 @@ const GameScreen = ({ route, navigation }) => {
             </Animated.View>
           )}
         </ScrollView>
+
+        {/* Premium Ad Banner */}
+        <AdBanner onPress={handleAdPress} />
       </SafeAreaView>
     </View>
   );
@@ -603,9 +624,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   glassImage: {
-    width: 200,
-    height: 200,
-    marginVertical: 20,
+    width: 180,
+    height: 180,
+    marginVertical: 15,
   },
   questionBoxContainer: {
     width: '100%',
@@ -703,7 +724,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   swipeIndicatorContainer: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
   },
   swipeIndicatorGlass: {
