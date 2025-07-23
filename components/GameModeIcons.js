@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
+import Svg, { Path, G, Defs, ClipPath, Rect, Circle } from 'react-native-svg';
 
 export const PartnerIcon = ({ size = 24, color = '#fff' }) => {
   return (
@@ -99,6 +99,35 @@ export const PartyIcon = ({ size = 24, color = '#fff' }) => {
   );
 };
 
+export const WorkplaceIcon = ({ size = 24, color = '#fff' }) => {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <G clipPath="url(#workplace-clip)">
+        {/* Main building */}
+        <Path 
+          d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM11 19H5V5H11V19ZM19 19H13V5H19V19Z" 
+          fill={color}
+        />
+        {/* Windows */}
+        <Path 
+          d="M7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM15 7H17V9H15V7ZM15 11H17V13H15V11ZM15 15H17V17H15V15Z" 
+          fill="rgba(0,0,0,0.3)"
+        />
+        {/* Door */}
+        <Path 
+          d="M11 15H13V19H11V15Z" 
+          fill="rgba(0,0,0,0.3)"
+        />
+      </G>
+      <Defs>
+        <ClipPath id="workplace-clip">
+          <Rect width="24" height="24" fill="white"/>
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
+};
+
 export const HeartIcon = ({ size = 24, color = '#fff' }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <G clipPath="url(#heart-clip)">
@@ -113,4 +142,42 @@ export const HeartIcon = ({ size = 24, color = '#fff' }) => (
       </ClipPath>
     </Defs>
   </Svg>
-); 
+);
+
+export const AIIcon = ({ size = 24, color = '#fff' }) => {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <G clipPath="url(#ai-clip)">
+        {/* Main brain/AI shape */}
+        <Path 
+          d="M12 2C8.13 2 5 5.13 5 9C5 10.38 5.41 11.65 6.14 12.7L7 14L8.5 13C10.04 13.58 11.96 13.58 13.5 13L15 14L15.86 12.7C16.59 11.65 17 10.38 17 9C17 5.13 13.87 2 12 2Z" 
+          fill={color}
+        />
+        {/* AI neural network nodes */}
+        <Circle cx="9.5" cy="7.5" r="1" fill="rgba(0,0,0,0.3)" />
+        <Circle cx="14.5" cy="7.5" r="1" fill="rgba(0,0,0,0.3)" />
+        <Circle cx="12" cy="9.5" r="1" fill="rgba(0,0,0,0.3)" />
+        {/* Connection lines */}
+        <Path 
+          d="M9.5 8.5L12 8.5M12 8.5L14.5 8.5M12 8.5L12 10.5" 
+          stroke="rgba(0,0,0,0.3)"
+          strokeWidth="1"
+          fill="none"
+        />
+        {/* Bottom emanating rays/signals */}
+        <Path 
+          d="M6 16L8 15L10 16L12 15L14 16L16 15L18 16M7 18L9 17L11 18L12 17L13 18L15 17L17 18M8 20L10 19L12 20L14 19L16 20" 
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </G>
+      <Defs>
+        <ClipPath id="ai-clip">
+          <Rect width="24" height="24" fill="white"/>
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
+}; 
