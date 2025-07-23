@@ -82,10 +82,10 @@ const HomeScreen = ({ navigation }) => {
     isAnimatingRef.current = true;
     
     logAction('TYPING_ANIMATION_STARTED', { 
-      text: OTAZO_JAR_REFRESH_ENABLED ? 'OtázoJar' : 'Paper Jar' 
+      text: OTAZO_JAR_REFRESH_ENABLED ? 'OtázkoJar' : 'Paper Jar' 
     });
     
-    const text = OTAZO_JAR_REFRESH_ENABLED ? 'OtázoJar' : 'Paper Jar';
+    const text = OTAZO_JAR_REFRESH_ENABLED ? 'OtázkoJar' : 'Paper Jar';
     let currentIndex = 0;
     setDisplayText('');
 
@@ -526,8 +526,8 @@ const HomeScreen = ({ navigation }) => {
                   ]}
                 >
                   <LinearGradient
-                    colors={['rgba(33, 150, 243, 0.3)', 'rgba(33, 150, 243, 0.1)']}
-                    style={styles.buttonGradient}
+                    colors={['rgba(33, 150, 243, 0.3)', 'rgba(21, 101, 192, 0.3)']}
+                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   />
@@ -536,11 +536,11 @@ const HomeScreen = ({ navigation }) => {
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
                       OTAZO_JAR_REFRESH_ENABLED ? styles.partnerIconBgRefresh : styles.partnerIconBg
                     ]}>
-                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#2196f3" />
+                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partnerMode || 'Partner Mode'}
+                        {translations[language]?.partnerMode || 'Partner'}
                       </Text>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
                         {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
@@ -565,8 +565,8 @@ const HomeScreen = ({ navigation }) => {
                   ]}
                 >
                   <LinearGradient
-                    colors={['rgba(76, 175, 80, 0.3)', 'rgba(76, 175, 80, 0.1)']}
-                    style={styles.buttonGradient}
+                    colors={['rgba(76, 175, 80, 0.3)', 'rgba(56, 142, 60, 0.3)']}
+                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   />
@@ -575,11 +575,11 @@ const HomeScreen = ({ navigation }) => {
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
                       OTAZO_JAR_REFRESH_ENABLED ? styles.friendIconBgRefresh : styles.friendIconBg
                     ]}>
-                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#4caf50" />
+                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.friendMode || 'Friend Mode'}
+                        {translations[language]?.friendMode || 'Friends'}
                       </Text>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
                         {translations[language]?.friendModeSubtext || 'Great for small groups'}
@@ -604,8 +604,8 @@ const HomeScreen = ({ navigation }) => {
                   ]}
                 >
                   <LinearGradient
-                    colors={['rgba(255, 152, 0, 0.3)', 'rgba(255, 152, 0, 0.1)']}
-                    style={styles.buttonGradient}
+                    colors={['rgba(255, 193, 7, 0.3)', 'rgba(255, 152, 0, 0.3)']}
+                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   />
@@ -614,11 +614,11 @@ const HomeScreen = ({ navigation }) => {
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
                       OTAZO_JAR_REFRESH_ENABLED ? styles.partyIconBgRefresh : styles.partyIconBg
                     ]}>
-                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#ff9800" />
+                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partyMode || 'Party Mode'}
+                        {translations[language]?.partyMode || 'Party'}
                       </Text>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
                         {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
@@ -1023,6 +1023,159 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     letterSpacing: 0.3, // More open spacing
     lineHeight: 22, // Better breathing room
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowOpacity: 1,
+    textShadowRadius: 2,
+  },
+  // New Grid Layout Styles for 2x2 Layout
+  gameModeButtonsGridRefresh: {
+    width: '100%',
+    gap: Math.max(12, height * 0.015), // Gap between rows
+    paddingBottom: Math.max(20, height * 0.02),
+  },
+  gridRowRefresh: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Math.max(12, width * 0.03), // Gap between columns
+  },
+  gameModeButtonGridRefresh: {
+    flex: 1, // Equal width for both buttons in row
+  },
+  gameModeButtonContentGridRefresh: {
+    minHeight: 85, // Slightly smaller for grid
+    height: Math.min(height * 0.11, 100), // Responsive height
+    maxHeight: 100,
+    borderRadius: 14, // Slightly smaller radius
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(20px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  buttonInnerGridRefresh: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12, // Smaller padding for grid
+    height: '100%',
+  },
+  iconContainerGridRefresh: {
+    width: 36, // Smaller icon container for grid
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+
+  textContainerGridRefresh: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  gameModeTextGridRefresh: {
+    fontSize: 16, // Smaller for grid layout
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'left',
+    marginBottom: 3,
+    letterSpacing: 0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowOpacity: 1,
+    textShadowRadius: 3,
+  },
+  gameModeSubtextGridRefresh: {
+    fontSize: 12, // Smaller subtext for grid
+    fontWeight: '300',
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'left',
+    letterSpacing: 0.2,
+    lineHeight: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowOpacity: 1,
+    textShadowRadius: 2,
+  },
+  // Grid Row Styles
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  // AI Mode Styles
+  aiModeButtonRefresh: {
+    width: '100%',
+    marginTop: Math.max(16, height * 0.02), // Extra spacing above hero button
+  },
+  aiModeButtonContentRefresh: {
+    minHeight: 90, // Slightly taller than grid buttons
+    height: Math.min(height * 0.115, 105),
+    maxHeight: 105,
+    borderRadius: 16, // Slightly larger radius for prominence
+    overflow: 'hidden',
+    backgroundColor: 'rgba(156, 39, 176, 0.15)', // Purple AI theme
+    backdropFilter: 'blur(25px)',
+    borderWidth: 1,
+    borderColor: 'rgba(156, 39, 176, 0.3)',
+    shadowColor: '#9c27b0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  aiButtonInnerRefresh: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Math.max(16, width * 0.04),
+    paddingVertical: Math.max(12, height * 0.015),
+  },
+  aiIconContainerRefresh: {
+    width: Math.max(48, width * 0.12),
+    height: Math.max(48, width * 0.12),
+    borderRadius: Math.max(24, width * 0.06),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Math.max(16, width * 0.04),
+  },
+  aiIconBgRefresh: {
+    backgroundColor: 'rgba(156, 39, 176, 0.8)',
+  },
+  aiTextContainerRefresh: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  aiModeTextRefresh: {
+    fontSize: Math.max(16, height * 0.022),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
+    textAlign: 'left',
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowOpacity: 1,
+    textShadowRadius: 2,
+  },
+  aiModeSubtextRefresh: {
+    fontSize: 13,
+    fontWeight: '300',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'left',
+    letterSpacing: 0.2,
+    lineHeight: 17,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowOpacity: 1,
