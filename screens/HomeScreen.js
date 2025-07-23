@@ -7,13 +7,15 @@ import {
   SafeAreaView,
   Animated,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 // import Easing from 'react-native/Libraries/Animated/Easing';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
-import { PartnerIcon, FriendIcon, PartyIcon } from '../components/GameModeIcons';
+import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon } from '../components/GameModeIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,6 +26,7 @@ const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const titleOpacity = useRef(new Animated.Value(0)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
@@ -181,6 +184,17 @@ const HomeScreen = ({ navigation }) => {
     return cleanupTypingAnimation;
   }, [language]); // Removed other dependencies to prevent infinite loop
 
+  // Load favorites count on mount and when screen is focused
+  useEffect(() => {
+    loadFavorites();
+    
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadFavorites();
+    });
+
+    return unsubscribe;
+  }, [navigation, loadFavorites]);
+
   // Initial animations
   useEffect(() => {
     logAction('COMPONENT_MOUNTED');
@@ -319,6 +333,22 @@ const HomeScreen = ({ navigation }) => {
     });
   }, [taglineOpacity]);
 
+  const loadFavorites = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('favorites');
+      const favoritesData = stored ? JSON.parse(stored) : [];
+      setFavoritesCount(favoritesData.length);
+      logAction('FAVORITES_COUNT_LOADED', { count: favoritesData.length });
+    } catch (e) {
+      console.error('Error loading favorites count:', e);
+    }
+  }, []);
+
+  const handleFavoritesPress = () => {
+    logAction('FAVORITES_BUTTON_PRESSED');
+    navigation.navigate('Favorites');
+  };
+
   const onPressIn = () => {
     logAction('LANGUAGE_BUTTON_PRESSED');
     Animated.spring(buttonScale, {
@@ -383,21 +413,56 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
         <TouchableOpacity
           style={styles.languageButton}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
           onPress={() => {
             logAction('LANGUAGE_NAVIGATION');
             navigation.navigate('Language');
           }}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
         >
-          <View style={styles.languageButtonGlass}>
+          <Animated.View 
+            style={[
+              styles.languageButtonGlass, 
+              { transform: [{ scale: buttonScale }] }
+            ]}
+          >
             <LanguageIcon size={24} color="#fff" />
+          </Animated.View>
+        </TouchableOpacity>
+
+        {/* Favorites Button */}
+        <TouchableOpacity
+          style={styles.favoritesButton}
+          onPress={handleFavoritesPress}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
+        >
+          <View style={styles.favoritesButtonGlass}>
+            <HeartIcon size={24} color="#fff" />
+            {favoritesCount > 0 && (
+              <View style={styles.favoritesBadge}>
+                <Text style={styles.favoritesBadgeText}>
+                  {favoritesCount > 99 ? '99+' : favoritesCount}
+                </Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
 
-        <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.contentRefresh : styles.content}>
-          {/* Jar Icon - Scaled 1.5x and centered above title */}
-          <Animated.Image
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          overScrollMode="always"
+        >
+          <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.contentRefresh : styles.content}>
+            {/* Jar Icon - Scaled 1.5x and centered above title */}
+            <Animated.Image
             source={require('../assets/glass.png')}
             style={[
               OTAZO_JAR_REFRESH_ENABLED ? styles.jarIconRefresh : styles.glassImage,
@@ -469,9 +534,9 @@ const HomeScreen = ({ navigation }) => {
                   <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
                     <View style={[
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      styles.partnerIconBg
+                      OTAZO_JAR_REFRESH_ENABLED ? styles.partnerIconBgRefresh : styles.partnerIconBg
                     ]}>
-                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 40 : 28} color="#2196f3" />
+                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#2196f3" />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
@@ -508,9 +573,9 @@ const HomeScreen = ({ navigation }) => {
                   <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
                     <View style={[
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      styles.friendIconBg
+                      OTAZO_JAR_REFRESH_ENABLED ? styles.friendIconBgRefresh : styles.friendIconBg
                     ]}>
-                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 40 : 28} color="#4caf50" />
+                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#4caf50" />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
@@ -547,9 +612,9 @@ const HomeScreen = ({ navigation }) => {
                   <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
                     <View style={[
                       OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      styles.partyIconBg
+                      OTAZO_JAR_REFRESH_ENABLED ? styles.partyIconBgRefresh : styles.partyIconBg
                     ]}>
-                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 40 : 28} color="#ff9800" />
+                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 26 : 28} color="#ff9800" />
                     </View>
                     <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
                       <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
@@ -564,7 +629,8 @@ const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -586,8 +652,8 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     position: 'absolute',
-    top: 50,
-    right: 20,
+    top: Math.max(70, height * 0.08),
+    right: Math.max(20, width * 0.05),
     zIndex: 1,
   },
   languageButtonGlass: {
@@ -602,6 +668,58 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+  favoritesButton: {
+    position: 'absolute',
+    top: Math.max(70, height * 0.08),
+    left: Math.max(20, width * 0.05),
+    zIndex: 1,
+  },
+  favoritesButtonGlass: {
+    padding: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(20px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 50,
+    minHeight: 50,
+  },
+  favoritesBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#ff4757',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  favoritesBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowOpacity: 1,
+    textShadowRadius: 2,
   },
   content: {
     flex: 1,
@@ -753,11 +871,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   contentRefresh: {
-    flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingTop: Math.max(60, height * 0.08), // Responsive top padding
+    paddingBottom: Math.max(40, height * 0.05), // Added bottom padding
   },
   jarIconRefresh: {
     width: Math.min(width * 0.35, 200), // Responsive jar size (1.5x from ~133px)
@@ -798,8 +916,8 @@ const styles = StyleSheet.create({
   gameModeContainerRefresh: {
     width: '100%',
     alignItems: 'center',
-    flex: 1,
     justifyContent: 'flex-start',
+    marginTop: 'auto', // Push to center vertically in available space
   },
   gameModeTitleRefresh: {
     fontSize: 20, // Slightly larger for hierarchy
@@ -815,14 +933,25 @@ const styles = StyleSheet.create({
   },
   gameModeButtonsRefresh: {
     width: '100%',
-    gap: 16, // 16px between cards (spec compliance)
-    paddingBottom: Math.max(40, height * 0.05), // 40px to bottom safe area
+    gap: Math.max(16, height * 0.02), // Responsive gap between cards
+    paddingBottom: Math.max(20, height * 0.02), // Reduced bottom padding
   },
   gameModeButtonRefresh: {
     width: '100%',
   },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    minHeight: height - Math.max(60, height * 0.08), // Ensure full height minus status bar
+    paddingBottom: Math.max(40, height * 0.05), // Safe bottom padding
+  },
   gameModeButtonContentRefresh: {
-    height: 96, // Spec: 96px tall
+    minHeight: 96, // Minimum height
+    height: Math.min(height * 0.12, 120), // Responsive height with max
+    maxHeight: 120, // Maximum height
     borderRadius: 16, // Spec: 16px corners
     overflow: 'hidden',
     backgroundColor: 'rgba(255, 255, 255, 0.15)', // Spec: ~15% opacity
@@ -842,19 +971,33 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   iconContainerRefresh: {
-    width: 40, // Spec: 40×40px
-    height: 40,
-    borderRadius: 20,
+    width: 44, // Slightly larger for better proportion
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8, // Spec: shifted left by 8px
     marginRight: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  partnerIconBgRefresh: {
+    backgroundColor: 'rgba(33, 150, 243, 0.3)', // More prominent blue background
+    borderWidth: 1.5,
+    borderColor: 'rgba(33, 150, 243, 0.4)',
+  },
+  friendIconBgRefresh: {
+    backgroundColor: 'rgba(76, 175, 80, 0.3)', // More prominent green background
+    borderWidth: 1.5,
+    borderColor: 'rgba(76, 175, 80, 0.4)',
+  },
+  partyIconBgRefresh: {
+    backgroundColor: 'rgba(255, 152, 0, 0.3)', // More prominent orange background
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 152, 0, 0.4)',
   },
   textContainerRefresh: {
     flex: 1,

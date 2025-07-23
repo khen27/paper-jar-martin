@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Dimensions,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackIcon from '../components/BackIcon';
@@ -73,60 +74,67 @@ const LanguageScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Title */}
-        <View style={styles.titleSection}>
-          <Text style={styles.title}>
-            {translations[language]?.selectLanguage || translations.cs.selectLanguage}
-          </Text>
-          <Text style={styles.subtitle}>
-            {translations[language]?.selectLanguageSubtitle || translations.cs.selectLanguageSubtitle}
-          </Text>
-        </View>
-
-        {/* Language Grid */}
-        <View style={styles.gridContainer}>
-          <View style={styles.grid}>
-            {LANGUAGES.map((lang) => (
-              <View key={lang.code} style={styles.cardWrapper}>
-                <TouchableOpacity
-                  style={[
-                    styles.card,
-                    isLoading && styles.cardDisabled
-                  ]}
-                  onPress={() => handleLanguageSelect(lang.code)}
-                  disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  {/* Glass morphism background */}
-                  <View style={styles.cardGlass}>
-                    {language === lang.code && (
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
-                        style={styles.cardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
-                    )}
-                    <View style={styles.flagContainer}>
-                      <LanguageFlags code={lang.code} size={40} />
-                    </View>
-                    <Text style={[
-                      styles.language,
-                      language === lang.code && styles.languageActive
-                    ]}>
-                      {lang.label}
-                    </Text>
-                    {language === lang.code && (
-                      <View style={styles.selectedIndicator}>
-                        <Text style={styles.selectedText}>✓</Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              </View>
-            ))}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+        >
+          {/* Title */}
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>
+              {translations[language]?.selectLanguage || translations.cs.selectLanguage}
+            </Text>
+            <Text style={styles.subtitle}>
+              {translations[language]?.selectLanguageSubtitle || translations.cs.selectLanguageSubtitle}
+            </Text>
           </View>
-        </View>
+
+          {/* Language Grid */}
+          <View style={styles.gridContainer}>
+            <View style={styles.grid}>
+              {LANGUAGES.map((lang) => (
+                <View key={lang.code} style={styles.cardWrapper}>
+                  <TouchableOpacity
+                    style={[
+                      styles.card,
+                      isLoading && styles.cardDisabled
+                    ]}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    {/* Glass morphism background */}
+                    <View style={styles.cardGlass}>
+                      {language === lang.code && (
+                        <LinearGradient
+                          colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                          style={styles.cardGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        />
+                      )}
+                      <View style={styles.flagContainer}>
+                        <LanguageFlags code={lang.code} size={40} />
+                      </View>
+                      <Text style={[
+                        styles.language,
+                        language === lang.code && styles.languageActive
+                      ]}>
+                        {lang.label}
+                      </Text>
+                      {language === lang.code && (
+                        <View style={styles.selectedIndicator}>
+                          <Text style={styles.selectedText}>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -145,6 +153,13 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
   },
   header: {
     paddingHorizontal: 16,
@@ -189,7 +204,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   gridContainer: {
-    flex: 1,
     paddingHorizontal: CARD_MARGIN * 2,
   },
   grid: {

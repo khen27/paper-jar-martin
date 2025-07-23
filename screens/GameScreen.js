@@ -7,25 +7,38 @@ import {
   SafeAreaView,
   Animated,
   ScrollView,
+  Dimensions,
+  PanResponder,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { dataset } from '../full_dataset';
-import { HintIcon, RefreshIcon, StarIcon } from '../components/GameIcons';
+import { HintIcon, RefreshIcon } from '../components/GameIcons';
+import { HeartIcon } from '../components/GameModeIcons';
 import BackIcon from '../components/BackIcon';
 
+const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
 
-const GameScreen = ({ navigation, route }) => {
+const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
   const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [currentQuestionObject, setCurrentQuestionObject] = useState(null); // Store the full question object
   const [showHints, setShowHints] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const [gameMode, setGameMode] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const toastTranslateY = useRef(new Animated.Value(50)).current;
+  
+  // Swipe gesture handling
+  const swipeTranslateX = useRef(new Animated.Value(0)).current;
+  const swipeOpacity = useRef(new Animated.Value(1)).current;
 
   // Comprehensive logging function
   const logAction = useCallback((action, details = {}) => {
@@ -51,6 +64,70 @@ const GameScreen = ({ navigation, route }) => {
       });
     }
   }, [language, gameMode, currentQuestion, favorites.length]);
+
+  // PanResponder for swipe gestures
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Activate swipe if horizontal movement > 20 and vertical movement < 80
+        return Math.abs(gestureState.dx) > 20 && Math.abs(gestureState.dy) < 80;
+      },
+      onPanResponderGrant: () => {
+        logAction('SWIPE_STARTED');
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        // Update the animated value for visual feedback
+        swipeTranslateX.setValue(gestureState.dx);
+        // Fade out slightly as user swipes
+        const opacity = Math.max(0.3, 1 - Math.abs(gestureState.dx) / (width * 0.5));
+        swipeOpacity.setValue(opacity);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        const swipeThreshold = width * 0.25; // 25% of screen width
+        
+        if (Math.abs(gestureState.dx) > swipeThreshold) {
+          // Valid swipe - animate out and get new question
+          const direction = gestureState.dx > 0 ? 'right' : 'left';
+          logAction('SWIPE_COMPLETED', { direction, distance: Math.abs(gestureState.dx) });
+          
+          // Animate the current question out
+          Animated.parallel([
+            Animated.timing(swipeTranslateX, {
+              toValue: gestureState.dx > 0 ? width : -width,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(swipeOpacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            // Generate new question immediately without shake animation
+            const newQuestion = getRandomQuestion();
+            setCurrentQuestion(newQuestion);
+            
+            // Reset animation values
+            swipeTranslateX.setValue(0);
+            swipeOpacity.setValue(1);
+          });
+        } else {
+          // Not enough swipe - animate back to original position
+          logAction('SWIPE_CANCELLED', { distance: Math.abs(gestureState.dx) });
+          Animated.parallel([
+            Animated.spring(swipeTranslateX, {
+              toValue: 0,
+              useNativeDriver: true,
+            }),
+            Animated.spring(swipeOpacity, {
+              toValue: 1,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
+      },
+    })
+  ).current;
 
   // Initialize game mode from route params
   useEffect(() => {
@@ -102,12 +179,15 @@ const GameScreen = ({ navigation, route }) => {
       // Get random question from chosen type
       const questions = topic[randomType];
       const randomQuestionIndex = Math.floor(Math.random() * questions.length);
-      const question = questions[randomQuestionIndex];
+      const questionObject = questions[randomQuestionIndex];
       console.log('GameScreen: Selected question index:', randomQuestionIndex);
-      console.log('GameScreen: Raw question object:', question);
+      console.log('GameScreen: Raw question object:', questionObject);
+
+      // Store the full question object for favorites
+      setCurrentQuestionObject(questionObject);
 
       // Return question in current language or fallback, with prefixes removed
-      const text = question[language] || question.en || question.cs;
+      const text = questionObject[language] || questionObject.en || questionObject.cs;
       console.log('GameScreen: Raw text before cleaning:', text);
       const cleanedText = cleanText(text);
       console.log('GameScreen: Cleaned text:', cleanedText);
@@ -134,12 +214,7 @@ const GameScreen = ({ navigation, route }) => {
     setShowHints(false);
     setShowChallenge(false);
     
-    // Get new question
-    const newQuestion = getRandomQuestion();
-    console.log('GameScreen: Setting new question:', newQuestion);
-    setCurrentQuestion(newQuestion);
-
-    // Animate glass
+    // Animate glass first, then get new question after animation
     Animated.sequence([
       Animated.timing(rotateAnim, {
         toValue: 1,
@@ -156,48 +231,145 @@ const GameScreen = ({ navigation, route }) => {
         duration: 100,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      // Get new question after animation completes
+      const newQuestion = getRandomQuestion();
+      console.log('GameScreen: Setting new question:', newQuestion);
+      setCurrentQuestion(newQuestion);
+    });
   };
 
   const toggleFavorite = async () => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || !currentQuestionObject) {
+      console.log('GameScreen: No current question to toggle favorite');
+      return;
+    }
+    logAction('TOGGLING_FAVORITE', { questionLength: currentQuestion.length });
+    console.log('GameScreen: Toggling favorite for question:', currentQuestion);
+    const newFavorites = [...favorites];
     
-    try {
-      logAction('TOGGLING_FAVORITE', { questionLength: currentQuestion.length });
-      console.log('GameScreen: Toggling favorite for question:', currentQuestion);
-      const newFavorites = [...favorites];
-      const index = favorites.findIndex(f => f.question === currentQuestion);
-      
-      if (index >= 0) {
-        console.log('GameScreen: Removing from favorites');
-        newFavorites.splice(index, 1);
-        logAction('FAVORITE_REMOVED', { index });
-      } else {
-        console.log('GameScreen: Adding to favorites');
-        newFavorites.push({
-          question: currentQuestion,
-          timestamp: Date.now(),
-        });
-        logAction('FAVORITE_ADDED', { timestamp: Date.now() });
+    // Find existing favorite by checking if any stored question matches the current text
+    const index = favorites.findIndex(f => {
+      if (typeof f.question === 'string') {
+        return f.question === currentQuestion;
+      } else if (typeof f.question === 'object') {
+        const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
+        return cleanText(storedText || '') === currentQuestion;
+      }
+      return false;
+    });
+    
+    let isAdding = false;
+    if (index > -1) {
+      console.log('GameScreen: Removing from favorites');
+      newFavorites.splice(index, 1);
+      logAction('FAVORITE_REMOVED', { index });
+    } else {
+      // Check if user has reached the free limit of 5 favorites
+      if (favorites.length >= 5) {
+        console.log('GameScreen: Free limit reached, redirecting to upgrade');
+        logAction('FAVORITES_LIMIT_REACHED', { currentCount: favorites.length });
+        navigation.navigate('Upgrade', { upgradeReason: 'favorites' });
+        return;
       }
       
+      console.log('GameScreen: Adding to favorites');
+      // Create cleaned version of the question object for storage
+      const cleanedQuestionObject = {};
+      Object.keys(currentQuestionObject).forEach(lang => {
+        cleanedQuestionObject[lang] = cleanText(currentQuestionObject[lang] || '');
+      });
+      
+      newFavorites.push({
+        question: cleanedQuestionObject, // Store the full multilingual object
+        timestamp: Date.now(),
+      });
+      logAction('FAVORITE_ADDED', { timestamp: Date.now() });
+      isAdding = true;
+    }
+
+    try {
       await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavorites(newFavorites);
       console.log('GameScreen: Updated favorites count:', newFavorites.length);
+      
+      // Show toast notification
+      if (isAdding) {
+        showToastNotification(translations[language]?.favoriteAdded || 'Added to favorites!');
+      }
     } catch (e) {
       console.error('GameScreen: Error updating favorites:', e);
       logAction('FAVORITE_UPDATE_ERROR', { error: e.message });
     }
   };
 
-  // Initialize first question
-  useEffect(() => {
-    console.log('GameScreen: Language changed to:', language);
-    logAction('LANGUAGE_CHANGED', { newLanguage: language });
-    triggerShake();
-  }, [language, logAction]);
+  const showToastNotification = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
 
-  const isFavorite = currentQuestion && favorites.some(f => f.question === currentQuestion);
+    // Reset animation values
+    toastOpacity.setValue(0);
+    toastTranslateY.setValue(50);
+
+    // Animate in
+    Animated.parallel([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(toastTranslateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Auto hide after 2 seconds
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(toastTranslateY, {
+          toValue: -50,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setShowToast(false);
+      });
+    }, 2000);
+  };
+
+  // Initialize first question only once when component mounts
+  useEffect(() => {
+    console.log('GameScreen: Initializing first question');
+    const initialQuestion = getRandomQuestion();
+    setCurrentQuestion(initialQuestion);
+  }, []); // Empty dependency array - only run once on mount
+
+  // Log language changes but don't auto-generate new questions
+  useEffect(() => {
+    if (currentQuestion) { // Only log if we already have a question (not on initial mount)
+      console.log('GameScreen: Language changed to:', language);
+      logAction('LANGUAGE_CHANGED', { newLanguage: language });
+      // Note: Not calling triggerShake() here - user must manually trigger new questions
+    }
+  }, [language]); // Remove logAction from dependencies to prevent loops
+
+  // Check if current question is in favorites
+  const isFavorite = currentQuestion && currentQuestionObject && favorites.some(f => {
+    if (typeof f.question === 'string') {
+      return f.question === currentQuestion;
+    } else if (typeof f.question === 'object') {
+      const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
+      return cleanText(storedText || '') === currentQuestion;
+    }
+    return false;
+  });
 
   console.log('GameScreen: Rendering with current question:', currentQuestion);
   console.log('GameScreen: Current language:', language);
@@ -214,7 +386,7 @@ const GameScreen = ({ navigation, route }) => {
       />
       
       <SafeAreaView style={styles.safeArea}>
-        {/* Header with Back Button */}
+        {/* Header with Back Button and Game Mode */}
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -227,18 +399,18 @@ const GameScreen = ({ navigation, route }) => {
               <BackIcon size={32} color="#fff" />
             </View>
           </TouchableOpacity>
-        </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Game Mode Display */}
+          
+          {/* Game Mode Display - Top Right */}
           {gameMode && (
-            <View style={styles.gameModeDisplay}>
-              <Text style={styles.gameModeText}>
+            <View style={styles.gameModeDisplayHeader}>
+              <Text style={styles.gameModeTextHeader}>
                 {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
               </Text>
             </View>
           )}
+        </View>
 
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -258,8 +430,17 @@ const GameScreen = ({ navigation, route }) => {
             resizeMode="contain"
           />
 
-          {/* Premium Question Box */}
-          <View style={styles.questionBoxContainer}>
+          {/* Premium Question Box with Swipe Gesture */}
+          <Animated.View 
+            style={[
+              styles.questionBoxContainer,
+              {
+                transform: [{ translateX: swipeTranslateX }],
+                opacity: swipeOpacity,
+              }
+            ]}
+            {...panResponder.panHandlers}
+          >
             <LinearGradient
               colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.1)']}
               style={styles.questionBoxGradient}
@@ -271,7 +452,7 @@ const GameScreen = ({ navigation, route }) => {
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
@@ -313,25 +494,44 @@ const GameScreen = ({ navigation, route }) => {
               }}
             >
               <View style={[styles.actionButtonGlass, isFavorite && styles.favoriteButtonGlass]}>
-                <StarIcon color={isFavorite ? '#fff' : 'rgba(255,255,255,0.8)'} />
+                <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* Favorites Button */}
-          <TouchableOpacity
-            style={styles.favoritesButton}
-            onPress={() => {
-              logAction('FAVORITES_NAVIGATION');
-              navigation.navigate('Favorites');
-            }}
-          >
-            <View style={styles.favoritesButtonGlass}>
-              <Text style={styles.favoritesButtonText}>
-                {translations[language]?.showFavorites || 'Favorites'}
-              </Text>
+          {/* Swipe Indicator */}
+          <View style={styles.swipeIndicatorContainer}>
+            <View style={styles.swipeIndicatorGlass}>
+              <View style={styles.carouselDots}>
+                <View style={[styles.dot, styles.dotSmall]} />
+                <View style={[styles.dot, styles.dotMedium]} />
+                <View style={[styles.dot, styles.dotLarge]} />
+                <View style={[styles.dot, styles.dotMedium]} />
+                <View style={[styles.dot, styles.dotSmall]} />
+              </View>
             </View>
-          </TouchableOpacity>
+          </View>
+
+          {/* Toast Notification */}
+          {showToast && (
+            <Animated.View
+              style={[
+                styles.toastContainer,
+                {
+                  opacity: toastOpacity,
+                  transform: [{ translateY: toastTranslateY }],
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={['rgba(76, 175, 80, 0.95)', 'rgba(56, 142, 60, 0.95)']}
+                style={styles.toastGradient}
+              >
+                <HeartIcon size={20} color="#fff" />
+                <Text style={styles.toastText}>{toastMessage}</Text>
+              </LinearGradient>
+            </Animated.View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -353,6 +553,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -499,32 +702,101 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
   },
-  favoritesButton: {
+  swipeIndicatorContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  swipeIndicatorGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  carouselDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dot: {
+    borderRadius: 5,
+    marginHorizontal: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  dotSmall: {
+    width: 6,
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  dotMedium: {
+    width: 10,
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  dotLarge: {
+    width: 14,
+    height: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  toastContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    borderRadius: 15,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 10,
   },
-  favoritesButtonGlass: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+  toastGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    gap: 10,
   },
-  favoritesButtonText: {
+  toastText: {
     fontSize: 16,
     color: '#fff',
-    textAlign: 'center',
     fontWeight: '600',
     letterSpacing: 0.3,
+  },
+  gameModeDisplayHeader: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(10px)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  gameModeTextHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
 });
 

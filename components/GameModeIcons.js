@@ -4,7 +4,7 @@ import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
 export const PartnerIcon = ({ size = 24, color = '#fff' }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <G clipPath="url(#clip0_4418_8673)">
+      <G clipPath="url(#partner-clip)">
         <Path 
           d="M18.8 9.91016C17.67 9.91016 16.66 10.4602 16.03 11.3002C15.4 10.4602 14.39 9.91016 13.26 9.91016C11.35 9.91016 9.80005 11.4702 9.80005 13.3902C9.80005 14.1302 9.92005 14.8202 10.12 15.4502C11.1 18.5602 14.14 20.4302 15.64 20.9402C15.85 21.0102 16.2 21.0102 16.41 20.9402C17.91 20.4302 20.95 18.5702 21.93 15.4502C22.14 14.8102 22.25 14.1302 22.25 13.3902C22.26 11.4702 20.71 9.91016 18.8 9.91016Z" 
           fill={color}
@@ -15,7 +15,7 @@ export const PartnerIcon = ({ size = 24, color = '#fff' }) => {
         />
       </G>
       <Defs>
-        <ClipPath id="clip0_4418_8673">
+        <ClipPath id="partner-clip">
           <Rect width="24" height="24" fill="white"/>
         </ClipPath>
       </Defs>
@@ -26,7 +26,7 @@ export const PartnerIcon = ({ size = 24, color = '#fff' }) => {
 export const FriendIcon = ({ size = 24, color = '#fff' }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <G clipPath="url(#clip0_3111_32729)">
+      <G clipPath="url(#friend-clip)">
         <Path 
           d="M17.53 7.77C17.46 7.76 17.39 7.76 17.32 7.77C15.77 7.72 14.54 6.45 14.54 4.89C14.54 3.3 15.83 2 17.43 2C19.02 2 20.32 3.29 20.32 4.89C20.31 6.45 19.08 7.72 17.53 7.77Z" 
           fill={color}
@@ -53,7 +53,7 @@ export const FriendIcon = ({ size = 24, color = '#fff' }) => {
         />
       </G>
       <Defs>
-        <ClipPath id="clip0_3111_32729">
+        <ClipPath id="friend-clip">
           <Rect width="24" height="24" fill="white"/>
         </ClipPath>
       </Defs>
@@ -64,7 +64,7 @@ export const FriendIcon = ({ size = 24, color = '#fff' }) => {
 export const PartyIcon = ({ size = 24, color = '#fff' }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <G clipPath="url(#clip0_4418_8598)">
+      <G clipPath="url(#party-clip)">
         <Path 
           d="M20.8901 13V14H20.0201C19.2801 14 18.6801 14.6 18.6801 15.35V15.65C18.6801 16.4 18.0801 17 17.3301 17C16.5901 17 15.9901 16.4 15.9901 15.65V15.35C15.9901 14.6 15.3801 14 14.6401 14C13.9001 14 13.3001 14.6 13.3001 15.35V15.65C13.3001 16.4 12.6901 17 11.9501 17C11.2101 17 10.6001 16.4 10.6001 15.65V15.35C10.6001 14.6 10.0001 14 9.26011 14C8.52011 14 7.91011 14.6 7.91011 15.35V15.65C7.91011 16.4 7.31011 17 6.57011 17C5.82011 17 5.22011 16.4 5.22011 15.65V15.33C5.22011 14.59 4.63011 13.99 3.90011 13.98H3.11011V13C3.11011 11.62 4.15011 10.45 5.56011 10.11C5.84011 10.04 6.13011 10 6.44011 10H17.5601C17.8701 10 18.1601 10.04 18.4401 10.11C19.8501 10.45 20.8901 11.62 20.8901 13Z" 
           fill={color}
@@ -91,10 +91,26 @@ export const PartyIcon = ({ size = 24, color = '#fff' }) => {
         />
       </G>
       <Defs>
-        <ClipPath id="clip0_4418_8598">
+        <ClipPath id="party-clip">
           <Rect width="24" height="24" fill="white"/>
         </ClipPath>
       </Defs>
     </Svg>
   );
-}; 
+};
+
+export const HeartIcon = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <G clipPath="url(#heart-clip)">
+      <Path
+        d="M16.44 3.09961C14.63 3.09961 13.01 3.97961 12 5.32961C10.99 3.97961 9.37 3.09961 7.56 3.09961C4.49 3.09961 2 5.59961 2 8.68961C2 9.87961 2.19 10.9796 2.52 11.9996C4.1 16.9996 8.97 19.9896 11.38 20.8096C11.72 20.9296 12.28 20.9296 12.62 20.8096C15.03 19.9896 19.9 16.9996 21.48 11.9996C21.81 10.9796 22 9.87961 22 8.68961C22 5.59961 19.51 3.09961 16.44 3.09961Z"
+        fill={color}
+      />
+    </G>
+    <Defs>
+      <ClipPath id="heart-clip">
+        <Rect width="24" height="24" fill="white" />
+      </ClipPath>
+    </Defs>
+  </Svg>
+); 
