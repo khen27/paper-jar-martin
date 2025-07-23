@@ -123,10 +123,14 @@ const CustomQuestionsIcon = ({ size = 24, color = '#fff' }) => {
   );
 };
 
-const UpgradeScreen = ({ navigation }) => {
+const UpgradeScreen = ({ navigation, route }) => {
   const { language } = useLanguage();
   const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Get upgrade reason from route params
+  const upgradeReason = route?.params?.upgradeReason || 'party';
+  const isFavoritesUpgrade = upgradeReason === 'favorites';
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -256,20 +260,57 @@ const UpgradeScreen = ({ navigation }) => {
                 { transform: [{ scale: pulseAnim }] },
               ]}
             >
+              {/* Outer circle with gradient */}
               <LinearGradient
                 colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
                 style={styles.badgeGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               />
-              <PartyIcon size={60} color="#fff" />
+              
+              {/* Inner circle for better concentric effect */}
+              <View style={styles.innerCircle}>
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                  style={styles.innerCircleGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                
+                {/* Icon container */}
+                <View style={styles.iconContainer}>
+                  {isFavoritesUpgrade ? (
+                    <Svg width={40} height={40} viewBox="0 0 24 24" fill="none">
+                      <G clipPath="url(#clip0_4418_8679)">
+                        <Path
+                          d="M16.44 3.09961C14.63 3.09961 13.01 3.97961 12 5.32961C10.99 3.97961 9.37 3.09961 7.56 3.09961C4.49 3.09961 2 5.59961 2 8.68961C2 9.87961 2.19 10.9796 2.52 11.9996C4.1 16.9996 8.97 19.9896 11.38 20.8096C11.72 20.9296 12.28 20.9296 12.62 20.8096C15.03 19.9896 19.9 16.9996 21.48 11.9996C21.81 10.9796 22 9.87961 22 8.68961C22 5.59961 19.51 3.09961 16.44 3.09961Z"
+                          fill="#fff"
+                        />
+                      </G>
+                      <Defs>
+                        <ClipPath id="clip0_4418_8679">
+                          <Rect width="24" height="24" fill="white" />
+                        </ClipPath>
+                      </Defs>
+                    </Svg>
+                  ) : (
+                    <PartyIcon size={40} color="#fff" />
+                  )}
+                </View>
+              </View>
             </Animated.View>
             
             <Text style={styles.heroTitle}>
-              {translations[language]?.unlockPartyMode || 'Unlock Party Mode'}
+              {isFavoritesUpgrade 
+                ? (translations[language]?.unlockUnlimitedFavorites || 'Unlock Unlimited Favorites')
+                : (translations[language]?.unlockPartyMode || 'Unlock Party Mode')
+              }
             </Text>
             <Text style={styles.heroSubtitle}>
-              {translations[language]?.partyModeTagline || 'Transform any gathering into an unforgettable experience'}
+              {isFavoritesUpgrade
+                ? (translations[language]?.favoritesTagline || 'Save as many questions as you want and build your perfect conversation collection')
+                : (translations[language]?.partyModeTagline || 'Transform any gathering into an unforgettable experience')
+              }
             </Text>
           </Animated.View>
 
@@ -280,81 +321,175 @@ const UpgradeScreen = ({ navigation }) => {
             </Text>
             
             <View style={styles.featuresGrid}>
-              {/* Party Mode Access */}
-              <View style={styles.featureCard}>
-                <View style={styles.featureCardGlass}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                    style={styles.featureCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={styles.featureIconContainer}>
-                    <PartyModeIcon size={28} color="#fff" />
+              {isFavoritesUpgrade ? (
+                <>
+                  {/* Unlimited Favorites */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+                          <G clipPath="url(#clip0_favorites)">
+                            <Path
+                              d="M16.44 3.09961C14.63 3.09961 13.01 3.97961 12 5.32961C10.99 3.97961 9.37 3.09961 7.56 3.09961C4.49 3.09961 2 5.59961 2 8.68961C2 9.87961 2.19 10.9796 2.52 11.9996C4.1 16.9996 8.97 19.9896 11.38 20.8096C11.72 20.9296 12.28 20.9296 12.62 20.8096C15.03 19.9896 19.9 16.9996 21.48 11.9996C21.81 10.9796 22 9.87961 22 8.68961C22 5.59961 19.51 3.09961 16.44 3.09961Z"
+                              fill="#fff"
+                            />
+                          </G>
+                          <Defs>
+                            <ClipPath id="clip0_favorites">
+                              <Rect width="24" height="24" fill="white" />
+                            </ClipPath>
+                          </Defs>
+                        </Svg>
+                      </View>
+                      <Text style={styles.featureTitle}>Unlimited Saves</Text>
+                      <Text style={styles.featureDescription}>
+                        Save as many favorite questions as you want
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.featureTitle}>Party Mode</Text>
-                  <Text style={styles.featureDescription}>
-                    Unlock the ultimate party game experience
-                  </Text>
-                </View>
-              </View>
 
-              {/* Extended Library */}
-              <View style={styles.featureCard}>
-                <View style={styles.featureCardGlass}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                    style={styles.featureCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={styles.featureIconContainer}>
-                    <MoreQuestionsIcon size={28} color="#fff" />
+                  {/* Extended Library */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <MoreQuestionsIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>10,000+ Questions</Text>
+                      <Text style={styles.featureDescription}>
+                        Massive collection to choose your favorites from
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.featureTitle}>10,000+ Questions</Text>
-                  <Text style={styles.featureDescription}>
-                    Massive collection of conversation starters
-                  </Text>
-                </View>
-              </View>
 
-              {/* Exclusive Categories */}
-              <View style={styles.featureCard}>
-                <View style={styles.featureCardGlass}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                    style={styles.featureCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={styles.featureIconContainer}>
-                    <ExclusiveCategoriesIcon size={28} color="#fff" />
+                  {/* Party Mode Access */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <PartyModeIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>Party Mode</Text>
+                      <Text style={styles.featureDescription}>
+                        Unlock the ultimate party game experience
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.featureTitle}>Premium Topics</Text>
-                  <Text style={styles.featureDescription}>
-                    Exclusive categories and specialized themes
-                  </Text>
-                </View>
-              </View>
 
-              {/* Custom Questions */}
-              <View style={styles.featureCard}>
-                <View style={styles.featureCardGlass}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                    style={styles.featureCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={styles.featureIconContainer}>
-                    <CustomQuestionsIcon size={28} color="#fff" />
+                  {/* Custom Categories */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <ExclusiveCategoriesIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>Premium Topics</Text>
+                      <Text style={styles.featureDescription}>
+                        Exclusive categories to save from
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.featureTitle}>Custom Questions</Text>
-                  <Text style={styles.featureDescription}>
-                    Create and save your own questions
-                  </Text>
-                </View>
-              </View>
+                </>
+              ) : (
+                <>
+                  {/* Party Mode Access */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <PartyModeIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>Party Mode</Text>
+                      <Text style={styles.featureDescription}>
+                        Unlock the ultimate party game experience
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Extended Library */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <MoreQuestionsIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>10,000+ Questions</Text>
+                      <Text style={styles.featureDescription}>
+                        Massive collection of conversation starters
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Exclusive Categories */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <ExclusiveCategoriesIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>Premium Topics</Text>
+                      <Text style={styles.featureDescription}>
+                        Exclusive categories and specialized themes
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Custom Questions */}
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureCardGlass}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
+                        style={styles.featureCardGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                      <View style={styles.featureIconContainer}>
+                        <CustomQuestionsIcon size={28} color="#fff" />
+                      </View>
+                      <Text style={styles.featureTitle}>Custom Questions</Text>
+                      <Text style={styles.featureDescription}>
+                        Create and save your own conversation starters
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </View>
 
@@ -625,7 +760,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   featureTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#fff',
     marginBottom: 6,
@@ -634,7 +769,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-    lineHeight: 18,
+    lineHeight: 20,
+    flexWrap: 'wrap',
+    numberOfLines: 2,
   },
   featureDescription: {
     fontSize: 12,
@@ -837,6 +974,33 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backdropFilter: 'blur(5px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  pricingTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 20,
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  heartIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     backdropFilter: 'blur(10px)',
     borderWidth: 1,
@@ -849,16 +1013,44 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  pricingTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 20,
-    letterSpacing: -0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+  innerCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(10px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  innerCircleGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backdropFilter: 'blur(5px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
 
