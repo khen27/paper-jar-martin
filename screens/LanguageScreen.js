@@ -16,31 +16,27 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 
 const { width } = Dimensions.get('window');
-const COLUMN_GAP = 16;
-const CARD_MARGIN = 8;
-const NUM_COLUMNS = 2;
-const MIN_CARD_WIDTH = 150;
-const MAX_CARD_WIDTH = 180;
 
-const CARD_WIDTH = Math.min(
-  MAX_CARD_WIDTH,
-  Math.max(
-    MIN_CARD_WIDTH,
-    (width - (COLUMN_GAP + CARD_MARGIN * 4)) / NUM_COLUMNS
-  )
-);
+// Vertical stack layout constants for 2-language beta
+const CARD_HEIGHT = 80;
+const CARD_GAP = 32;
+const CARD_HORIZONTAL_MARGIN = 24;
+const FLAG_SIZE = 45;
 
 const LANGUAGES = [
   { code: 'cs', label: 'Čeština' },
   { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文' },
-  { code: 'hi', label: 'हिंदी' },
-  { code: 'es', label: 'Español' },
-  { code: 'fr', label: 'Français' },
-  { code: 'pt', label: 'Português' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'ur', label: 'اردو' },
-  { code: 'bn', label: 'বাংলা' },
+  
+  // === COMMENTED OUT FOR BETA TESTING - RESTORE LATER ===
+  // { code: 'zh', label: '中文' },
+  // { code: 'hi', label: 'हिंदी' },
+  // { code: 'es', label: 'Español' },
+  // { code: 'fr', label: 'Français' },
+  // { code: 'pt', label: 'Português' },
+  // { code: 'ru', label: 'Русский' },
+  // { code: 'ur', label: 'اردو' },
+  // { code: 'bn', label: 'বাংলা' },
+  // === END COMMENTED SECTION ===
 ];
 
 const LanguageScreen = ({ navigation }) => {
@@ -90,49 +86,46 @@ const LanguageScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Language Grid */}
-          <View style={styles.gridContainer}>
-            <View style={styles.grid}>
-              {LANGUAGES.map((lang) => (
-                <View key={lang.code} style={styles.cardWrapper}>
-                  <TouchableOpacity
-                    style={[
-                      styles.card,
-                      isLoading && styles.cardDisabled
-                    ]}
-                    onPress={() => handleLanguageSelect(lang.code)}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    {/* Glass morphism background */}
-                    <View style={styles.cardGlass}>
-                      {language === lang.code && (
-                        <LinearGradient
-                          colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
-                          style={styles.cardGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                        />
-                      )}
-                      <View style={styles.flagContainer}>
-                        <LanguageFlags code={lang.code} size={40} />
-                      </View>
-                      <Text style={[
-                        styles.language,
-                        language === lang.code && styles.languageActive
-                      ]}>
-                        {lang.label}
-                      </Text>
-                      {language === lang.code && (
-                        <View style={styles.selectedIndicator}>
-                          <Text style={styles.selectedText}>✓</Text>
-                        </View>
-                      )}
+          {/* Language Selection - Vertical Stack */}
+          <View style={styles.languageContainer}>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageCard,
+                  isLoading && styles.cardDisabled
+                ]}
+                onPress={() => handleLanguageSelect(lang.code)}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                {/* Glass morphism background */}
+                <View style={styles.cardGlass}>
+                  {language === lang.code && (
+                    <LinearGradient
+                      colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                      style={styles.cardGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                  )}
+                  <View style={styles.flagContainer}>
+                    <LanguageFlags code={lang.code} size={FLAG_SIZE} />
+                  </View>
+                  <Text style={[
+                    styles.language,
+                    language === lang.code && styles.languageActive
+                  ]}>
+                    {lang.label}
+                  </Text>
+                  {language === lang.code && (
+                    <View style={styles.selectedIndicator}>
+                      <Text style={styles.selectedText}>✓</Text>
                     </View>
-                  </TouchableOpacity>
+                  )}
                 </View>
-              ))}
-            </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -203,29 +196,32 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.2,
   },
-  gridContainer: {
-    paddingHorizontal: CARD_MARGIN * 2,
+  languageContainer: {
+    paddingHorizontal: CARD_HORIZONTAL_MARGIN,
+    paddingTop: 40,
+    paddingBottom: 60,
+    alignItems: 'center',
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  cardWrapper: {
-    width: CARD_WIDTH,
-    padding: CARD_MARGIN,
-  },
-  card: {
+  languageCard: {
     width: '100%',
+    height: CARD_HEIGHT,
+    marginBottom: CARD_GAP,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   cardGlass: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     backdropFilter: 'blur(20px)',
     borderRadius: 20,
     padding: 20,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#000',
@@ -233,7 +229,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 12,
-    minHeight: 120,
+    height: '100%',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -248,12 +244,12 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   flagContainer: {
-    marginBottom: 12,
+    marginRight: 16,
     alignItems: 'center',
   },
   language: {
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
+    textAlign: 'left',
     color: '#fff',
     fontWeight: '600',
     letterSpacing: 0.1,
@@ -261,11 +257,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
+    flex: 1,
   },
   languageActive: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 17,
+    fontSize: 19,
   },
   selectedIndicator: {
     position: 'absolute',
