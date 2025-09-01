@@ -10,7 +10,7 @@ export function glassRecipe({ variant = "surface", size = "md" }: {variant?: Var
 
   const base = {
     borderRadius: radius,
-    padding,
+    padding: variant === "indicator" ? 0 : padding,
     borderWidth: tokens.border.width.hairline,
     borderColor: tokens.color.glass.border,
     backgroundColor: tokens.color.glass[variant],
@@ -22,7 +22,7 @@ export function glassRecipe({ variant = "surface", size = "md" }: {variant?: Var
   });
 
   return StyleSheet.create({
-    container: { overflow: "hidden", ...(elevation as object) },
+    container: { overflow: "hidden", borderRadius: radius, ...(elevation as object) },
     blur: StyleSheet.absoluteFillObject,
     overlay: base,
   });
