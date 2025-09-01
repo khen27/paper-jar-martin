@@ -1,0 +1,5 @@
+--- screens/LanguageScreen.js
++++ screens/LanguageScreen.js
+@@
+-      <Text style={styles.subtitle}>Choose your preferred language</Text>
++      <Text style={styles.subtitle}>This will change the app language.</Text>
