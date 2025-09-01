@@ -5,42 +5,38 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
-  Platform,
   ScrollView,
+  Pressable, // (kept in case you revert to grid later)
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackIcon from '../components/BackIcon';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
-
-// Vertical stack layout constants for 2-language beta
+// Vertical stack layout constants
 const CARD_HEIGHT = 80;
 const CARD_GAP = 32;
 const CARD_HORIZONTAL_MARGIN = 24;
 const FLAG_SIZE = 45;
 
 const LANGUAGES = [
-  { code: 'cs', label: 'Čeština' },
   { code: 'en', label: 'English' },
-  
-  // === COMMENTED OUT FOR BETA TESTING - RESTORE LATER ===
-  // { code: 'zh', label: '中文' },
-  // { code: 'hi', label: 'हिंदी' },
-  // { code: 'es', label: 'Español' },
-  // { code: 'fr', label: 'Français' },
-  // { code: 'pt', label: 'Português' },
-  // { code: 'ru', label: 'Русский' },
-  // { code: 'ur', label: 'اردو' },
-  // { code: 'bn', label: 'বাংলা' },
-  // === END COMMENTED SECTION ===
+  { code: 'cs', label: 'Čeština' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
+  { code: 'pt', label: 'Português' },
+  { code: 'hi', label: 'हिंदी' },
+  { code: 'zh', label: '中文' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'ur', label: 'اردو' },
+  { code: 'bn', label: 'বাংলা' },
 ];
 
 const LanguageScreen = ({ navigation }) => {
   const { language, setLanguage, isLoading } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   const handleLanguageSelect = async (code) => {
     await setLanguage(code);
@@ -56,8 +52,8 @@ const LanguageScreen = ({ navigation }) => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      
-      <SafeAreaView style={styles.safeArea}>
+
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -70,7 +66,7 @@ const LanguageScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -99,7 +95,6 @@ const LanguageScreen = ({ navigation }) => {
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
-                {/* Glass morphism background */}
                 <View style={styles.cardGlass}>
                   {language === lang.code && (
                     <LinearGradient
@@ -112,10 +107,12 @@ const LanguageScreen = ({ navigation }) => {
                   <View style={styles.flagContainer}>
                     <LanguageFlags code={lang.code} size={FLAG_SIZE} />
                   </View>
-                  <Text style={[
-                    styles.language,
-                    language === lang.code && styles.languageActive
-                  ]}>
+                  <Text
+                    style={[
+                      styles.language,
+                      language === lang.code && styles.languageActive
+                    ]}
+                  >
                     {lang.label}
                   </Text>
                   {language === lang.code && (
@@ -134,38 +131,19 @@ const LanguageScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   backgroundGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
   },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 40,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-  },
+  safeArea: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: 40 },
+  header: { paddingHorizontal: 16, paddingVertical: 8 },
+  backButton: { alignSelf: 'flex-start' },
   backButtonGlass: {
     padding: 12,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     shadowColor: '#000',
@@ -174,28 +152,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  titleSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-    marginTop: 20,
-  },
+  titleSection: { paddingHorizontal: 24, marginBottom: 32, marginTop: 20 },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    marginBottom: 8,
-    color: '#fff',
-    letterSpacing: -0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    fontSize: 36, fontWeight: '800', marginBottom: 8, color: '#fff',
+    letterSpacing: -0.5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3, shadowRadius: 4,
   },
   subtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '500',
-    letterSpacing: 0.2,
+    fontSize: 18, color: 'rgba(255, 255, 255, 0.8)', fontWeight: '500', letterSpacing: 0.2,
   },
+
+  // Vertical stack styles
   languageContainer: {
     paddingHorizontal: CARD_HORIZONTAL_MARGIN,
     paddingTop: 40,
@@ -215,9 +182,6 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   cardGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: 20,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -231,60 +195,25 @@ const styles = StyleSheet.create({
     elevation: 12,
     height: '100%',
     position: 'relative',
-    overflow: 'hidden',
   },
   cardGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
   },
-  cardDisabled: {
-    opacity: 0.5,
-  },
-  flagContainer: {
-    marginRight: 16,
-    alignItems: 'center',
-  },
+  cardDisabled: { opacity: 0.5 },
+  flagContainer: { marginRight: 16, alignItems: 'center' },
   language: {
-    fontSize: 18,
-    textAlign: 'left',
-    color: '#fff',
-    fontWeight: '600',
-    letterSpacing: 0.1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    fontSize: 18, textAlign: 'left', color: '#fff', fontWeight: '600', letterSpacing: 0.1,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2,
     flex: 1,
   },
-  languageActive: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 19,
-  },
+  languageActive: { color: '#fff', fontWeight: '700', fontSize: 19 },
   selectedIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4,
     elevation: 4,
   },
-  selectedText: {
-    color: '#667eea',
-    fontSize: 14,
-    fontWeight: '800',
-  },
+  selectedText: { color: '#667eea', fontSize: 14, fontWeight: '800' },
 });
 
-export default LanguageScreen; 
+export default LanguageScreen;
