@@ -17,6 +17,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import GlassCard from '../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { flags } from '../src/config/flags';
+import { GlassCard as NewGlassCard, GlassPressable, GlassIndicator } from '../src/components/glass';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -68,14 +70,24 @@ const LanguageScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <View style={styles.backButtonGlass}>
+          {flags.GLASS_V2_ENABLED ? (
+            <GlassPressable
+              onPress={() => navigation.goBack()}
+              size="sm"
+              style={styles.backButton}
+            >
               <BackIcon size={32} color="#fff" />
-            </View>
-          </TouchableOpacity>
+            </GlassPressable>
+          ) : (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <View style={styles.backButtonGlass}>
+                <BackIcon size={32} color="#fff" />
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView
@@ -99,41 +111,77 @@ const LanguageScreen = ({ navigation }) => {
             <View style={styles.grid}>
               {LANGUAGES.map((lang) => (
                 <View key={lang.code} style={styles.cardWrapper}>
-                  <Pressable
-                    style={({ pressed }) => ([
-                      styles.card,
-                      isLoading && styles.cardDisabled,
-                      Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
-                    ])}
-                    android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
-                    onPress={() => handleLanguageSelect(lang.code)}
-                    disabled={isLoading}
-                  >
-                    <GlassCard style={styles.cardGlass}>
-                      {language === lang.code && (
-                        <LinearGradient
-                          colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
-                          style={styles.cardGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                        />
-                      )}
-                      <View style={styles.flagContainer}>
-                        <LanguageFlags code={lang.code} size={40} />
-                      </View>
-                      <Text style={[
-                        styles.language,
-                        language === lang.code && styles.languageActive
-                      ]}>
-                        {lang.label}
-                      </Text>
-                      {language === lang.code && (
-                        <View style={styles.selectedIndicator}>
-                          <Text style={styles.selectedText}>✓</Text>
+                  {flags.GLASS_V2_ENABLED ? (
+                    <Pressable
+                      style={({ pressed }) => ([
+                        styles.card,
+                        isLoading && styles.cardDisabled,
+                        Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
+                      ])}
+                      android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
+                      onPress={() => handleLanguageSelect(lang.code)}
+                      disabled={isLoading}
+                    >
+                      <NewGlassCard variant="raised" size="lg" style={styles.cardGlass}>
+                        {language === lang.code && (
+                          <LinearGradient
+                            colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                            style={styles.cardGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                          />
+                        )}
+                        <View style={styles.flagContainer}>
+                          <LanguageFlags code={lang.code} size={40} />
                         </View>
-                      )}
-                    </GlassCard>
-                  </Pressable>
+                        <Text style={[
+                          styles.language,
+                          language === lang.code && styles.languageActive
+                        ]}>
+                          {lang.label}
+                        </Text>
+                        {language === lang.code && (
+                          <GlassIndicator active />
+                        )}
+                      </NewGlassCard>
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      style={({ pressed }) => ([
+                        styles.card,
+                        isLoading && styles.cardDisabled,
+                        Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
+                      ])}
+                      android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
+                      onPress={() => handleLanguageSelect(lang.code)}
+                      disabled={isLoading}
+                    >
+                      <GlassCard style={styles.cardGlass}>
+                        {language === lang.code && (
+                          <LinearGradient
+                            colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                            style={styles.cardGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                          />
+                        )}
+                        <View style={styles.flagContainer}>
+                          <LanguageFlags code={lang.code} size={40} />
+                        </View>
+                        <Text style={[
+                          styles.language,
+                          language === lang.code && styles.languageActive
+                        ]}>
+                          {lang.label}
+                        </Text>
+                        {language === lang.code && (
+                          <View style={styles.selectedIndicator}>
+                            <Text style={styles.selectedText}>✓</Text>
+                          </View>
+                        )}
+                      </GlassCard>
+                    </Pressable>
+                  )}
                 </View>
               ))}
             </View>
