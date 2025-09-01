@@ -8,12 +8,15 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackIcon from '../components/BackIcon';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
+import GlassCard from '../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -31,13 +34,13 @@ const CARD_WIDTH = Math.min(
 );
 
 const LANGUAGES = [
-  { code: 'cs', label: 'Čeština' },
   { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文' },
-  { code: 'hi', label: 'हिंदी' },
+  { code: 'cs', label: 'Čeština' },
   { code: 'es', label: 'Español' },
   { code: 'fr', label: 'Français' },
   { code: 'pt', label: 'Português' },
+  { code: 'hi', label: 'हिंदी' },
+  { code: 'zh', label: '中文' },
   { code: 'ru', label: 'Русский' },
   { code: 'ur', label: 'اردو' },
   { code: 'bn', label: 'বাংলা' },
@@ -45,6 +48,7 @@ const LANGUAGES = [
 
 const LanguageScreen = ({ navigation }) => {
   const { language, setLanguage, isLoading } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   const handleLanguageSelect = async (code) => {
     await setLanguage(code);
@@ -61,7 +65,7 @@ const LanguageScreen = ({ navigation }) => {
         end={{ x: 1, y: 1 }}
       />
       
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -95,17 +99,17 @@ const LanguageScreen = ({ navigation }) => {
             <View style={styles.grid}>
               {LANGUAGES.map((lang) => (
                 <View key={lang.code} style={styles.cardWrapper}>
-                  <TouchableOpacity
-                    style={[
+                  <Pressable
+                    style={({ pressed }) => ([
                       styles.card,
-                      isLoading && styles.cardDisabled
-                    ]}
+                      isLoading && styles.cardDisabled,
+                      Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
+                    ])}
+                    android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
                     onPress={() => handleLanguageSelect(lang.code)}
                     disabled={isLoading}
-                    activeOpacity={0.8}
                   >
-                    {/* Glass morphism background */}
-                    <View style={styles.cardGlass}>
+                    <GlassCard style={styles.cardGlass}>
                       {language === lang.code && (
                         <LinearGradient
                           colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
@@ -128,8 +132,8 @@ const LanguageScreen = ({ navigation }) => {
                           <Text style={styles.selectedText}>✓</Text>
                         </View>
                       )}
-                    </View>
-                  </TouchableOpacity>
+                    </GlassCard>
+                  </Pressable>
                 </View>
               ))}
             </View>
@@ -172,7 +176,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     shadowColor: '#000',
@@ -220,23 +223,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cardGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: 20,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 12,
     minHeight: 120,
     position: 'relative',
-    overflow: 'hidden',
   },
+
   cardGradient: {
     position: 'absolute',
     left: 0,
