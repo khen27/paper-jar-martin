@@ -11,6 +11,16 @@
           "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
           "NODE_ENV": "production"
         }
+      },
+      "preview-ios-tf": {
+        "node": "18.20.3",
+        "distribution": "store",        // needed for TestFlight
+        "developmentClient": false,
+        "ios": { "simulator": false },
+        "env": {
+          "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+          "NODE_ENV": "production"
+        }
       }
     }
   }
