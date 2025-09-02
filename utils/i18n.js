@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+const datasetLocales = require('../content/locales');
 
 export const SUPPORTED_LANGS = ['cs','en','zh','hi','es','fr','pt','ru','ur','bn'];
 
@@ -11,6 +12,14 @@ export const stripTags = (s) =>
     .replace(/\s*\(\d+\)[\?\.\!]?$/, '')
     .trim();
 
+const normalizeBase = (s) =>
+  (s || '')
+    .replace(/^\s*\[[A-Z]{2}\]\s*/, '')
+    .replace(/\s*\(\d+\)/g, '')
+    .replace(/\s+([\?\.!:,;])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 export function getLocalizedText(obj, lang) {
   if (!obj || typeof obj !== 'object') return '';
   const primary = obj[lang];
@@ -20,7 +29,14 @@ export function getLocalizedText(obj, lang) {
   if (en && !isTaggedPlaceholder(en)) return stripTags(en);
 
   const cs = obj.cs;
-  if (cs) return stripTags(cs);
+  if (cs) {
+    // Try overlay for target lang when only cs is real
+    const base = stripTags(cs);
+    const norm = normalizeBase(cs);
+    const overlay = datasetLocales?.[lang]?.[base] || datasetLocales?.[lang]?.[norm];
+    if (overlay && overlay.trim()) return overlay.trim();
+    return base;
+  }
 
   const firstReal = Object.values(obj).find((v) => v && !isTaggedPlaceholder(v));
   return stripTags(firstReal || Object.values(obj)[0] || '');
