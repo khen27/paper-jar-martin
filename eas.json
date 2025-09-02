@@ -5,7 +5,7 @@
         "node": "18.20.3",
         "distribution": "internal",
         "developmentClient": false,
-        "ios": { "simulator": false },
+        "ios": { "simulator": false, "autoIncrement": true },
         "android": { "buildType": "apk" },
         "env": {
           "NPM_CONFIG_LEGACY_PEER_DEPS": "true",

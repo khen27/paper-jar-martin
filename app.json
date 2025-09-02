@@ -14,6 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "2",
       "bundleIdentifier": "cz.mpap.jarwpapers",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
