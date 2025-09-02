@@ -2,6 +2,8 @@
  * Global Design Tokens for Paper Jar / OtázoJar
  * Clean, modern design system without glass effects
  */
+import { Platform } from 'react-native';
+const isAndroid = Platform.OS === 'android';
 
 export const tokens = {
   // Color palette
@@ -99,29 +101,29 @@ export const tokens = {
     full: 9999,
   },
   
-  // Shadows (no blur, clean elevation)
+  // Shadows (platform-tuned)
   shadows: {
     none: {},
     sm: {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      shadowOpacity: isAndroid ? 0.06 : 0.1,
+      shadowRadius: isAndroid ? 1 : 2,
+      elevation: isAndroid ? 1 : 2,
     },
     md: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
-      elevation: 4,
+      shadowOffset: { width: 0, height: isAndroid ? 1 : 2 },
+      shadowOpacity: isAndroid ? 0.08 : 0.15,
+      shadowRadius: isAndroid ? 2 : 4,
+      elevation: isAndroid ? 2 : 4,
     },
     lg: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 8,
+      shadowOffset: { width: 0, height: isAndroid ? 2 : 4 },
+      shadowOpacity: isAndroid ? 0.1 : 0.2,
+      shadowRadius: isAndroid ? 4 : 8,
+      elevation: isAndroid ? 3 : 8,
     },
   },
   

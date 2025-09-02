@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 1,
   },
   
   // Variants

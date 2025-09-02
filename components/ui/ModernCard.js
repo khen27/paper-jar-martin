@@ -31,7 +31,7 @@ const ModernCard = ({
 const styles = StyleSheet.create({
   base: {
     borderRadius: tokens.radius.xl,
-    borderWidth: 2,
+    borderWidth: 1,
     backgroundColor: tokens.colors.surface.light,
     borderColor: tokens.colors.border.light,
   },

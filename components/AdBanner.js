@@ -133,7 +133,8 @@ const styles = StyleSheet.create({
   adCard: {
     width: width - (tokens.spacing.xl * 2),
     height: BANNER_HEIGHT,
-    ...tokens.shadows.lg,
+    ...tokens.shadows.md,
+    borderWidth: 1,
   },
   bottomAdContent: {
     flex: 1,
@@ -168,9 +169,6 @@ const styles = StyleSheet.create({
     color: tokens.colors.text.primary,
     letterSpacing: 0.3,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   ctaButton: {
     paddingVertical: tokens.spacing.sm,
