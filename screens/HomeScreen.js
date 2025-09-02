@@ -842,19 +842,19 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(255, 107, 107, 0.3)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 107, 107, 0.6)',
+    backgroundColor: 'rgba(255, 99, 132, 0.4)',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 99, 132, 0.8)',
   },
   friendIconBg: {
-    backgroundColor: 'rgba(255, 206, 84, 0.3)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 206, 84, 0.6)',
+    backgroundColor: 'rgba(54, 162, 235, 0.4)',
+    borderWidth: 3,
+    borderColor: 'rgba(54, 162, 235, 0.8)',
   },
   partyIconBg: {
-    backgroundColor: 'rgba(138, 43, 226, 0.3)',
-    borderWidth: 2,
-    borderColor: 'rgba(138, 43, 226, 0.6)',
+    backgroundColor: 'rgba(153, 102, 255, 0.4)',
+    borderWidth: 3,
+    borderColor: 'rgba(153, 102, 255, 0.8)',
   },
   textContainer: {
     flex: 1,
@@ -999,19 +999,19 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   partnerIconBgRefresh: {
-    backgroundColor: 'rgba(255, 107, 107, 0.4)', // Coral red background
-    borderWidth: 2,
-    borderColor: 'rgba(255, 107, 107, 0.7)',
+    backgroundColor: 'rgba(255, 99, 132, 0.5)', // Pink/red from jar
+    borderWidth: 3,
+    borderColor: 'rgba(255, 99, 132, 0.9)',
   },
   friendIconBgRefresh: {
-    backgroundColor: 'rgba(255, 206, 84, 0.4)', // Golden yellow background
-    borderWidth: 2,
-    borderColor: 'rgba(255, 206, 84, 0.7)',
+    backgroundColor: 'rgba(54, 162, 235, 0.5)', // Blue from jar
+    borderWidth: 3,
+    borderColor: 'rgba(54, 162, 235, 0.9)',
   },
   partyIconBgRefresh: {
-    backgroundColor: 'rgba(138, 43, 226, 0.4)', // Purple background
-    borderWidth: 2,
-    borderColor: 'rgba(138, 43, 226, 0.7)',
+    backgroundColor: 'rgba(153, 102, 255, 0.5)', // Purple from jar
+    borderWidth: 3,
+    borderColor: 'rgba(153, 102, 255, 0.9)',
   },
   textContainerRefresh: {
     flex: 1,
