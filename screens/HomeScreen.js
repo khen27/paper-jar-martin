@@ -602,35 +602,37 @@ const HomeScreen = ({ navigation }) => {
                 </Animated.View>
               </TouchableOpacity>
 
-              {/* Friend Mode - Duplicate */}
-              <TouchableOpacity
-                onPressIn={() => onGameModePressIn('friend')}
-                onPress={() => handleGameModeSelect('friend')}
-                onPressOut={() => onGameModePressOut('friend')}
-                activeOpacity={0.8}
-              >
-                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
-                  <ModernCard
-                    variant="surface"
-                    size="lg"
-                    style={styles.modernGameModeCard}
-                  >
-                    <View style={styles.modernButtonInner}>
-                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
-                        <BrnoIcon size={tokens.components.icon.lg} />
+              {/* Brno vs. Prague - Only for Czech locale */}
+              {language === 'cs' && (
+                <TouchableOpacity
+                  onPressIn={() => onGameModePressIn('brnoPrague')}
+                  onPress={() => handleGameModeSelect('brnoPrague')}
+                  onPressOut={() => onGameModePressOut('brnoPrague')}
+                  activeOpacity={0.8}
+                >
+                  <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                    <ModernCard
+                      variant="surface"
+                      size="lg"
+                      style={styles.modernGameModeCard}
+                    >
+                      <View style={styles.modernButtonInner}>
+                        <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                          <BrnoIcon size={tokens.components.icon.lg} />
+                        </View>
+                        <View style={styles.modernTextContainer}>
+                          <Text style={styles.modernGameModeText}>
+                            Brno vs. Prague
+                          </Text>
+                          <Text style={styles.modernGameModeSubtext}>
+                            Které město je nejlepší?
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.modernTextContainer}>
-                        <Text style={styles.modernGameModeText}>
-                          Brno vs. Prague
-                        </Text>
-                        <Text style={styles.modernGameModeSubtext}>
-                          Which city is the best?
-                        </Text>
-                      </View>
-                    </View>
-                  </ModernCard>
-                </Animated.View>
-              </TouchableOpacity>
+                    </ModernCard>
+                  </Animated.View>
+                </TouchableOpacity>
+              )}
 
               {/* Party Mode - Commented Out */}
               {/*
