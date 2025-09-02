@@ -6,6 +6,7 @@
   "scripts": {
     "start": "expo start",
     "validate:data": "node scripts/validateDataset.js",
+    "validate:full": "node scripts/validate-full-dataset.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"

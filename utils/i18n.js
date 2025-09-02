@@ -26,11 +26,21 @@ export function getLocalizedText(obj, lang) {
   return stripTags(firstReal || Object.values(obj)[0] || '');
 }
 
+// Strict i18n: require the exact language to be present with non-empty string
+export function requireText(obj, lang) {
+  const value = obj?.[lang];
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`[i18n] Missing translation for "${lang}" in: ${JSON.stringify(obj)}`);
+  }
+  return value.trim();
+}
+
 export default {
   SUPPORTED_LANGS,
   isTaggedPlaceholder,
   stripTags,
   getLocalizedText,
+  requireText,
 };
 
 
