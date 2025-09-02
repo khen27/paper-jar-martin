@@ -46,6 +46,7 @@ const ColorScreen = ({ navigation }) => {
           styles.colorCard,
           { width: CARD_WIDTH },
           isSelected && styles.selectedCard,
+          isSelected && { borderColor: theme.colors[0], borderWidth: 3 },
         ]}
         onPress={() => handleThemeSelect(theme.id)}
         activeOpacity={0.8}
@@ -71,7 +72,15 @@ const ColorScreen = ({ navigation }) => {
           <ModernSelectionIndicator 
             active={isSelected} 
             size="md"
-            style={styles.selectionIndicator}
+            style={[
+              styles.selectionIndicator,
+              isSelected && { 
+                backgroundColor: theme.colors[0],
+                borderColor: theme.colors[1],
+                borderWidth: 2,
+              }
+            ]}
+            iconColor={isSelected ? '#ffffff' : undefined}
           />
         </ModernCard>
       </TouchableOpacity>
@@ -176,9 +185,17 @@ const styles = StyleSheet.create({
   },
   colorCard: {
     marginBottom: tokens.spacing.lg,
+    borderRadius: tokens.radius.lg,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   selectedCard: {
     transform: [{ scale: 1.05 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   cardContent: {
     padding: tokens.spacing.md,
