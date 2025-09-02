@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,8 +10,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { tokens } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -28,94 +28,16 @@ const CARD_WIDTH = Math.min(
   )
 );
 
-const COLOR_THEMES = [
-  {
-    id: 'sunset-orange',
-    name: 'Sunset Orange',
-    description: 'Coral to soft pink',
-    colors: ['#FF6B6B', '#FF8E8E'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  {
-    id: 'ocean-blue',
-    name: 'Ocean Blue',
-    description: 'Turquoise to deep teal',
-    colors: ['#4ECDC4', '#44A08D'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  {
-    id: 'forest-green',
-    name: 'Forest Green',
-    description: 'Olive to mint green',
-    colors: ['#56AB2F', '#A8E6CF'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  {
-    id: 'royal-purple',
-    name: 'Royal Purple',
-    description: 'Light purple to deep purple',
-    colors: ['#667eea', '#764ba2'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  {
-    id: 'warm-sunset',
-    name: 'Warm Sunset',
-    description: 'Peach to lavender',
-    colors: ['#FF9A9E', '#FECFEF'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-  {
-    id: 'deep-blue',
-    name: 'Deep Blue',
-    description: 'Dark blue to bright blue',
-    colors: ['#2C3E50', '#3498DB'],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  },
-];
-
 const ColorScreen = ({ navigation }) => {
-  const [selectedTheme, setSelectedTheme] = useState('sunset-orange');
+  const { currentTheme, allThemes, changeTheme, getCurrentGradient } = useTheme();
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    loadSelectedTheme();
-  }, []);
-
-  const loadSelectedTheme = async () => {
-    try {
-      const savedTheme = await AsyncStorage.getItem('selectedColorTheme');
-      if (savedTheme) {
-        setSelectedTheme(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error loading selected theme:', error);
-    }
-  };
-
   const handleThemeSelect = async (themeId) => {
-    try {
-      setSelectedTheme(themeId);
-      await AsyncStorage.setItem('selectedColorTheme', themeId);
-      
-      // Update the global gradient in tokens
-      const selectedThemeData = COLOR_THEMES.find(theme => theme.id === themeId);
-      if (selectedThemeData) {
-        // This would need to be implemented to update the global theme
-        console.log('Selected theme:', selectedThemeData);
-      }
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
+    await changeTheme(themeId);
   };
 
   const renderColorCard = (theme) => {
-    const isSelected = selectedTheme === theme.id;
+    const isSelected = currentTheme.id === theme.id;
     
     return (
       <TouchableOpacity
@@ -158,10 +80,10 @@ const ColorScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Background Gradient */}
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={getCurrentGradient().colors}
         style={styles.backgroundGradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
       />
       
       <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
@@ -187,7 +109,7 @@ const ColorScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.colorGrid}>
-            {COLOR_THEMES.map(renderColorCard)}
+            {allThemes.map(renderColorCard)}
           </View>
         </ScrollView>
       </SafeAreaView>

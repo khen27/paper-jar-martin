@@ -16,7 +16,8 @@ import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
 import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
+import { tokens } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ const OTAZO_JAR_REFRESH_ENABLED = true;
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
+  const { getCurrentGradient } = useTheme();
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -409,10 +411,10 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={getCurrentGradient().colors}
         style={styles.backgroundGradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
