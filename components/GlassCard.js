@@ -1,3 +1,4 @@
+/*
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -22,8 +23,7 @@ const GlassCard = ({ children, style }) => {
 
 export const AndroidGlassOverlay = () => (
   <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-    {/* Gradient overlay will be added by parent if needed via expo-linear-gradient to avoid extra dep here */}
-  </View>
+   </View>
 );
 
 const styles = StyleSheet.create({
@@ -49,5 +49,6 @@ const styles = StyleSheet.create({
 });
 
 export default GlassCard;
+*/
 
 

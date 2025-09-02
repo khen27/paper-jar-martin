@@ -18,7 +18,7 @@ import { translations } from '../translations';
 import { dataset } from '../full_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
-import AdBanner, { BANNER_HEIGHT } from '../components/AdBanner';
+
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -352,13 +352,7 @@ const GameScreen = ({ route, navigation }) => {
     }, 2000);
   };
 
-  const handleAdPress = (adData) => {
-    logAction('AD_BANNER_CLICKED', { 
-      adId: adData.id, 
-      headline: adData.headline 
-    });
-    showToastNotification(`Fake ad clicked: ${adData.headline}`);
-  };
+
 
   // Initialize first question only once when component mounts
   useEffect(() => {
@@ -426,7 +420,7 @@ const GameScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: BANNER_HEIGHT + 70 }]}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 70 }]}>
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -546,8 +540,7 @@ const GameScreen = ({ route, navigation }) => {
           )}
         </ScrollView>
 
-        {/* Premium Ad Banner */}
-        <AdBanner onPress={handleAdPress} />
+        
       </SafeAreaView>
     </View>
   );
@@ -647,9 +640,9 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'android'
       ? {}
       : {
-          textShadowColor: 'rgba(0, 0, 0, 0.3)',
-          textShadowOffset: { width: 0, height: 2 },
-          textShadowRadius: 4,
+         // textShadowColor: 'rgba(0, 0, 0, 0.3)',
+         // textShadowOffset: { width: 0, height: 2 },
+         // textShadowRadius: 4,
         }),
   },
   actionButtons: {
@@ -803,14 +796,14 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 0,
-    ...tokens.shadows.md,
+    //...tokens.shadows.md,
   },
   modernMainButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 0,
-    ...tokens.shadows.lg,
+   // ...tokens.shadows.lg,
   },
   activeActionButton: {
     backgroundColor: tokens.colors.surface.strong,
@@ -842,7 +835,7 @@ const styles = StyleSheet.create({
   questionCard: {
     borderWidth: 0,
     padding: tokens.spacing['2xl'],
-    ...tokens.shadows.lg,
+   // ...tokens.shadows.lg,
   },
 });
 

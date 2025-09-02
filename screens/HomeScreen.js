@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
-import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon } from '../components/GameModeIcons';
+import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }) => {
   const partnerButtonScale = useRef(new Animated.Value(1)).current;
   const friendButtonScale = useRef(new Animated.Value(1)).current;
   const partyButtonScale = useRef(new Animated.Value(1)).current;
+  const brnoButtonScale = useRef(new Animated.Value(1)).current;
   
   // Refs for animation control
   const typingTimeoutRef = useRef(null);
@@ -121,7 +122,8 @@ const HomeScreen = ({ navigation }) => {
     
     // Scale animation for button press
     const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                     mode === 'friend' ? friendButtonScale : partyButtonScale;
+                     mode === 'friend' ? friendButtonScale : 
+                     mode === 'party' ? partyButtonScale : brnoButtonScale;
     
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -143,12 +145,12 @@ const HomeScreen = ({ navigation }) => {
         logAction('PARTY_MODE_PAYWALL_TRIGGERED', { mode });
         navigation.navigate('Upgrade');
       } else {
-        // Partner and Friend modes are free
+        // Partner, Friend, and Brno modes are free
         logAction('NAVIGATING_TO_GAME', { gameMode: mode });
         navigation.navigate('Game', { gameMode: mode });
       }
     });
-  }, [logAction, navigation, partnerButtonScale, friendButtonScale, partyButtonScale]);
+  }, [logAction, navigation, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
 
   // Cursor blink animation
   useEffect(() => {
@@ -376,7 +378,8 @@ const HomeScreen = ({ navigation }) => {
     if (OTAZO_JAR_REFRESH_ENABLED) {
       // New feedback: 1.02x scale + elevated shadow
       const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : partyButtonScale;
+                       mode === 'friend' ? friendButtonScale : 
+                       mode === 'party' ? partyButtonScale : brnoButtonScale;
       
       Animated.spring(scaleAnim, {
         toValue: 1.02, // Spec: 1.02x scale
@@ -390,7 +393,8 @@ const HomeScreen = ({ navigation }) => {
   const onGameModePressOut = useCallback((mode) => {
     if (OTAZO_JAR_REFRESH_ENABLED) {
       const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : partyButtonScale;
+                       mode === 'friend' ? friendButtonScale : 
+                       mode === 'party' ? partyButtonScale : brnoButtonScale;
       
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -445,14 +449,14 @@ const HomeScreen = ({ navigation }) => {
             accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
           >
             <HeartIcon size={tokens.components.icon.md} color="#fff" />
-            {favoritesCount > 0 && (
-              <View style={styles.favoritesBadge}>
-                <Text style={styles.favoritesBadgeText}>
-                  {favoritesCount > 99 ? '99+' : favoritesCount}
-                </Text>
-              </View>
-            )}
           </ModernButton>
+          {favoritesCount > 0 && (
+            <View style={styles.favoritesBadge}>
+              <Text style={styles.favoritesBadgeText}>
+                {favoritesCount > 99 ? '99+' : favoritesCount}
+              </Text>
+            </View>
+          )}
         </View>
 
         <ScrollView 
@@ -573,7 +577,38 @@ const HomeScreen = ({ navigation }) => {
                 </Animated.View>
               </TouchableOpacity>
 
-              {/* Party Mode */}
+              {/* Friend Mode - Duplicate */}
+              <TouchableOpacity
+                onPressIn={() => onGameModePressIn('friend')}
+                onPress={() => handleGameModeSelect('friend')}
+                onPressOut={() => onGameModePressOut('friend')}
+                activeOpacity={0.8}
+              >
+                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                        <BrnoIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          Brno vs. Prague
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          Which city is the best?
+                        </Text>
+                      </View>
+                    </View>
+                  </ModernCard>
+                </Animated.View>
+              </TouchableOpacity>
+
+              {/* Party Mode - Commented Out */}
+              {/*
               <TouchableOpacity
                 onPressIn={() => onGameModePressIn('party')}
                 onPress={() => handleGameModeSelect('party')}
@@ -602,6 +637,7 @@ const HomeScreen = ({ navigation }) => {
                   </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
+              */}
             </View>
           </View>
 
@@ -672,21 +708,22 @@ const styles = StyleSheet.create({
   },
   favoritesBadge: {
     position: 'absolute',
-    top: -6,
-    right: -6,
+    top: -8,
+    right: -8,
     backgroundColor: '#ff4757',
     borderRadius: 12,
     minWidth: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 10,
+    zIndex: 999,
   },
   favoritesBadgeText: {
     color: '#fff',
@@ -805,19 +842,34 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(33, 150, 243, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(33, 150, 243, 0.3)',
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   friendIconBg: {
-    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(76, 175, 80, 0.3)',
+    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(59, 130, 246, 1)',
+    shadowColor: 'rgba(59, 130, 246, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   partyIconBg: {
-    backgroundColor: 'rgba(255, 152, 0, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 152, 0, 0.3)',
+    backgroundColor: 'rgba(168, 85, 247, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(168, 85, 247, 1)',
+    shadowColor: 'rgba(168, 85, 247, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   textContainer: {
     flex: 1,
@@ -962,19 +1014,34 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   partnerIconBgRefresh: {
-    backgroundColor: 'rgba(33, 150, 243, 0.3)', // More prominent blue background
-    borderWidth: 1.5,
-    borderColor: 'rgba(33, 150, 243, 0.4)',
+    backgroundColor: 'rgba(34, 197, 94, 0.7)', // Vibrant green
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.5)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 6,
   },
   friendIconBgRefresh: {
-    backgroundColor: 'rgba(76, 175, 80, 0.3)', // More prominent green background
-    borderWidth: 1.5,
-    borderColor: 'rgba(76, 175, 80, 0.4)',
+    backgroundColor: 'rgba(59, 130, 246, 0.7)', // Vibrant blue
+    borderWidth: 2,
+    borderColor: 'rgba(59, 130, 246, 1)',
+    shadowColor: 'rgba(59, 130, 246, 0.5)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 6,
   },
   partyIconBgRefresh: {
-    backgroundColor: 'rgba(255, 152, 0, 0.3)', // More prominent orange background
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 152, 0, 0.4)',
+    backgroundColor: 'rgba(168, 85, 247, 0.7)', // Vibrant purple
+    borderWidth: 2,
+    borderColor: 'rgba(168, 85, 247, 1)',
+    shadowColor: 'rgba(168, 85, 247, 0.5)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 6,
   },
   textContainerRefresh: {
     flex: 1,
@@ -1178,7 +1245,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   modernTextContainer: {
     flex: 1,
