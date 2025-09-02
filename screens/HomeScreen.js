@@ -438,7 +438,7 @@ const HomeScreen = ({ navigation }) => {
           </ModernButton>
         </Animated.View>
 
-        {/* Duplicate Language Button */}
+        {/* Color Theme Button */}
         <Animated.View 
           style={[
             styles.topButtonContainer,
@@ -450,14 +450,14 @@ const HomeScreen = ({ navigation }) => {
             variant="secondary"
             size="sm"
             onPress={() => {
-              logAction('LANGUAGE_NAVIGATION_DUPLICATE');
-              navigation.navigate('Language');
+              logAction('COLOR_NAVIGATION');
+              navigation.navigate('Color');
             }}
             style={styles.topButton}
             accessibilityRole="button"
-            accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
+            accessibilityHint="Choose app color theme"
           >
-            <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+            <Text style={styles.colorIcon}>🎨</Text>
           </ModernButton>
         </Animated.View>
 
@@ -1313,6 +1313,10 @@ const styles = StyleSheet.create({
   languageButtonDuplicate: {
     right: Math.max(20, width * 0.05),
     top: Math.max(110, height * 0.13), // Position beneath the first language button
+  },
+  colorIcon: {
+    fontSize: 24,
+    textAlign: 'center',
   },
 
 });

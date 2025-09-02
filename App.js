@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import GameScreen from './screens/GameScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import LanguageScreen from './screens/LanguageScreen';
+import ColorScreen from './screens/ColorScreen';
 import UpgradeScreen from './screens/UpgradeScreen';
 
 const Stack = createStackNavigator();
@@ -24,7 +25,14 @@ export default function App() {
               headerShown: false,
             }}
           />
-
+          <Stack.Screen
+            name="Color"
+            component={ColorScreen}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
           <Stack.Screen
             name="Upgrade"
             component={UpgradeScreen}
