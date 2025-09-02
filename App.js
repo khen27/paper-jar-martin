@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
 import React from 'react';
 import { View, Image, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
 import { useFonts } from 'expo-font';
