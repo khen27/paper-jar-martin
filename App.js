@@ -5,6 +5,8 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import HomeScreen from './screens/HomeScreen';
 import GameScreen from './screens/GameScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
+import LanguageScreen from './screens/LanguageScreen';
+import LanguageScreenV2 from './screens/LanguageScreenV2';
 import LanguageScreenV3 from './screens/LanguageScreenV3';
 import UpgradeScreen from './screens/UpgradeScreen';
 
@@ -18,6 +20,22 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen
             name="Language"
+            component={LanguageScreen}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="LanguageV2"
+            component={LanguageScreenV2}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="LanguageV3"
             component={LanguageScreenV3}
             options={{
               presentation: 'modal',
