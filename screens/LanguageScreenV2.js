@@ -8,9 +8,10 @@ import {
   Animated,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Card, Button } from '@rneui/themed';
 import { BlurView } from 'expo-blur';
 import LanguageFlags from '../components/LanguageFlags';
 import BackIcon from '../components/BackIcon';
@@ -84,45 +85,55 @@ const PremiumLanguageCard = ({ language, isSelected, onSelect, index }) => {
         },
       ]}
     >
-      <Card
-        containerStyle={[
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={0.9}
+        style={[
           styles.languageCard,
           isSelected && styles.selectedCard,
         ]}
-        wrapperStyle={styles.cardWrapper}
       >
-        <Button
-          onPress={handlePress}
-          buttonStyle={styles.cardButton}
-          titleStyle={{ opacity: 0 }}
-        >
-          <View style={styles.cardContent}>
-            {/* Flag */}
-            <View style={styles.flagContainer}>
-              <LanguageFlags code={language.code} size={50} />
-            </View>
-            
-            {/* Language Label */}
-            <Text style={[
-              styles.languageLabel,
-              isSelected && styles.selectedLabel
-            ]}>
-              {language.label}
-            </Text>
+        {/* Cross-platform Glass Background */}
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={15} tint="light" style={styles.cardBlur}>
+            <View style={styles.cardOverlay} />
+          </BlurView>
+        ) : (
+          <View style={styles.androidCardBackground} />
+        )}
 
-            {/* Selection Indicator */}
-            {isSelected && (
-              <View style={styles.selectionBadge}>
+        <View style={styles.cardContent}>
+          {/* Flag */}
+          <View style={styles.flagContainer}>
+            <LanguageFlags code={language.code} size={50} />
+          </View>
+          
+          {/* Language Label */}
+          <Text style={[
+            styles.languageLabel,
+            isSelected && styles.selectedLabel
+          ]}>
+            {language.label}
+          </Text>
+
+          {/* Selection Indicator */}
+          {isSelected && (
+            <View style={styles.selectionBadge}>
+              {Platform.OS === 'ios' ? (
                 <BlurView intensity={20} tint="light" style={styles.badgeBlur}>
                   <View style={styles.checkContainer}>
                     <Text style={styles.checkmark}>✓</Text>
                   </View>
                 </BlurView>
-              </View>
-            )}
-          </View>
-        </Button>
-      </Card>
+              ) : (
+                <View style={styles.androidBadge}>
+                  <Text style={styles.checkmark}>✓</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -197,11 +208,23 @@ const LanguageScreenV2 = ({ navigation }) => {
               }
             ]}
           >
-            <Button
+            <TouchableOpacity
               onPress={() => navigation.goBack()}
-              buttonStyle={styles.backButton}
-              icon={<BackIcon size={24} color="#fff" />}
-            />
+              style={styles.backButton}
+              activeOpacity={0.8}
+            >
+              {Platform.OS === 'ios' ? (
+                <BlurView intensity={15} tint="light" style={styles.backButtonBlur}>
+                  <View style={styles.backButtonContent}>
+                    <BackIcon size={24} color="#fff" />
+                  </View>
+                </BlurView>
+              ) : (
+                <View style={styles.androidBackButton}>
+                  <BackIcon size={24} color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Title Section */}
@@ -268,17 +291,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  backButtonBlur: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  backButtonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  androidBackButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titleSection: {
     paddingHorizontal: 24,
@@ -321,32 +363,49 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   languageCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 0,
-    margin: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+      },
+    }),
   },
   selectedCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowOpacity: 0.25,
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 0.25,
+      },
+      android: {
+        backgroundColor: 'rgba(255, 255, 255, 0.18)',
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+        elevation: 12,
+      },
+    }),
   },
-  cardWrapper: {
-    padding: 0,
-    margin: 0,
+  cardBlur: {
+    ...StyleSheet.absoluteFillObject,
   },
-  cardButton: {
-    backgroundColor: 'transparent',
-    padding: 0,
-    margin: 0,
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  androidCardBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   cardContent: {
     padding: 24,
@@ -394,6 +453,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  androidBadge: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
   },
   checkmark: {
     fontSize: 16,
