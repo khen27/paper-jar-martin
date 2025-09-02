@@ -23,12 +23,12 @@ import { HeartIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
-import { getLocalizedText, requireText } from '../utils/i18n';
+import { getLocalizedText, requireText, isTaggedPlaceholder } from '../utils/i18n';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
 
-const USE_POC = true; // Toggle to gate full dataset until validator passes
+const USE_POC = false; // Toggle POC off; use full dataset with safe fallback until validator passes
 const ACTIVE_DATASET = USE_POC ? play_dataset : dataset;
 
 const GameScreen = ({ route, navigation }) => {
@@ -194,8 +194,13 @@ const GameScreen = ({ route, navigation }) => {
       // Store the full question object for favorites
       setCurrentQuestionObject(questionObject);
 
-      // Strict POC: require the exact language (no fallback)
-      const cleanedText = requireText(questionObject, language);
+      // Selection mode: strict for POC, safe fallback for full dataset
+      const cleanedText = USE_POC
+        ? requireText(questionObject, language)
+        : getLocalizedText(questionObject, language);
+      if (!USE_POC && isTaggedPlaceholder(questionObject[language])) {
+        console.log('i18n:fallback-used', { lang: language });
+      }
       
       logAction('QUESTION_GENERATED', { 
         topicIndex: randomTopicIndex,
