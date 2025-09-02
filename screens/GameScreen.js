@@ -18,7 +18,7 @@ import { translations } from '../translations';
 import { dataset } from '../full_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
-import AdBanner, { BANNER_HEIGHT } from '../components/AdBanner';
+
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -352,13 +352,7 @@ const GameScreen = ({ route, navigation }) => {
     }, 2000);
   };
 
-  const handleAdPress = (adData) => {
-    logAction('AD_BANNER_CLICKED', { 
-      adId: adData.id, 
-      headline: adData.headline 
-    });
-    showToastNotification(`Fake ad clicked: ${adData.headline}`);
-  };
+
 
   // Initialize first question only once when component mounts
   useEffect(() => {
@@ -426,7 +420,7 @@ const GameScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: BANNER_HEIGHT + 70 }]}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 70 }]}>
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -546,8 +540,7 @@ const GameScreen = ({ route, navigation }) => {
           )}
         </ScrollView>
 
-        {/* Premium Ad Banner */}
-        <AdBanner onPress={handleAdPress} />
+        
       </SafeAreaView>
     </View>
   );
