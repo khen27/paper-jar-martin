@@ -88,20 +88,21 @@ const ColorScreen = ({ navigation }) => {
       />
       
       <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Back Button */}
+        <View style={styles.backButtonContainer}>
           <ModernBackButton
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           />
-          <Text style={styles.title}>Choose Theme</Text>
-          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Subtitle */}
-        <Text style={styles.subtitle}>
-          Select your favorite color theme for the app
-        </Text>
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Choose Theme</Text>
+          <Text style={styles.subtitle}>
+            Select your favorite color theme for the app
+          </Text>
+        </View>
 
         {/* Color Grid */}
         <ScrollView
@@ -132,32 +133,30 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  backButtonContainer: {
     paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
   },
   backButton: {
-    marginRight: tokens.spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  headerContainer: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.md,
+    alignItems: 'center',
   },
   title: {
     fontSize: tokens.typography.sizes['2xl'],
     fontWeight: tokens.typography.weights.bold,
     color: tokens.colors.text.primary,
     textAlign: 'center',
-    flex: 1,
-  },
-  headerSpacer: {
-    width: 40, // Same width as back button for centering
+    marginBottom: tokens.spacing.sm,
   },
   subtitle: {
     fontSize: tokens.typography.sizes.lg,
     fontWeight: tokens.typography.weights.medium,
     color: tokens.colors.text.secondary,
     textAlign: 'center',
-    paddingHorizontal: tokens.spacing.lg,
     marginBottom: tokens.spacing.xl,
   },
   scrollView: {
