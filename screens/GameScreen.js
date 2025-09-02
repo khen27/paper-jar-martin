@@ -417,11 +417,11 @@ const GameScreen = ({ route, navigation }) => {
           
           {/* Game Mode Display - Top Right */}
           {gameMode && (
-            <View style={styles.gameModeDisplayHeader}>
-              <Text style={styles.gameModeTextHeader}>
+            <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
+              <Text style={styles.modernGameModeText}>
                 {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
               </Text>
-            </View>
+            </ModernCard>
           )}
         </View>
 
@@ -823,6 +823,22 @@ const styles = StyleSheet.create({
   favoriteActionButton: {
     backgroundColor: 'rgba(255, 71, 87, 0.2)',
     borderColor: 'rgba(255, 71, 87, 0.5)',
+  },
+
+  // Modern game mode pill styles
+  modernGameModePill: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.radius.full,
+    minHeight: 32,
+    alignSelf: 'flex-start',
+  },
+  modernGameModeText: {
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.text.primary,
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
 });
 
