@@ -7,17 +7,14 @@ import {
   SafeAreaView,
   Dimensions,
   ScrollView,
-  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import BackIcon from '../components/BackIcon';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-// import GlassCard from '../components/GlassCard';  // Commented out glass
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import { flags } from '../src/config/flags';  // Commented out glass system
-// import { GlassCard as NewGlassCard, GlassPressable, GlassIndicator } from '../src/components/glass';  // Commented out glass
+import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -60,24 +57,19 @@ const LanguageScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#667eea']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
 
       <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <ModernBackButton 
             onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <View style={styles.backButtonModern}>
-              <BackIcon size={24} color="#fff" />
-            </View>
-          </TouchableOpacity>
+            size="md"
+          />
         </View>
 
         <ScrollView
@@ -102,18 +94,18 @@ const LanguageScreen = ({ navigation }) => {
               {LANGUAGES.map((lang) => (
                 <View key={lang.code} style={styles.cardWrapper}>
                   <TouchableOpacity
-                    style={[
-                      styles.modernCard,
-                      language === lang.code && styles.selectedCard,
-                      isLoading && styles.cardDisabled
-                    ]}
                     onPress={() => handleLanguageSelect(lang.code)}
                     disabled={isLoading}
                     activeOpacity={0.8}
                   >
-                    <View style={styles.cardContent}>
+                    <ModernCard
+                      variant="surface"
+                      size="md"
+                      selected={language === lang.code}
+                      style={[isLoading && styles.cardDisabled]}
+                    >
                       <View style={styles.flagContainer}>
-                        <LanguageFlags code={lang.code} size={48} />
+                        <LanguageFlags code={lang.code} size={tokens.components.icon['2xl']} />
                       </View>
                       <Text style={[
                         styles.languageText,
@@ -121,12 +113,11 @@ const LanguageScreen = ({ navigation }) => {
                       ]}>
                         {lang.label}
                       </Text>
-                      {language === lang.code && (
-                        <View style={styles.modernIndicator}>
-                          <Text style={styles.checkText}>✓</Text>
-                        </View>
-                      )}
-                    </View>
+                      <ModernSelectionIndicator 
+                        active={language === lang.code} 
+                        size="md"
+                      />
+                    </ModernCard>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -160,40 +151,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.sm,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-  },
-  backButtonModern: {
-    padding: 12,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
+
   titleSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-    marginTop: 20,
+    paddingHorizontal: tokens.spacing['2xl'],
+    marginBottom: tokens.spacing['3xl'],
+    marginTop: tokens.spacing.xl,
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    marginBottom: 8,
-    color: '#fff',
+    fontSize: tokens.typography.sizes['4xl'],
+    fontWeight: tokens.typography.weights.extrabold,
+    marginBottom: tokens.spacing.sm,
+    color: tokens.colors.text.primary,
     letterSpacing: -0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   subtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '500',
+    fontSize: tokens.typography.sizes.lg,
+    color: tokens.colors.text.secondary,
+    fontWeight: tokens.typography.weights.medium,
     letterSpacing: 0.2,
+    textAlign: 'center',
+    lineHeight: tokens.typography.sizes.lg * tokens.typography.lineHeights.relaxed,
   },
   gridContainer: {
     paddingHorizontal: CARD_MARGIN * 2,
@@ -208,62 +192,24 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     padding: CARD_MARGIN,
   },
-  modernCard: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    minHeight: 130,
-  },
-  selectedCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    borderWidth: 3,
-  },
   cardDisabled: {
     opacity: 0.5,
   },
-  cardContent: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    minHeight: 130,
-  },
   flagContainer: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.md,
     alignItems: 'center',
   },
   languageText: {
-    fontSize: 16,
+    fontSize: tokens.typography.sizes.base,
     textAlign: 'center',
-    color: '#fff',
-    fontWeight: '600',
+    color: tokens.colors.text.primary,
+    fontWeight: tokens.typography.weights.semibold,
     letterSpacing: 0.3,
   },
   languageTextActive: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 18,
-  },
-  modernIndicator: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#667eea',
-  },
-  checkText: {
-    color: '#667eea',
-    fontSize: 16,
-    fontWeight: '900',
+    color: tokens.colors.text.primary,
+    fontWeight: tokens.typography.weights.extrabold,
+    fontSize: tokens.typography.sizes.lg,
   },
 });
 

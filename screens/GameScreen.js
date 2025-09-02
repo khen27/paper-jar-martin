@@ -17,8 +17,9 @@ import { translations } from '../translations';
 import { dataset } from '../full_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
-import BackIcon from '../components/BackIcon';
 import AdBanner, { BANNER_HEIGHT } from '../components/AdBanner';
+import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
@@ -397,10 +398,10 @@ const GameScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#667eea']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
       
       <SafeAreaView style={styles.safeArea}>

@@ -9,13 +9,14 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-// import Easing from 'react-native/Libraries/Animated/Easing';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
 import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon } from '../components/GameModeIcons';
+import { ModernCard, ModernButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width, height } = Dimensions.get('window');
 
@@ -404,10 +405,10 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#667eea']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
