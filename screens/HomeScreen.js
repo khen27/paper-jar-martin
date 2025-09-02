@@ -514,40 +514,31 @@ const HomeScreen = ({ navigation }) => {
             <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonsRefresh : styles.gameModeButtons}>
               {/* Partner Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('partner')}
                 onPress={() => handleGameModeSelect('partner')}
                 onPressOut={() => onGameModePressOut('partner')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: partnerButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(33, 150, 243, 0.3)', 'rgba(21, 101, 192, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.partnerIconBgRefresh : styles.partnerIconBg
-                    ]}>
-                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: partnerButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.partnerIconBg]}>
+                        <PartnerIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.partnerMode || 'Partner'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partnerMode || 'Partner'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
 
@@ -1183,6 +1174,43 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowOpacity: 1,
     textShadowRadius: 2,
+  },
+
+  // Modern game mode card styles
+  modernGameModeCard: {
+    minHeight: 100,
+    marginBottom: tokens.spacing.lg,
+  },
+  modernButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  modernIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: tokens.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  partnerIconBg: {
+    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+  },
+  modernTextContainer: {
+    flex: 1,
+  },
+  modernGameModeText: {
+    fontSize: tokens.typography.sizes.lg,
+    fontWeight: tokens.typography.weights.bold,
+    color: tokens.colors.text.primary,
+    marginBottom: tokens.spacing.xs,
+  },
+  modernGameModeSubtext: {
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.text.secondary,
+    lineHeight: tokens.typography.sizes.sm * tokens.typography.lineHeights.relaxed,
   },
 
 });

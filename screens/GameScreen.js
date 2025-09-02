@@ -407,17 +407,13 @@ const GameScreen = ({ route, navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header with Back Button and Game Mode */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <ModernBackButton 
             onPress={() => {
               logAction('BACK_BUTTON_PRESSED');
               navigation.goBack();
             }}
-          >
-            <View style={styles.backButtonGlass}>
-              <BackIcon size={32} color="#fff" />
-            </View>
-          </TouchableOpacity>
+            size="md"
+          />
           
           {/* Game Mode Display - Top Right */}
           {gameMode && (

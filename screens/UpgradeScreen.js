@@ -234,14 +234,10 @@ const UpgradeScreen = ({ navigation, route }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <ModernBackButton 
             onPress={() => navigation.goBack()}
-          >
-            <View style={styles.backButtonGlass}>
-              <BackIcon size={32} color="#fff" />
-            </View>
-          </TouchableOpacity>
+            size="md"
+          />
         </View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>

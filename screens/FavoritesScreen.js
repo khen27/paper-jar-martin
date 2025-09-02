@@ -180,14 +180,10 @@ const FavoritesScreen = ({ navigation }) => {
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
+            <ModernBackButton 
               onPress={() => navigation.goBack()}
-            >
-              <View style={styles.backButtonGlass}>
-                <BackIcon size={32} color="#fff" />
-              </View>
-            </TouchableOpacity>
+              size="md"
+            />
           </View>
 
           {/* Title Section */}
