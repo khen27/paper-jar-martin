@@ -1,15 +1,16 @@
 {
-    "cli": {
-      "version": ">= 11.0.0",
-      "appVersionSource": "remote"
-    },
+    "cli": { "version": ">= 11.0.0", "appVersionSource": "remote" },
     "build": {
       "preview": {
         "node": "18.20.3",
         "distribution": "internal",
         "developmentClient": false,
         "ios": { "simulator": false },
-        "android": { "buildType": "apk" }
+        "android": { "buildType": "apk" },
+        "env": {
+          "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+          "NODE_ENV": "production"
+        }
       }
     }
   }
