@@ -5,7 +5,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import HomeScreen from './screens/HomeScreen';
 import GameScreen from './screens/GameScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
-import LanguageScreenV2 from './screens/LanguageScreenV2';
+import LanguageScreenV3 from './screens/LanguageScreenV3';
 import UpgradeScreen from './screens/UpgradeScreen';
 
 const Stack = createStackNavigator();
@@ -18,7 +18,7 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen
             name="Language"
-            component={LanguageScreenV2}
+            component={LanguageScreenV3}
             options={{
               presentation: 'modal',
               headerShown: false,
