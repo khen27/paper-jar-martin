@@ -4,11 +4,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -544,79 +544,61 @@ const HomeScreen = ({ navigation }) => {
 
               {/* Friend Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('friend')}
                 onPress={() => handleGameModeSelect('friend')}
                 onPressOut={() => onGameModePressOut('friend')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: friendButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(76, 175, 80, 0.3)', 'rgba(56, 142, 60, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.friendIconBgRefresh : styles.friendIconBg
-                    ]}>
-                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                        <FriendIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.friendMode || 'Friends'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.friendModeSubtext || 'Great for small groups'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.friendMode || 'Friends'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.friendModeSubtext || 'Great for small groups'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
 
               {/* Party Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('party')}
                 onPress={() => handleGameModeSelect('party')}
                 onPressOut={() => onGameModePressOut('party')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: partyButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(255, 193, 7, 0.3)', 'rgba(255, 152, 0, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.partyIconBgRefresh : styles.partyIconBg
-                    ]}>
-                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: partyButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.partyIconBg]}>
+                        <PartyIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.partyMode || 'Party'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partyMode || 'Party'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
             </View>

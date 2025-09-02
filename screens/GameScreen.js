@@ -4,12 +4,12 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
   ScrollView,
   Dimensions,
   PanResponder,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -456,17 +456,11 @@ const GameScreen = ({ route, navigation }) => {
             ]}
             {...panResponder.panHandlers}
           >
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.1)']}
-              style={styles.questionBoxGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <View style={styles.questionBox}>
+            <ModernCard variant="surface" size="lg">
               <Text style={styles.questionText}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
-            </View>
+            </ModernCard>
           </Animated.View>
 
           {/* Action Buttons */}

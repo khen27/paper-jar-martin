@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   Dimensions,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
@@ -200,41 +200,31 @@ const FavoritesScreen = ({ navigation }) => {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             renderItem={({ item, index }) => (
-              <View style={styles.favoriteItemGlass}>
-                <LinearGradient
-                  colors={['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.05)']}
-                  style={styles.favoriteItemOverlay}
+              <ModernCard variant="surface" size="md" style={{ marginBottom: 16, position: 'relative' }}>
+                <Text style={styles.favoriteText}>
+                  {getQuestionText(item)}
+                </Text>
+                <Text style={styles.favoriteDate}>
+                  {formatDate(item.timestamp)}
+                </Text>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => confirmRemove(index)}
                 >
-                  <Text style={styles.favoriteText}>
-                    {getQuestionText(item)}
-                  </Text>
-                  <Text style={styles.favoriteDate}>
-                    {formatDate(item.timestamp)}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.removeButtonGlass}
-                    onPress={() => confirmRemove(index)}
-                  >
-                    <Text style={styles.removeButtonText}>×</Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-              </View>
+                  <Text style={styles.removeButtonText}>×</Text>
+                </TouchableOpacity>
+              </ModernCard>
             )}
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyMessageGlass}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-                    style={styles.emptyMessageOverlay}
-                  >
-                    <Text style={styles.emptyText}>
-                      {translations[language]?.noFavorites || translations.cs.noFavorites}
-                    </Text>
-                    <Text style={styles.emptySubtext}>
-                      {translations[language]?.noFavoritesSubtext || translations.cs.noFavoritesSubtext}
-                    </Text>
-                  </LinearGradient>
-                </View>
+                <ModernCard variant="surface" size="md">
+                  <Text style={styles.emptyText}>
+                    {translations[language]?.noFavorites || translations.cs.noFavorites}
+                  </Text>
+                  <Text style={styles.emptySubtext}>
+                    {translations[language]?.noFavoritesSubtext || translations.cs.noFavoritesSubtext}
+                  </Text>
+                </ModernCard>
               </View>
             )}
           />
@@ -295,25 +285,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingBottom: Math.max(40, height * 0.05),
   },
-  favoriteItemGlass: {
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(20px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  favoriteItemOverlay: {
-    padding: 20,
-    minHeight: 80,
-    justifyContent: 'space-between',
-  },
+  
   favoriteText: {
     fontSize: 17,
     fontWeight: '600',
@@ -333,23 +305,18 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     letterSpacing: 0.2,
   },
-  removeButtonGlass: {
+  removeButton: {
     position: 'absolute',
     top: 12,
     right: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 107, 107, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
+    backgroundColor: 'rgba(255, 107, 107, 0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 107, 107, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   removeButtonText: {
     fontSize: 20,

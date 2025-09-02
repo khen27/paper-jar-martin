@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   ScrollView,
 } from 'react-native';
@@ -12,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -63,7 +62,7 @@ const LanguageScreen = ({ navigation }) => {
         end={gradients.primary.end}
       />
 
-      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
+      <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
           <ModernBackButton 
