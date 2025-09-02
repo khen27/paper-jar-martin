@@ -1,0 +1,231 @@
+import React from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
+import { tokens } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
+
+const { width } = Dimensions.get('window');
+const COLUMN_GAP = 16;
+const CARD_MARGIN = 8;
+const NUM_COLUMNS = 2;
+const MIN_CARD_WIDTH = 150;
+const MAX_CARD_WIDTH = 180;
+
+const CARD_WIDTH = Math.min(
+  MAX_CARD_WIDTH,
+  Math.max(
+    MIN_CARD_WIDTH,
+    (width - (COLUMN_GAP + CARD_MARGIN * 4)) / NUM_COLUMNS
+  )
+);
+
+const ColorScreen = ({ navigation }) => {
+  const { currentTheme, allThemes, changeTheme, getCurrentGradient } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const handleThemeSelect = async (themeId) => {
+    await changeTheme(themeId);
+  };
+
+  const renderColorCard = (theme) => {
+    const isSelected = currentTheme.id === theme.id;
+    
+    return (
+      <TouchableOpacity
+        key={theme.id}
+        style={[
+          styles.colorCard,
+          { width: CARD_WIDTH },
+          isSelected && styles.selectedCard,
+        ]}
+        onPress={() => handleThemeSelect(theme.id)}
+        activeOpacity={0.8}
+      >
+        <ModernCard style={styles.cardContent}>
+          {/* Color Preview */}
+          <View style={styles.colorPreview}>
+            <LinearGradient
+              colors={theme.colors}
+              style={styles.gradientPreview}
+              start={theme.start}
+              end={theme.end}
+            />
+          </View>
+          
+          {/* Theme Info */}
+          <View style={styles.themeInfo}>
+            <Text style={styles.themeName}>{theme.name}</Text>
+          </View>
+          
+          {/* Selection Indicator */}
+          <ModernSelectionIndicator 
+            active={isSelected} 
+            size="md"
+            style={[
+              styles.selectionIndicator,
+              isSelected && { 
+                backgroundColor: theme.id === 'royal-purple' ? '#ffffff' : theme.colors[0],
+                borderColor: theme.id === 'royal-purple' ? theme.colors[0] : theme.colors[1],
+                borderWidth: 2,
+                borderRadius: 12,
+              }
+            ]}
+            iconColor={theme.id === 'royal-purple' ? theme.colors[0] : "#ffffff"}
+          />
+        </ModernCard>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={getCurrentGradient().colors}
+        style={styles.backgroundGradient}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
+      />
+      
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+        {/* Back Button */}
+        <View style={styles.backButtonContainer}>
+          <ModernBackButton
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          />
+        </View>
+
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Choose Theme</Text>
+          <Text style={styles.subtitle}>
+            Select your favorite color theme for the app
+          </Text>
+        </View>
+
+        {/* Color Grid */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.colorGrid}>
+            {allThemes.map(renderColorCard)}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  backButtonContainer: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.sm,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+  },
+  headerContainer: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.md,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: tokens.typography.sizes['2xl'],
+    fontWeight: tokens.typography.weights.bold,
+    color: tokens.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  subtitle: {
+    fontSize: tokens.typography.sizes.lg,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: tokens.spacing.xl,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.xl,
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: COLUMN_GAP,
+  },
+  colorCard: {
+    marginBottom: tokens.spacing.lg,
+    borderRadius: tokens.radius.lg,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  selectedCard: {
+    transform: [{ scale: 1.05 }],
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 4 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 8,
+   // elevation: 8,
+  },
+  cardContent: {
+    padding: tokens.spacing.md,
+    alignItems: 'center',
+    minHeight: 140,
+  },
+  colorPreview: {
+    width: '100%',
+    height: 60,
+    borderRadius: tokens.radius.lg,
+    marginBottom: tokens.spacing.md,
+    overflow: 'hidden',
+  },
+  gradientPreview: {
+    flex: 1,
+    borderRadius: tokens.radius.lg,
+  },
+  themeInfo: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  themeName: {
+    fontSize: tokens.typography.sizes.lg,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.text.primary,
+    textAlign: 'center',
+  },
+  selectionIndicator: {
+    position: 'absolute',
+    top: tokens.spacing.sm,
+    right: tokens.spacing.sm,
+  },
+});
+
+export default ColorScreen;

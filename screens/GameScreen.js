@@ -20,13 +20,15 @@ import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
+import { tokens } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
 
 const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
+  const { getCurrentGradient } = useTheme();
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [currentQuestionObject, setCurrentQuestionObject] = useState(null); // Store the full question object
   const [showHints, setShowHints] = useState(false);
@@ -393,10 +395,10 @@ const GameScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={getCurrentGradient().colors}
         style={styles.backgroundGradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
       />
       
       <SafeAreaView style={styles.safeArea}>
@@ -803,7 +805,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 0,
-   // ...tokens.shadows.lg,
+    ...tokens.shadows.lg,
   },
   activeActionButton: {
     backgroundColor: tokens.colors.surface.strong,

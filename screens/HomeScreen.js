@@ -14,9 +14,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
-import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon } from '../components/GameModeIcons';
+import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
+import { tokens } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ const OTAZO_JAR_REFRESH_ENABLED = true;
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
+  const { getCurrentGradient } = useTheme();
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -409,10 +411,10 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={getCurrentGradient().colors}
         style={styles.backgroundGradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
@@ -435,6 +437,29 @@ const HomeScreen = ({ navigation }) => {
             accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
           >
             <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+          </ModernButton>
+        </Animated.View>
+
+        {/* Color Theme Button */}
+        <Animated.View 
+          style={[
+            styles.topButtonContainer,
+            styles.languageButtonDuplicate,
+            { transform: [{ scale: buttonScale }] }
+          ]}
+        >
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={() => {
+              logAction('COLOR_NAVIGATION');
+              navigation.navigate('Color');
+            }}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint="Choose app color theme"
+          >
+            <ColorIcon size={tokens.components.icon.md} color="#fff" />
           </ModernButton>
         </Animated.View>
 
@@ -1286,6 +1311,10 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     right: Math.max(20, width * 0.05),
+  },
+  languageButtonDuplicate: {
+    right: Math.max(20, width * 0.05),
+    top: Math.max(110, height * 0.13), // Position beneath the first language button
   },
 
 });
