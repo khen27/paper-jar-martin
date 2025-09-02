@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
-import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon } from '../components/GameModeIcons';
+import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -457,7 +457,7 @@ const HomeScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityHint="Choose app color theme"
           >
-            <Text style={styles.colorIcon}>🎨</Text>
+            <ColorIcon size={tokens.components.icon.md} color="#fff" />
           </ModernButton>
         </Animated.View>
 
@@ -1313,10 +1313,6 @@ const styles = StyleSheet.create({
   languageButtonDuplicate: {
     right: Math.max(20, width * 0.05),
     top: Math.max(110, height * 0.13), // Position beneath the first language button
-  },
-  colorIcon: {
-    fontSize: 24,
-    textAlign: 'center',
   },
 
 });
