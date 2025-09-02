@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   swipeIndicatorContainer: {
-    marginTop: 10,
+    marginTop: tokens.spacing.md,
     alignItems: 'center',
   },
   swipeIndicatorGlass: {
@@ -736,31 +736,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
   },
   dot: {
-    borderRadius: 5,
-    marginHorizontal: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  dotSmall: {
     width: 6,
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  dotMedium: {
-    width: 10,
-    height: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 3,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   dotLarge: {
-    width: 14,
-    height: 14,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 2,
   },
   toastContainer: {
     position: 'absolute',
