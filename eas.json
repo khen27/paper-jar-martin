@@ -14,12 +14,21 @@
       },
       "preview-ios-tf": {
         "node": "18.20.3",
-        "distribution": "store",        // needed for TestFlight
+        "distribution": "store",
         "developmentClient": false,
-        "ios": { "simulator": false },
+        "ios": { "simulator": false, "autoIncrement": true },
         "env": {
           "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
           "NODE_ENV": "production"
+        }
+      }
+    },
+    "submit": {
+      "preview-ios-tf": {
+        "ios": {
+          "appleId": "karlrhenderson@gmail.com",
+          "ascAppId": "6751843456", 
+          "appleTeamId": "7N874A939X"
         }
       }
     }
