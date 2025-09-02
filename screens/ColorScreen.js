@@ -74,6 +74,9 @@ const ColorScreen = ({ navigation }) => {
               styles.selectionIndicator,
               isSelected && { 
                 backgroundColor: theme.colors[0],
+                borderColor: theme.colors[1],
+                borderWidth: 2,
+                borderRadius: 12,
               }
             ]}
             iconColor="#ffffff"
