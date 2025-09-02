@@ -438,6 +438,29 @@ const HomeScreen = ({ navigation }) => {
           </ModernButton>
         </Animated.View>
 
+        {/* Duplicate Language Button */}
+        <Animated.View 
+          style={[
+            styles.topButtonContainer,
+            styles.languageButtonDuplicate,
+            { transform: [{ scale: buttonScale }] }
+          ]}
+        >
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={() => {
+              logAction('LANGUAGE_NAVIGATION_DUPLICATE');
+              navigation.navigate('Language');
+            }}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
+          >
+            <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+          </ModernButton>
+        </Animated.View>
+
         {/* Favorites Button */}
         <View style={[styles.topButtonContainer, styles.favoritesButton]}>
           <ModernButton
@@ -1286,6 +1309,10 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     right: Math.max(20, width * 0.05),
+  },
+  languageButtonDuplicate: {
+    right: Math.max(20, width * 0.05),
+    top: Math.max(110, height * 0.13), // Position beneath the first language button
   },
 
 });
