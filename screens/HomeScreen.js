@@ -842,10 +842,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(236, 72, 153, 0.6)',
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
     borderWidth: 2,
-    borderColor: 'rgba(236, 72, 153, 1)',
-    shadowColor: 'rgba(236, 72, 153, 0.4)',
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.4)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 4,
@@ -1014,10 +1014,10 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   partnerIconBgRefresh: {
-    backgroundColor: 'rgba(236, 72, 153, 0.7)', // Vibrant pink
+    backgroundColor: 'rgba(34, 197, 94, 0.7)', // Vibrant green
     borderWidth: 2,
-    borderColor: 'rgba(236, 72, 153, 1)',
-    shadowColor: 'rgba(236, 72, 153, 0.5)',
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.5)',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 6,
