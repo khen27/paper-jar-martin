@@ -577,6 +577,36 @@ const HomeScreen = ({ navigation }) => {
                 </Animated.View>
               </TouchableOpacity>
 
+              {/* Friend Mode - Duplicate */}
+              <TouchableOpacity
+                onPressIn={() => onGameModePressIn('friend')}
+                onPress={() => handleGameModeSelect('friend')}
+                onPressOut={() => onGameModePressOut('friend')}
+                activeOpacity={0.8}
+              >
+                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                        <FriendIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.friendMode || 'Friends'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.friendModeSubtext || 'Great for small groups'}
+                        </Text>
+                      </View>
+                    </View>
+                  </ModernCard>
+                </Animated.View>
+              </TouchableOpacity>
+
               {/* Party Mode - Commented Out */}
               {/*
               <TouchableOpacity
