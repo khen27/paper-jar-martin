@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { tokens, gradients } from '../../theme/tokens';
 
@@ -15,6 +15,7 @@ const ModernButton = ({
   onPress,
   style,
   textStyle,
+  shape,
   ...props 
 }) => {
   const buttonContent = title ? (
@@ -44,12 +45,18 @@ const ModernButton = ({
     );
   }
 
+  const platformAdjustments = Platform.select({
+    android: shape === 'circle' ? { borderWidth: 0, borderColor: 'transparent', borderRadius: tokens.radius.full } : null,
+    ios: null,
+  });
+
   return (
     <TouchableOpacity
       style={[
         styles.base,
         styles[variant],
         styles[size],
+        platformAdjustments,
         disabled && styles.disabled,
         style,
       ]}

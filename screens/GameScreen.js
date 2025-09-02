@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   PanResponder,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -456,7 +457,11 @@ const GameScreen = ({ route, navigation }) => {
             ]}
             {...panResponder.panHandlers}
           >
-            <ModernCard variant="surface" size="lg" style={styles.questionCard}>
+            <ModernCard
+              variant="surface"
+              size="lg"
+              style={styles.questionCard}
+            >
               <Text style={styles.questionText}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
@@ -466,6 +471,7 @@ const GameScreen = ({ route, navigation }) => {
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
             <ModernButton
+              shape="circle"
               variant="secondary"
               size="md"
               onPress={() => {
@@ -478,6 +484,7 @@ const GameScreen = ({ route, navigation }) => {
             </ModernButton>
 
             <ModernButton
+              shape="circle"
               variant="secondary"
               size="lg"
               onPress={() => {
@@ -490,6 +497,7 @@ const GameScreen = ({ route, navigation }) => {
             </ModernButton>
 
             <ModernButton
+              shape="circle"
               variant="secondary"
               size="md"
               onPress={() => {
@@ -618,7 +626,6 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing['4xl'],
     borderRadius: tokens.radius['2xl'],
     overflow: 'hidden',
-    ...tokens.shadows.lg,
   },
   questionBoxGradient: {
     position: 'absolute',
@@ -641,9 +648,13 @@ const styles = StyleSheet.create({
     lineHeight: tokens.typography.sizes.xl * tokens.typography.lineHeights.relaxed,
     fontWeight: tokens.typography.weights.semibold,
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...(Platform.OS === 'android'
+      ? {}
+      : {
+          textShadowColor: 'rgba(0, 0, 0, 0.3)',
+          textShadowOffset: { width: 0, height: 2 },
+          textShadowRadius: 4,
+        }),
   },
   actionButtons: {
     flexDirection: 'row',
@@ -845,6 +856,7 @@ const styles = StyleSheet.create({
   questionCard: {
     borderWidth: 0,
     padding: tokens.spacing['2xl'],
+    ...tokens.shadows.lg,
   },
 });
 
