@@ -1208,7 +1208,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   favoritesButton: {
-    right: Math.max(20, width * 0.05),
+    left: Math.max(20, width * 0.05),
   },
   languageButton: {
     right: Math.max(20, width * 0.05),
