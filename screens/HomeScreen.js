@@ -592,7 +592,7 @@ const HomeScreen = ({ navigation }) => {
                   >
                     <View style={styles.modernButtonInner}>
                       <View style={[styles.modernIconContainer, styles.friendIconBg]}>
-                        <FriendIcon size={tokens.components.icon.lg} />
+                        <BrnoIcon size={tokens.components.icon.lg} />
                       </View>
                       <View style={styles.modernTextContainer}>
                         <Text style={styles.modernGameModeText}>
