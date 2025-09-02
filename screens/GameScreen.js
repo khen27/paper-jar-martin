@@ -22,6 +22,7 @@ import { HeartIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
+import { getLocalizedText } from '../utils/i18n';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
@@ -160,10 +161,7 @@ const GameScreen = ({ route, navigation }) => {
     }
   };
 
-  const cleanText = (text) => {
-    // Remove language prefix like [EN], [CS], etc. and number suffix like (19)
-    return text.replace(/\[[A-Z]{2}\]\s*/, '').replace(/\s*\(\d+\)\??$/, '');
-  };
+  // Centralized i18n utility handles stripping tags and fallbacks
 
   const getRandomQuestion = () => {
     try {
@@ -194,13 +192,8 @@ const GameScreen = ({ route, navigation }) => {
       // Return question in current language or fallback, with prefixes removed
       console.log('GameScreen: Attempting to get text for language:', language);
       console.log('GameScreen: Available languages in question:', Object.keys(questionObject));
-      const text = questionObject[language] || questionObject.en || questionObject.cs;
-      console.log('GameScreen: Selected text source:', 
-        questionObject[language] ? `${language} (primary)` : 
-        questionObject.en ? 'en (fallback 1)' : 'cs (fallback 2)');
-      console.log('GameScreen: Raw text before cleaning:', text);
-      const cleanedText = cleanText(text);
-      console.log('GameScreen: Cleaned text:', cleanedText);
+      const cleanedText = getLocalizedText(questionObject, language);
+      console.log('i18n:lang=', language, '->', cleanedText.slice(0, 60));
       
       logAction('QUESTION_GENERATED', { 
         topicIndex: randomTopicIndex,
@@ -263,8 +256,8 @@ const GameScreen = ({ route, navigation }) => {
       if (typeof f.question === 'string') {
         return f.question === currentQuestion;
       } else if (typeof f.question === 'object') {
-        const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
-        return cleanText(storedText || '') === currentQuestion;
+        const storedText = getLocalizedText(f.question, language);
+        return storedText === currentQuestion;
       }
       return false;
     });
@@ -287,7 +280,7 @@ const GameScreen = ({ route, navigation }) => {
       // Create cleaned version of the question object for storage
       const cleanedQuestionObject = {};
       Object.keys(currentQuestionObject).forEach(lang => {
-        cleanedQuestionObject[lang] = cleanText(currentQuestionObject[lang] || '');
+        cleanedQuestionObject[lang] = (currentQuestionObject[lang] || '').trim();
       });
       
       newFavorites.push({
@@ -381,8 +374,8 @@ const GameScreen = ({ route, navigation }) => {
     if (typeof f.question === 'string') {
       return f.question === currentQuestion;
     } else if (typeof f.question === 'object') {
-      const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
-      return cleanText(storedText || '') === currentQuestion;
+      const storedText = getLocalizedText(f.question, language);
+      return storedText === currentQuestion;
     }
     return false;
   });
@@ -805,7 +798,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 0,
-    ...tokens.shadows.lg,
+    //...tokens.shadows.lg,
   },
   activeActionButton: {
     backgroundColor: tokens.colors.surface.strong,
