@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
-import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon } from '../components/GameModeIcons';
+import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon } from '../components/GameModeIcons';
 import { ModernCard, ModernButton } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }) => {
   const partnerButtonScale = useRef(new Animated.Value(1)).current;
   const friendButtonScale = useRef(new Animated.Value(1)).current;
   const partyButtonScale = useRef(new Animated.Value(1)).current;
+  const brnoButtonScale = useRef(new Animated.Value(1)).current;
   
   // Refs for animation control
   const typingTimeoutRef = useRef(null);
@@ -121,7 +122,8 @@ const HomeScreen = ({ navigation }) => {
     
     // Scale animation for button press
     const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                     mode === 'friend' ? friendButtonScale : partyButtonScale;
+                     mode === 'friend' ? friendButtonScale : 
+                     mode === 'party' ? partyButtonScale : brnoButtonScale;
     
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -143,12 +145,12 @@ const HomeScreen = ({ navigation }) => {
         logAction('PARTY_MODE_PAYWALL_TRIGGERED', { mode });
         navigation.navigate('Upgrade');
       } else {
-        // Partner and Friend modes are free
+        // Partner, Friend, and Brno modes are free
         logAction('NAVIGATING_TO_GAME', { gameMode: mode });
         navigation.navigate('Game', { gameMode: mode });
       }
     });
-  }, [logAction, navigation, partnerButtonScale, friendButtonScale, partyButtonScale]);
+  }, [logAction, navigation, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
 
   // Cursor blink animation
   useEffect(() => {
@@ -376,7 +378,8 @@ const HomeScreen = ({ navigation }) => {
     if (OTAZO_JAR_REFRESH_ENABLED) {
       // New feedback: 1.02x scale + elevated shadow
       const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : partyButtonScale;
+                       mode === 'friend' ? friendButtonScale : 
+                       mode === 'party' ? partyButtonScale : brnoButtonScale;
       
       Animated.spring(scaleAnim, {
         toValue: 1.02, // Spec: 1.02x scale
@@ -390,7 +393,8 @@ const HomeScreen = ({ navigation }) => {
   const onGameModePressOut = useCallback((mode) => {
     if (OTAZO_JAR_REFRESH_ENABLED) {
       const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : partyButtonScale;
+                       mode === 'friend' ? friendButtonScale : 
+                       mode === 'party' ? partyButtonScale : brnoButtonScale;
       
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -573,7 +577,8 @@ const HomeScreen = ({ navigation }) => {
                 </Animated.View>
               </TouchableOpacity>
 
-              {/* Party Mode */}
+              {/* Party Mode - Commented Out */}
+              {/*
               <TouchableOpacity
                 onPressIn={() => onGameModePressIn('party')}
                 onPress={() => handleGameModeSelect('party')}
@@ -602,6 +607,7 @@ const HomeScreen = ({ navigation }) => {
                   </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
+              */}
             </View>
           </View>
 
