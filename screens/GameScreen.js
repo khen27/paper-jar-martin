@@ -640,9 +640,9 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'android'
       ? {}
       : {
-          textShadowColor: 'rgba(0, 0, 0, 0.3)',
-          textShadowOffset: { width: 0, height: 2 },
-          textShadowRadius: 4,
+         // textShadowColor: 'rgba(0, 0, 0, 0.3)',
+         // textShadowOffset: { width: 0, height: 2 },
+         // textShadowRadius: 4,
         }),
   },
   actionButtons: {
@@ -796,14 +796,14 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 0,
-    ...tokens.shadows.md,
+    //...tokens.shadows.md,
   },
   modernMainButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 0,
-    ...tokens.shadows.lg,
+   // ...tokens.shadows.lg,
   },
   activeActionButton: {
     backgroundColor: tokens.colors.surface.strong,
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   questionCard: {
     borderWidth: 0,
     padding: tokens.spacing['2xl'],
-    ...tokens.shadows.lg,
+   // ...tokens.shadows.lg,
   },
 });
 
