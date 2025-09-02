@@ -625,7 +625,7 @@ const HomeScreen = ({ navigation }) => {
                             Brno vs. Prague
                           </Text>
                           <Text style={styles.modernGameModeSubtext}>
-                            Which city is the best?
+                            Které město je nejlepší?
                           </Text>
                         </View>
                       </View>
