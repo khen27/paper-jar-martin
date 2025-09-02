@@ -605,9 +605,9 @@ const HomeScreen = ({ navigation }) => {
               {/* Brno vs. Prague - Only for Czech locale */}
               {language === 'cs' && (
                 <TouchableOpacity
-                  onPressIn={() => onGameModePressIn('friend')}
-                  onPress={() => handleGameModeSelect('friend')}
-                  onPressOut={() => onGameModePressOut('friend')}
+                  onPressIn={() => onGameModePressIn('brnoPrague')}
+                  onPress={() => handleGameModeSelect('brnoPrague')}
+                  onPressOut={() => onGameModePressOut('brnoPrague')}
                   activeOpacity={0.8}
                 >
                   <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>

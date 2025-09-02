@@ -168,15 +168,18 @@ const GameScreen = ({ route, navigation }) => {
 
   // Centralized i18n utility handles stripping tags and fallbacks
 
+  const { brnoDataset } = require('../brno_dataset');
+
   const getRandomQuestion = () => {
     try {
       logAction('GETTING_RANDOM_QUESTION', { gameMode });
       console.log('GameScreen: Getting random question for language:', language);
-      console.log('GameScreen: Dataset length:', ACTIVE_DATASET.length);
+      const active = gameMode === 'brnoPrague' && language === 'cs' ? brnoDataset : ACTIVE_DATASET;
+      console.log('GameScreen: Dataset length:', active.length);
       
       // Get random topic
-      const randomTopicIndex = Math.floor(Math.random() * ACTIVE_DATASET.length);
-      const topic = ACTIVE_DATASET[randomTopicIndex];
+      const randomTopicIndex = Math.floor(Math.random() * active.length);
+      const topic = active[randomTopicIndex];
       console.log('GameScreen: Selected topic index:', randomTopicIndex);
 
       // Randomly choose between non-empty categories only
