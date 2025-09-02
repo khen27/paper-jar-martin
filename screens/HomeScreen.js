@@ -596,10 +596,10 @@ const HomeScreen = ({ navigation }) => {
                       </View>
                       <View style={styles.modernTextContainer}>
                         <Text style={styles.modernGameModeText}>
-                          {translations[language]?.friendMode || 'Friends'}
+                          Brno vs. Prague
                         </Text>
                         <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.friendModeSubtext || 'Great for small groups'}
+                          Which city is the best?
                         </Text>
                       </View>
                     </View>
