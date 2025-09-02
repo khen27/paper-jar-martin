@@ -478,7 +478,7 @@ const GameScreen = ({ route, navigation }) => {
             </ModernButton>
 
             <ModernButton
-              variant="gradient"
+              variant="secondary"
               size="lg"
               onPress={() => {
                 logAction('REFRESH_BUTTON_PRESSED');
