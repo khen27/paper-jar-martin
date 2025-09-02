@@ -412,38 +412,39 @@ const HomeScreen = ({ navigation }) => {
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
-        <TouchableOpacity
-          style={styles.languageButton}
-          onPress={() => {
-            logAction('LANGUAGE_NAVIGATION');
-            navigation.navigate('Language');
-          }}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
+        <Animated.View 
+          style={[
+            styles.topButtonContainer,
+            styles.languageButton,
+            { transform: [{ scale: buttonScale }] }
+          ]}
         >
-          <Animated.View 
-            style={[
-              styles.languageButtonGlass, 
-              { transform: [{ scale: buttonScale }] }
-            ]}
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={() => {
+              logAction('LANGUAGE_NAVIGATION');
+              navigation.navigate('Language');
+            }}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
           >
-            <LanguageIcon size={24} color="#fff" />
-          </Animated.View>
-        </TouchableOpacity>
+            <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+          </ModernButton>
+        </Animated.View>
 
         {/* Favorites Button */}
-        <TouchableOpacity
-          style={styles.favoritesButton}
-          onPress={handleFavoritesPress}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
-        >
-          <View style={styles.favoritesButtonGlass}>
-            <HeartIcon size={24} color="#fff" />
+        <View style={[styles.topButtonContainer, styles.favoritesButton]}>
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={handleFavoritesPress}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
+          >
+            <HeartIcon size={tokens.components.icon.md} color="#fff" />
             {favoritesCount > 0 && (
               <View style={styles.favoritesBadge}>
                 <Text style={styles.favoritesBadgeText}>
@@ -451,8 +452,8 @@ const HomeScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
-          </View>
-        </TouchableOpacity>
+          </ModernButton>
+        </View>
 
         <ScrollView 
           style={styles.scrollView}
@@ -850,18 +851,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
-    paddingTop: Math.max(60, height * 0.08), // Responsive top padding
-    paddingBottom: Math.max(40, height * 0.05), // Added bottom padding
+    paddingTop: Math.max(40, height * 0.05), // Reduced top padding
+    paddingBottom: Math.max(20, height * 0.03), // Reduced bottom padding
   },
   jarIconRefresh: {
-    width: Math.min(width * 0.35, 200), // Responsive jar size (1.5x from ~133px)
-    height: Math.min(width * 0.35, 200),
-    marginBottom: 24, // 24px below jar (spec compliance)
+    width: Math.min(width * 0.3, 160), // Smaller jar size to save space
+    height: Math.min(width * 0.3, 160),
+    marginBottom: 16, // Reduced margin below jar
   },
   titleContainerRefresh: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16, // 16px below title (spec compliance)
+    marginBottom: 8, // Reduced margin below title
   },
   titleRefresh: {
     fontSize: Math.min(32, width * 0.08), // 2rem = 32px responsive
@@ -1160,8 +1161,8 @@ const styles = StyleSheet.create({
 
   // Modern game mode card styles
   modernGameModeCard: {
-    minHeight: 100,
-    marginBottom: tokens.spacing.lg,
+    minHeight: 80, // Reduced height
+    marginBottom: tokens.spacing.md, // Reduced margin
   },
   modernButtonInner: {
     flexDirection: 'row',
@@ -1193,6 +1194,24 @@ const styles = StyleSheet.create({
     fontWeight: tokens.typography.weights.medium,
     color: tokens.colors.text.secondary,
     lineHeight: tokens.typography.sizes.sm * tokens.typography.lineHeights.relaxed,
+  },
+
+  // Modern top button styles
+  topButtonContainer: {
+    position: 'absolute',
+    top: Math.max(50, height * 0.06),
+    zIndex: 1,
+  },
+  topButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  favoritesButton: {
+    right: Math.max(20, width * 0.05),
+  },
+  languageButton: {
+    right: Math.max(20, width * 0.05),
   },
 
 });

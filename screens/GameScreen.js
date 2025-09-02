@@ -465,52 +465,46 @@ const GameScreen = ({ route, navigation }) => {
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton]}
+            <ModernButton
+              variant="secondary"
+              size="md"
               onPress={() => {
                 logAction('HINT_BUTTON_PRESSED', { newState: !showHints });
                 setShowHints(!showHints);
               }}
+              style={[styles.modernActionButton, showHints && styles.activeActionButton]}
             >
-              <View style={[styles.actionButtonGlass, showHints && styles.activeButtonGlass]}>
-                <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
-              </View>
-            </TouchableOpacity>
+              <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
+            </ModernButton>
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.mainActionButton]}
+            <ModernButton
+              variant="gradient"
+              size="lg"
               onPress={() => {
                 logAction('REFRESH_BUTTON_PRESSED');
                 triggerShake();
               }}
+              style={styles.modernMainButton}
             >
-              <View style={styles.mainActionButtonGlass}>
-                <LinearGradient
-                  colors={['#667eea', '#764ba2']}
-                  style={styles.mainButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-                <RefreshIcon color="#fff" />
-              </View>
-            </TouchableOpacity>
+              <RefreshIcon color="#fff" />
+            </ModernButton>
 
-            <TouchableOpacity
-              style={[styles.actionButton]}
+            <ModernButton
+              variant="secondary"
+              size="md"
               onPress={() => {
                 logAction('FAVORITE_BUTTON_PRESSED', { isFavorite });
                 toggleFavorite();
               }}
+              style={[styles.modernActionButton, isFavorite && styles.favoriteActionButton]}
             >
-              <View style={[styles.actionButtonGlass, isFavorite && styles.favoriteButtonGlass]}>
-                <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
-              </View>
-            </TouchableOpacity>
+              <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
+            </ModernButton>
           </View>
 
           {/* Swipe Indicator */}
           <View style={styles.swipeIndicatorContainer}>
-            <View style={styles.swipeIndicatorGlass}>
+            <ModernCard variant="surface" size="sm">
               <View style={styles.carouselDots}>
                 <View style={[styles.dot, styles.dotSmall]} />
                 <View style={[styles.dot, styles.dotMedium]} />
@@ -518,7 +512,7 @@ const GameScreen = ({ route, navigation }) => {
                 <View style={[styles.dot, styles.dotMedium]} />
                 <View style={[styles.dot, styles.dotSmall]} />
               </View>
-            </View>
+            </ModernCard>
           </View>
 
           {/* Toast Notification */}
@@ -809,6 +803,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     letterSpacing: 0.5,
+  },
+
+  // Modern action button styles
+  modernActionButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  modernMainButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  activeActionButton: {
+    backgroundColor: tokens.colors.surface.strong,
+    borderColor: tokens.colors.border.strong,
+  },
+  favoriteActionButton: {
+    backgroundColor: 'rgba(255, 71, 87, 0.2)',
+    borderColor: 'rgba(255, 71, 87, 0.5)',
   },
 });
 
