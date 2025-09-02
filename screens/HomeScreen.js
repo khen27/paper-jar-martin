@@ -449,14 +449,14 @@ const HomeScreen = ({ navigation }) => {
             accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
           >
             <HeartIcon size={tokens.components.icon.md} color="#fff" />
-            {favoritesCount > 0 && (
-              <View style={styles.favoritesBadge}>
-                <Text style={styles.favoritesBadgeText}>
-                  {favoritesCount > 99 ? '99+' : favoritesCount}
-                </Text>
-              </View>
-            )}
           </ModernButton>
+          {favoritesCount > 0 && (
+            <View style={styles.favoritesBadge}>
+              <Text style={styles.favoritesBadgeText}>
+                {favoritesCount > 99 ? '99+' : favoritesCount}
+              </Text>
+            </View>
+          )}
         </View>
 
         <ScrollView 
@@ -708,26 +708,26 @@ const styles = StyleSheet.create({
   },
   favoritesBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -8,
+    right: -8,
     backgroundColor: '#ff4757',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
-    zIndex: 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 10,
+    zIndex: 999,
   },
   favoritesBadgeText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.2,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
