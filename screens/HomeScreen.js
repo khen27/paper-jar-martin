@@ -1245,7 +1245,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 1)',
+    shadowColor: 'rgba(34, 197, 94, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   modernTextContainer: {
     flex: 1,
