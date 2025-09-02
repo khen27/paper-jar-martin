@@ -1,4 +1,6 @@
 import React from 'react';
+import { useFonts } from 'expo-font';
+import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -13,6 +15,14 @@ import UpgradeScreen from './screens/UpgradeScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    NotoNaskhArabic_400Regular,
+    NotoNaskhArabic_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
   return (
     <ThemeProvider>
       <LanguageProvider>

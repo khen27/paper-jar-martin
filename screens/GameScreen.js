@@ -24,6 +24,7 @@ import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { getLocalizedText, requireText, isTaggedPlaceholder } from '../utils/i18n';
+import { isRTL } from '../utils/rtl';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
@@ -397,24 +398,25 @@ const GameScreen = ({ route, navigation }) => {
       <LinearGradient
         colors={getCurrentGradient().colors}
         style={styles.backgroundGradient}
-        start={getCurrentGradient().start}
-        end={getCurrentGradient().end}
+        start={isRTL(language) ? { x: 1, y: 0 } : getCurrentGradient().start}
+        end={isRTL(language) ? { x: 0, y: 1 } : getCurrentGradient().end}
       />
       
       <SafeAreaView style={styles.safeArea}>
         {/* Header with Back Button and Game Mode */}
-        <View style={styles.header}>
+        <View style={[styles.header, { flexDirection: isRTL(language) ? 'row-reverse' : 'row' }]}>
           <ModernBackButton 
             onPress={() => {
               logAction('BACK_BUTTON_PRESSED');
               navigation.goBack();
             }}
             size="md"
+            style={isRTL(language) ? { transform: [{ scaleX: -1 }] } : null}
           />
           
           {/* Game Mode Display - Top Right */}
           {gameMode && (
-            <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
+            <ModernCard variant="surface" size="sm" style={[styles.modernGameModePill, { alignSelf: 'flex-start' }]}>
               <Text style={styles.modernGameModeText}>
                 {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
               </Text>
@@ -459,14 +461,22 @@ const GameScreen = ({ route, navigation }) => {
               size="lg"
               style={styles.questionCard}
             >
-              <Text style={styles.questionText}>
+              <Text style={[
+                styles.questionText,
+                {
+                  writingDirection: isRTL(language) ? 'rtl' : 'ltr',
+                  textAlign: 'auto',
+                  fontFamily: isRTL(language) ? 'NotoNaskhArabic_400Regular' : undefined,
+                  letterSpacing: isRTL(language) ? 0 : styles.questionText.letterSpacing,
+                }
+              ]}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
             </ModernCard>
           </Animated.View>
 
           {/* Action Buttons */}
-          <View style={styles.actionButtons}>
+          <View style={[styles.actionButtons, { flexDirection: isRTL(language) ? 'row-reverse' : 'row' }]}>
             <ModernButton
               shape="circle"
               variant="secondary"
