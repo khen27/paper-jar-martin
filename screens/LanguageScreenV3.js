@@ -1,99 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
+  Text,
+  View,
   SafeAreaView,
   Dimensions,
   Animated,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-import {
-  TamaguiProvider,
-  createTamagui,
-  YStack,
-  XStack,
-  Card,
-  Text,
-  Button,
-  Circle,
-  styled,
-} from '@tamagui/core';
 import { LinearGradient } from 'expo-linear-gradient';
-import { config } from '@tamagui/config';
+import { BlurView } from 'expo-blur';
 import LanguageFlags from '../components/LanguageFlags';
 import BackIcon from '../components/BackIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const tamaguiConfig = createTamagui(config);
-
 const { width } = Dimensions.get('window');
-
-// Custom styled components for gaming aesthetic
-const GlowCard = styled(Card, {
-  borderRadius: 24,
-  padding: 24,
-  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  borderWidth: 1,
-  borderColor: 'rgba(255, 255, 255, 0.12)',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.2,
-  shadowRadius: 16,
-  elevation: 12,
-  position: 'relative',
-  overflow: 'hidden',
-  variants: {
-    selected: {
-      true: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        borderColor: 'rgba(255, 255, 255, 0.25)',
-        shadowOpacity: 0.3,
-        elevation: 16,
-        transform: [{ scale: 1.02 }],
-      },
-    },
-    size: {
-      card: {
-        minHeight: 140,
-        width: (width - 64) / 2,
-      },
-    },
-  },
-});
-
-const GlowButton = styled(Button, {
-  borderRadius: 18,
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  borderWidth: 1,
-  borderColor: 'rgba(255, 255, 255, 0.15)',
-  paddingHorizontal: 20,
-  paddingVertical: 14,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.15,
-  shadowRadius: 12,
-  elevation: 8,
-  pressStyle: {
-    scale: 0.95,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-  },
-});
-
-const SelectionBadge = styled(Circle, {
-  size: 32,
-  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  position: 'absolute',
-  top: 12,
-  right: 12,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.2,
-  shadowRadius: 8,
-  elevation: 6,
-  alignItems: 'center',
-  justifyContent: 'center',
-});
+const CARD_SPACING = 20;
+const CARD_WIDTH = (width - 60) / 2;
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -108,7 +34,7 @@ const LANGUAGES = [
   { code: 'bn', label: 'বাংলা' },
 ];
 
-const GameLanguageCard = ({ language, isSelected, onSelect, index }) => {
+const GamingLanguageCard = ({ language, isSelected, onSelect, index }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -149,25 +75,32 @@ const GameLanguageCard = ({ language, isSelected, onSelect, index }) => {
 
   return (
     <Animated.View
-      style={{
-        transform: [{ scale: scaleAnim }],
-        opacity: fadeAnim,
-      }}
+      style={[
+        styles.cardContainer,
+        {
+          transform: [{ scale: scaleAnim }],
+          opacity: fadeAnim,
+        },
+      ]}
     >
-      <GlowCard
-        size="card"
-        selected={isSelected}
+      <TouchableOpacity
         onPress={handlePress}
-        pressStyle={{ scale: 0.98 }}
-        animation="bouncy"
-        enterStyle={{ scale: 0.9, opacity: 0 }}
-        exitStyle={{ scale: 0.9, opacity: 0 }}
+        activeOpacity={0.9}
+        style={[
+          styles.languageCard,
+          isSelected && styles.selectedCard,
+        ]}
       >
+        {/* Gaming Glass Background */}
+        <BlurView intensity={15} tint="light" style={styles.cardBlur}>
+          <View style={[styles.cardOverlay, isSelected && styles.selectedOverlay]} />
+        </BlurView>
+
         {/* Gaming glow effect */}
         <LinearGradient
           colors={
             isSelected
-              ? ['rgba(103, 126, 234, 0.3)', 'rgba(118, 75, 162, 0.2)', 'transparent']
+              ? ['rgba(103, 126, 234, 0.4)', 'rgba(118, 75, 162, 0.3)', 'transparent']
               : ['rgba(255, 255, 255, 0.1)', 'transparent']
           }
           style={StyleSheet.absoluteFillObject}
@@ -175,48 +108,27 @@ const GameLanguageCard = ({ language, isSelected, onSelect, index }) => {
           end={{ x: 1, y: 1 }}
         />
 
-        <YStack alignItems="center" justifyContent="center" space="$3">
+        <View style={styles.cardContent}>
           {/* Flag */}
-          <YStack
-            shadowColor="#000"
-            shadowOffset={{ width: 0, height: 4 }}
-            shadowOpacity={0.2}
-            shadowRadius={8}
-            elevation={4}
-          >
+          <View style={styles.flagContainer}>
             <LanguageFlags code={language.code} size={56} />
-          </YStack>
+          </View>
 
           {/* Language Label */}
-          <Text
-            fontSize={18}
-            fontWeight="700"
-            color="#ffffff"
-            textAlign="center"
-            textShadowColor="rgba(0, 0, 0, 0.3)"
-            textShadowOffset={{ width: 0, height: 2 }}
-            textShadowRadius={4}
-            animation="lazy"
-            enterStyle={{ opacity: 0, y: 10 }}
-            exitStyle={{ opacity: 0, y: -10 }}
-          >
+          <Text style={[styles.languageLabel, isSelected && styles.selectedLabel]}>
             {language.label}
           </Text>
-        </YStack>
 
-        {/* Selection Badge */}
-        {isSelected && (
-          <SelectionBadge
-            animation="bouncy"
-            enterStyle={{ scale: 0, opacity: 0 }}
-            exitStyle={{ scale: 0, opacity: 0 }}
-          >
-            <Text fontSize={18} fontWeight="900" color="#667eea">
-              ✓
-            </Text>
-          </SelectionBadge>
-        )}
-      </GlowCard>
+          {/* Selection Badge */}
+          {isSelected && (
+            <View style={styles.selectionBadge}>
+              <BlurView intensity={20} tint="light" style={styles.badgeBlur}>
+                <Text style={styles.checkmark}>✓</Text>
+              </BlurView>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -252,9 +164,9 @@ const LanguageScreenV3 = ({ navigation }) => {
     for (let i = 0; i < LANGUAGES.length; i += 2) {
       const row = LANGUAGES.slice(i, i + 2);
       rows.push(
-        <XStack key={i} justifyContent="space-between" space="$4" width="100%">
+        <View key={i} style={styles.gridRow}>
           {row.map((lang, rowIndex) => (
-            <GameLanguageCard
+            <GamingLanguageCard
               key={lang.code}
               language={lang}
               isSelected={language === lang.code}
@@ -263,15 +175,15 @@ const LanguageScreenV3 = ({ navigation }) => {
             />
           ))}
           {/* Fill empty space if odd number */}
-          {row.length === 1 && <YStack flex={1} />}
-        </XStack>
+          {row.length === 1 && <View style={{ flex: 1 }} />}
+        </View>
       );
     }
     return rows;
   };
 
   return (
-    <TamaguiProvider config={tamaguiConfig}>
+    <>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
       {/* Gaming Gradient Background */}
@@ -283,77 +195,199 @@ const LanguageScreenV3 = ({ navigation }) => {
       />
 
       <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
-        <YStack flex={1} padding="$6" space="$6">
+        <View style={styles.content}>
           {/* Header */}
           <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
+            style={[
+              styles.header,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
           >
-            <GlowButton
+            <TouchableOpacity
               onPress={() => navigation.goBack()}
-              alignSelf="flex-start"
-              icon={<BackIcon size={24} color="#fff" />}
-            />
+              style={styles.backButton}
+              activeOpacity={0.8}
+            >
+              <BlurView intensity={15} tint="light" style={styles.backButtonBlur}>
+                <BackIcon size={24} color="#fff" />
+              </BlurView>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Gaming Title */}
           <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
+            style={[
+              styles.titleSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
           >
-            <YStack space="$3">
-              <Text
-                fontSize={44}
-                fontWeight="900"
-                color="#ffffff"
-                letterSpacing={-1}
-                lineHeight={50}
-                textShadowColor="rgba(0, 0, 0, 0.4)"
-                textShadowOffset={{ width: 0, height: 3 }}
-                textShadowRadius={10}
-                animation="lazy"
-                enterStyle={{ opacity: 0, y: 20 }}
-              >
-                {translations[language]?.selectLanguage || translations.cs.selectLanguage}
-              </Text>
-              <Text
-                fontSize={19}
-                fontWeight="500"
-                color="rgba(255, 255, 255, 0.9)"
-                letterSpacing={0.3}
-                animation="lazy"
-                enterStyle={{ opacity: 0, y: 10 }}
-              >
-                {translations[language]?.selectLanguageSubtitle || translations.cs.selectLanguageSubtitle}
-              </Text>
-            </YStack>
+            <Text style={styles.title}>
+              {translations[language]?.selectLanguage || translations.cs.selectLanguage}
+            </Text>
+            <Text style={styles.subtitle}>
+              {translations[language]?.selectLanguageSubtitle || translations.cs.selectLanguageSubtitle}
+            </Text>
           </Animated.View>
 
           {/* Language Grid */}
           <Animated.View
-            style={{
-              flex: 1,
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
+            style={[
+              styles.gridContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
           >
-            <YStack flex={1} space="$4" paddingTop="$4">
-              {renderLanguageGrid()}
-            </YStack>
+            {renderLanguageGrid()}
           </Animated.View>
-        </YStack>
+        </View>
       </SafeAreaView>
-    </TamaguiProvider>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  backButtonBlur: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  titleSection: {
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 44,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: -1,
+    lineHeight: 50,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 10,
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 19,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)',
+    letterSpacing: 0.3,
+  },
+  gridContainer: {
+    flex: 1,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: CARD_SPACING,
+  },
+  cardContainer: {
+    width: CARD_WIDTH,
+  },
+  languageCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    minHeight: 140,
+  },
+  selectedCard: {
+    shadowOpacity: 0.25,
+    elevation: 12,
+  },
+  cardBlur: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  selectedOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  cardContent: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 140,
+    position: 'relative',
+  },
+  flagContainer: {
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  languageLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  selectedLabel: {
+    fontSize: 19,
+    fontWeight: '800',
+  },
+  selectionBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  badgeBlur: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkmark: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#667eea',
   },
 });
 
