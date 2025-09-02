@@ -73,13 +73,13 @@ const ColorScreen = ({ navigation }) => {
             style={[
               styles.selectionIndicator,
               isSelected && { 
-                backgroundColor: theme.colors[0],
-                borderColor: theme.colors[1],
+                backgroundColor: theme.id === 'royal-purple' ? '#ffffff' : theme.colors[0],
+                borderColor: theme.id === 'royal-purple' ? theme.colors[0] : theme.colors[1],
                 borderWidth: 2,
                 borderRadius: 12,
               }
             ]}
-            iconColor="#ffffff"
+            iconColor={theme.id === 'royal-purple' ? theme.colors[0] : "#ffffff"}
           />
         </ModernCard>
       </TouchableOpacity>
