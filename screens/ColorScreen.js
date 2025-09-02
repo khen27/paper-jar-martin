@@ -186,13 +186,13 @@ const styles = StyleSheet.create({
   colorPreview: {
     width: '100%',
     height: 60,
-    borderRadius: tokens.borderRadius.lg,
+    borderRadius: tokens.radius.lg,
     marginBottom: tokens.spacing.md,
     overflow: 'hidden',
   },
   gradientPreview: {
     flex: 1,
-    borderRadius: tokens.borderRadius.lg,
+    borderRadius: tokens.radius.lg,
   },
   themeInfo: {
     alignItems: 'center',
