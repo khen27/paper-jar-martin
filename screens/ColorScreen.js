@@ -68,9 +68,11 @@ const ColorScreen = ({ navigation }) => {
           </View>
           
           {/* Selection Indicator */}
-          {isSelected && (
-            <ModernSelectionIndicator style={styles.selectionIndicator} />
-          )}
+          <ModernSelectionIndicator 
+            active={isSelected} 
+            size="md"
+            style={styles.selectionIndicator}
+          />
         </ModernCard>
       </TouchableOpacity>
     );
