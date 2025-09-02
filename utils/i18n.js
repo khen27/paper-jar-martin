@@ -8,7 +8,7 @@ export const isTaggedPlaceholder = (s) =>
 export const stripTags = (s) =>
   (s || '')
     .replace(/^\s*\[[A-Z]{2}\]\s*/, '')
-    .replace(/\s*\(\d+\)\??$/, '')
+    .replace(/\s*\(\d+\)[\?\.\!]?$/, '')
     .trim();
 
 export function getLocalizedText(obj, lang) {

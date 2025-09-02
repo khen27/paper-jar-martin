@@ -190,10 +190,7 @@ const GameScreen = ({ route, navigation }) => {
       setCurrentQuestionObject(questionObject);
 
       // Return question in current language or fallback, with prefixes removed
-      console.log('GameScreen: Attempting to get text for language:', language);
-      console.log('GameScreen: Available languages in question:', Object.keys(questionObject));
       const cleanedText = getLocalizedText(questionObject, language);
-      console.log('i18n:lang=', language, '->', cleanedText.slice(0, 60));
       
       logAction('QUESTION_GENERATED', { 
         topicIndex: randomTopicIndex,
