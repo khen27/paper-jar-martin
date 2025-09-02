@@ -8,6 +8,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ModernCard, ModernButton } from './ui';
+import { tokens } from '../theme/tokens';
 
 const { width } = Dimensions.get('window');
 const BANNER_HEIGHT = 60;
@@ -82,37 +84,34 @@ const AdBanner = ({ onPress }) => {
         }
       ]}
     >
+      <ModernCard variant="surface" size="lg" style={styles.adCard}>
+        <TouchableOpacity 
+          style={styles.bottomAdContent} 
+          activeOpacity={0.8}
+          onPress={handlePress}
+        >
+          <View style={styles.bottomAdInner}>
+            {/* Sponsored label */}
+            <ModernCard variant="surface" size="xs" style={styles.sponsoredWrapper}>
+              <Text style={styles.sponsoredText}>SPONSORED</Text>
+            </ModernCard>
 
-      
-      <TouchableOpacity 
-        style={styles.bottomAdContent} 
-        activeOpacity={0.8}
-        onPress={handlePress}
-      >
-        <View style={styles.bottomAdInner}>
-          {/* Sponsored label */}
-          <View style={styles.sponsoredWrapper}>
-            <Text style={styles.sponsoredText}>Sponsored</Text>
+            {/* Ad content */}
+            <View style={styles.adTextContainer}>
+              <Text style={styles.bottomAdHeadline} numberOfLines={1}>
+                {currentAd.headline}
+              </Text>
+            </View>
+
+            {/* CTA Button */}
+            <ModernButton variant="secondary" size="sm" style={styles.ctaButton}>
+              <Text style={styles.bottomAdCTA} numberOfLines={1}>
+                {currentAd.cta}
+              </Text>
+            </ModernButton>
           </View>
-          
-          {/* Ad content */}
-          <View style={styles.adTextContainer}>
-            <Text style={styles.bottomAdHeadline} numberOfLines={1}>
-              {currentAd.headline}
-            </Text>
-          </View>
-          
-          {/* CTA Button */}
-          <View style={styles.bottomAdCTAWrapper}>
-            <Text style={styles.bottomAdCTA} numberOfLines={1}>
-              {currentAd.cta}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-      
-      {/* Glass overlay for premium effect */}
-      <View style={styles.glassOverlay} />
+        </TouchableOpacity>
+      </ModernCard>
     </Animated.View>
   );
 };
@@ -122,94 +121,65 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 40, // Moved up from 0 to avoid system home indicator
-    height: BANNER_HEIGHT + 20, // Extra space for shadow and safe area
+    bottom: tokens.spacing['4xl'],
+    height: BANNER_HEIGHT + tokens.spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
     zIndex: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 8,
+    paddingHorizontal: tokens.spacing.xl,
+    paddingBottom: tokens.spacing.sm,
   },
-
-  bottomAdContent: {
-    width: width - 40,
+  adCard: {
+    width: width - (tokens.spacing.xl * 2),
     height: BANNER_HEIGHT,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(20px)',
+    ...tokens.shadows.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+  },
+  bottomAdContent: {
+    flex: 1,
   },
   bottomAdInner: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: tokens.spacing.lg,
     justifyContent: 'space-between',
   },
   sponsoredWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.sm,
   },
   sponsoredText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    ...tokens.typography.sizes.xs,
+    ...tokens.typography.weights.semibold,
+    color: tokens.colors.text.tertiary,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   adTextContainer: {
     flex: 1,
-    marginHorizontal: 12,
+    marginHorizontal: tokens.spacing.md,
   },
   bottomAdHeadline: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
+    ...tokens.typography.sizes.lg,
+    ...tokens.typography.weights.bold,
+    color: tokens.colors.text.primary,
     letterSpacing: 0.3,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
-  bottomAdCTAWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  ctaButton: {
+    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.md,
   },
   bottomAdCTA: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
+    ...tokens.typography.sizes.sm,
+    ...tokens.typography.weights.bold,
+    color: tokens.colors.text.primary,
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
-  },
-  glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    pointerEvents: 'none',
   },
 });
 

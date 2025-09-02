@@ -4,18 +4,19 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
   Dimensions,
   ScrollView,
 } from 'react-native';
-// import Easing from 'react-native/Libraries/Animated/Easing';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
 import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon } from '../components/GameModeIcons';
+import { ModernCard, ModernButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width, height } = Dimensions.get('window');
 
@@ -404,45 +405,46 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#667eea']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
-        <TouchableOpacity
-          style={styles.languageButton}
-          onPress={() => {
-            logAction('LANGUAGE_NAVIGATION');
-            navigation.navigate('Language');
-          }}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
+        <Animated.View 
+          style={[
+            styles.topButtonContainer,
+            styles.languageButton,
+            { transform: [{ scale: buttonScale }] }
+          ]}
         >
-          <Animated.View 
-            style={[
-              styles.languageButtonGlass, 
-              { transform: [{ scale: buttonScale }] }
-            ]}
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={() => {
+              logAction('LANGUAGE_NAVIGATION');
+              navigation.navigate('Language');
+            }}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
           >
-            <LanguageIcon size={24} color="#fff" />
-          </Animated.View>
-        </TouchableOpacity>
+            <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+          </ModernButton>
+        </Animated.View>
 
         {/* Favorites Button */}
-        <TouchableOpacity
-          style={styles.favoritesButton}
-          onPress={handleFavoritesPress}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
-        >
-          <View style={styles.favoritesButtonGlass}>
-            <HeartIcon size={24} color="#fff" />
+        <View style={[styles.topButtonContainer, styles.favoritesButton]}>
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={handleFavoritesPress}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
+          >
+            <HeartIcon size={tokens.components.icon.md} color="#fff" />
             {favoritesCount > 0 && (
               <View style={styles.favoritesBadge}>
                 <Text style={styles.favoritesBadgeText}>
@@ -450,8 +452,8 @@ const HomeScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
-          </View>
-        </TouchableOpacity>
+          </ModernButton>
+        </View>
 
         <ScrollView 
           style={styles.scrollView}
@@ -513,122 +515,97 @@ const HomeScreen = ({ navigation }) => {
             <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonsRefresh : styles.gameModeButtons}>
               {/* Partner Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('partner')}
                 onPress={() => handleGameModeSelect('partner')}
                 onPressOut={() => onGameModePressOut('partner')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: partnerButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(33, 150, 243, 0.3)', 'rgba(21, 101, 192, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.partnerIconBgRefresh : styles.partnerIconBg
-                    ]}>
-                      <PartnerIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: partnerButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.partnerIconBg]}>
+                        <PartnerIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.partnerMode || 'Partner'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partnerMode || 'Partner'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
 
               {/* Friend Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('friend')}
                 onPress={() => handleGameModeSelect('friend')}
                 onPressOut={() => onGameModePressOut('friend')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: friendButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(76, 175, 80, 0.3)', 'rgba(56, 142, 60, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.friendIconBgRefresh : styles.friendIconBg
-                    ]}>
-                      <FriendIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                        <FriendIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.friendMode || 'Friends'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.friendModeSubtext || 'Great for small groups'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.friendMode || 'Friends'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.friendModeSubtext || 'Great for small groups'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
 
               {/* Party Mode */}
               <TouchableOpacity
-                style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonRefresh : styles.gameModeButton}
                 onPressIn={() => onGameModePressIn('party')}
                 onPress={() => handleGameModeSelect('party')}
                 onPressOut={() => onGameModePressOut('party')}
                 activeOpacity={0.8}
               >
-                <Animated.View
-                  style={[
-                    OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonContentRefresh : styles.gameModeButtonContent,
-                    { transform: [{ scale: partyButtonScale }] },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(255, 193, 7, 0.3)', 'rgba(255, 152, 0, 0.3)']}
-                    style={OTAZO_JAR_REFRESH_ENABLED ? styles.gradientBackgroundRefresh : styles.gradientBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.buttonInnerRefresh : styles.buttonInner}>
-                    <View style={[
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.iconContainerRefresh : styles.iconContainer, 
-                      OTAZO_JAR_REFRESH_ENABLED ? styles.partyIconBgRefresh : styles.partyIconBg
-                    ]}>
-                      <PartyIcon size={OTAZO_JAR_REFRESH_ENABLED ? 22 : 28} />
+                <Animated.View style={{ transform: [{ scale: partyButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.partyIconBg]}>
+                        <PartyIcon size={tokens.components.icon.lg} />
+                      </View>
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.partyMode || 'Party'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.textContainerRefresh : styles.textContainer}>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTextRefresh : styles.gameModeText}>
-                        {translations[language]?.partyMode || 'Party'}
-                      </Text>
-                      <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeSubtextRefresh : styles.gameModeSubtext}>
-                        {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
-                      </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
             </View>
           </View>
+
+
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -874,18 +851,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
-    paddingTop: Math.max(60, height * 0.08), // Responsive top padding
-    paddingBottom: Math.max(40, height * 0.05), // Added bottom padding
+    paddingTop: Math.max(40, height * 0.05), // Reduced top padding
+    paddingBottom: Math.max(20, height * 0.03), // Reduced bottom padding
   },
   jarIconRefresh: {
-    width: Math.min(width * 0.35, 200), // Responsive jar size (1.5x from ~133px)
-    height: Math.min(width * 0.35, 200),
-    marginBottom: 24, // 24px below jar (spec compliance)
+    width: Math.min(width * 0.3, 160), // Smaller jar size to save space
+    height: Math.min(width * 0.3, 160),
+    marginBottom: 16, // Reduced margin below jar
   },
   titleContainerRefresh: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16, // 16px below title (spec compliance)
+    marginBottom: 8, // Reduced margin below title
   },
   titleRefresh: {
     fontSize: Math.min(32, width * 0.08), // 2rem = 32px responsive
@@ -1181,6 +1158,62 @@ const styles = StyleSheet.create({
     textShadowOpacity: 1,
     textShadowRadius: 2,
   },
+
+  // Modern game mode card styles
+  modernGameModeCard: {
+    minHeight: 80, // Reduced height
+    marginBottom: tokens.spacing.md, // Reduced margin
+  },
+  modernButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  modernIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: tokens.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  partnerIconBg: {
+    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+  },
+  modernTextContainer: {
+    flex: 1,
+  },
+  modernGameModeText: {
+    fontSize: tokens.typography.sizes.lg,
+    fontWeight: tokens.typography.weights.bold,
+    color: tokens.colors.text.primary,
+    marginBottom: tokens.spacing.xs,
+  },
+  modernGameModeSubtext: {
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.text.secondary,
+    lineHeight: tokens.typography.sizes.sm * tokens.typography.lineHeights.relaxed,
+  },
+
+  // Modern top button styles
+  topButtonContainer: {
+    position: 'absolute',
+    top: Math.max(50, height * 0.06),
+    zIndex: 1,
+  },
+  topButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  favoritesButton: {
+    left: Math.max(20, width * 0.05),
+  },
+  languageButton: {
+    right: Math.max(20, width * 0.05),
+  },
+
 });
 
 export default HomeScreen; 

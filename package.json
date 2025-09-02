@@ -14,7 +14,15 @@
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
+    "@rneui/base": "^4.0.0-rc.8",
+    "@rneui/themed": "^4.0.0-rc.8",
+    "@tamagui/animations-react-native": "^1.132.23",
+    "@tamagui/config": "^1.132.23",
+    "@tamagui/core": "^1.132.23",
+    "@tamagui/font-inter": "^1.132.23",
+    "@tamagui/theme-base": "^1.132.23",
     "expo": "~53.0.20",
+    "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
     "expo-linear-gradient": "~14.1.5",
     "expo-notifications": "~0.31.3",
@@ -29,10 +37,12 @@
     "react-native-screens": "~4.11.1",
     "react-native-svg": "^15.11.2",
     "react-native-svg-transformer": "^1.5.1",
-    "expo-blur": "~14.1.5"
+    "react-native-vector-icons": "^10.3.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
   },
   "private": true
 }

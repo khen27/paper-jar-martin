@@ -4,12 +4,13 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
   ScrollView,
   Dimensions,
   PanResponder,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,8 +18,9 @@ import { translations } from '../translations';
 import { dataset } from '../full_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
-import BackIcon from '../components/BackIcon';
 import AdBanner, { BANNER_HEIGHT } from '../components/AdBanner';
+import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
@@ -397,34 +399,30 @@ const GameScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#667eea']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
       
       <SafeAreaView style={styles.safeArea}>
         {/* Header with Back Button and Game Mode */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <ModernBackButton 
             onPress={() => {
               logAction('BACK_BUTTON_PRESSED');
               navigation.goBack();
             }}
-          >
-            <View style={styles.backButtonGlass}>
-              <BackIcon size={32} color="#fff" />
-            </View>
-          </TouchableOpacity>
+            size="md"
+          />
           
           {/* Game Mode Display - Top Right */}
           {gameMode && (
-            <View style={styles.gameModeDisplayHeader}>
-              <Text style={styles.gameModeTextHeader}>
+            <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
+              <Text style={styles.modernGameModeText}>
                 {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
               </Text>
-            </View>
+            </ModernCard>
           )}
         </View>
 
@@ -449,77 +447,73 @@ const GameScreen = ({ route, navigation }) => {
           />
 
           {/* Premium Question Box with Swipe Gesture */}
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.questionBoxContainer,
               {
+                width: '100%',
+                marginBottom: tokens.spacing['4xl'],
                 transform: [{ translateX: swipeTranslateX }],
                 opacity: swipeOpacity,
               }
             ]}
             {...panResponder.panHandlers}
           >
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.1)']}
-              style={styles.questionBoxGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <View style={styles.questionBox}>
+            <ModernCard
+              variant="surface"
+              size="lg"
+              style={styles.questionCard}
+            >
               <Text style={styles.questionText}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
-            </View>
+            </ModernCard>
           </Animated.View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton]}
+            <ModernButton
+              shape="circle"
+              variant="secondary"
+              size="md"
               onPress={() => {
                 logAction('HINT_BUTTON_PRESSED', { newState: !showHints });
                 setShowHints(!showHints);
               }}
+              style={[styles.modernActionButton, showHints && styles.activeActionButton]}
             >
-              <View style={[styles.actionButtonGlass, showHints && styles.activeButtonGlass]}>
-                <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
-              </View>
-            </TouchableOpacity>
+              <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
+            </ModernButton>
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.mainActionButton]}
+            <ModernButton
+              shape="circle"
+              variant="secondary"
+              size="lg"
               onPress={() => {
                 logAction('REFRESH_BUTTON_PRESSED');
                 triggerShake();
               }}
+              style={styles.modernMainButton}
             >
-              <View style={styles.mainActionButtonGlass}>
-                <LinearGradient
-                  colors={['#667eea', '#764ba2']}
-                  style={styles.mainButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-                <RefreshIcon color="#fff" />
-              </View>
-            </TouchableOpacity>
+              <RefreshIcon color="#fff" />
+            </ModernButton>
 
-            <TouchableOpacity
-              style={[styles.actionButton]}
+            <ModernButton
+              shape="circle"
+              variant="secondary"
+              size="md"
               onPress={() => {
                 logAction('FAVORITE_BUTTON_PRESSED', { isFavorite });
                 toggleFavorite();
               }}
+              style={[styles.modernActionButton, isFavorite && styles.favoriteActionButton]}
             >
-              <View style={[styles.actionButtonGlass, isFavorite && styles.favoriteButtonGlass]}>
-                <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
-              </View>
-            </TouchableOpacity>
+              <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
+            </ModernButton>
           </View>
 
           {/* Swipe Indicator */}
           <View style={styles.swipeIndicatorContainer}>
-            <View style={styles.swipeIndicatorGlass}>
+            <ModernCard variant="surface" size="sm">
               <View style={styles.carouselDots}>
                 <View style={[styles.dot, styles.dotSmall]} />
                 <View style={[styles.dot, styles.dotMedium]} />
@@ -527,7 +521,7 @@ const GameScreen = ({ route, navigation }) => {
                 <View style={[styles.dot, styles.dotMedium]} />
                 <View style={[styles.dot, styles.dotSmall]} />
               </View>
-            </View>
+            </ModernCard>
           </View>
 
           {/* Toast Notification */}
@@ -628,17 +622,7 @@ const styles = StyleSheet.create({
     height: 180,
     marginVertical: 15,
   },
-  questionBoxContainer: {
-    width: '100%',
-    marginBottom: 40,
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 16,
-  },
+
   questionBoxGradient: {
     position: 'absolute',
     left: 0,
@@ -654,24 +638,27 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   questionText: {
-    fontSize: 22,
+    fontSize: tokens.typography.sizes.xl,
     textAlign: 'center',
-    color: '#fff',
-    lineHeight: 32,
-    fontWeight: '600',
+    color: tokens.colors.text.primary,
+    lineHeight: tokens.typography.sizes.xl * tokens.typography.lineHeights.relaxed,
+    fontWeight: tokens.typography.weights.semibold,
     letterSpacing: 0.3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    ...(Platform.OS === 'android'
+      ? {}
+      : {
+          textShadowColor: 'rgba(0, 0, 0, 0.3)',
+          textShadowOffset: { width: 0, height: 2 },
+          textShadowRadius: 4,
+        }),
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 40,
-    gap: 20,
+    marginBottom: tokens.spacing['4xl'],
+    gap: tokens.spacing.xl,
   },
   actionButton: {
     shadowColor: '#000',
@@ -724,7 +711,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   swipeIndicatorContainer: {
-    marginTop: 10,
+    marginTop: tokens.spacing.md,
     alignItems: 'center',
   },
   swipeIndicatorGlass: {
@@ -745,31 +732,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
   },
   dot: {
-    borderRadius: 5,
-    marginHorizontal: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  dotSmall: {
     width: 6,
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  dotMedium: {
-    width: 10,
-    height: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 3,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   dotLarge: {
-    width: 14,
-    height: 14,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 2,
   },
   toastContainer: {
     position: 'absolute',
@@ -818,6 +795,54 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     letterSpacing: 0.5,
+  },
+
+  // Modern action button styles
+  modernActionButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 0,
+    ...tokens.shadows.md,
+  },
+  modernMainButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 0,
+    ...tokens.shadows.lg,
+  },
+  activeActionButton: {
+    backgroundColor: tokens.colors.surface.strong,
+    borderColor: tokens.colors.border.strong,
+    borderWidth: 3,
+  },
+  favoriteActionButton: {
+    backgroundColor: 'rgba(255, 71, 87, 0.25)',
+    borderColor: 'rgba(255, 71, 87, 0.6)',
+    borderWidth: 2,
+  },
+
+  // Modern game mode pill styles
+  modernGameModePill: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.radius.full,
+    minHeight: 32,
+    alignSelf: 'flex-start',
+  },
+  modernGameModeText: {
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.text.primary,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  // Question card tweaks for a single clean surface (no inner frame)
+  questionCard: {
+    borderWidth: 0,
+    padding: tokens.spacing['2xl'],
+    ...tokens.shadows.lg,
   },
 });
 

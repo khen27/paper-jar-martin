@@ -24,6 +24,7 @@ export default function App() {
               headerShown: false,
             }}
           />
+
           <Stack.Screen
             name="Upgrade"
             component={UpgradeScreen}
