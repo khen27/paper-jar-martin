@@ -630,45 +630,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Language Screen Test Buttons */}
-          <View style={styles.testButtonsContainer}>
-            <Text style={styles.testButtonsTitle}>Test Language Screens:</Text>
-            
-            <View style={styles.testButtons}>
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={() => navigation.navigate('Language')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.testButtonContent}>
-                  <Text style={styles.testButtonText}>Original</Text>
-                  <Text style={styles.testButtonSubtext}>Glass V2 System</Text>
-                </View>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={() => navigation.navigate('LanguageV2')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.testButtonContent}>
-                  <Text style={styles.testButtonText}>V2</Text>
-                  <Text style={styles.testButtonSubtext}>RN Elements</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={() => navigation.navigate('LanguageV3')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.testButtonContent}>
-                  <Text style={styles.testButtonText}>V3</Text>
-                  <Text style={styles.testButtonSubtext}>Tamagui Gaming</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -1221,55 +1183,7 @@ const styles = StyleSheet.create({
     textShadowOpacity: 1,
     textShadowRadius: 2,
   },
-  
-  // Test buttons styles
-  testButtonsContainer: {
-    marginTop: 40,
-    paddingHorizontal: 20,
-  },
-  testButtonsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  testButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  testButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  testButtonContent: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  testButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  testButtonSubtext: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-  },
+
 });
 
 export default HomeScreen; 

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
-  Platform,
   ScrollView,
   Pressable,
 } from 'react-native';
@@ -15,10 +14,10 @@ import BackIcon from '../components/BackIcon';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import GlassCard from '../components/GlassCard';
+// import GlassCard from '../components/GlassCard';  // Commented out glass
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { flags } from '../src/config/flags';
-import { GlassCard as NewGlassCard, GlassPressable, GlassIndicator } from '../src/components/glass';
+// import { flags } from '../src/config/flags';  // Commented out glass system
+// import { GlassCard as NewGlassCard, GlassPressable, GlassIndicator } from '../src/components/glass';  // Commented out glass
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -70,24 +69,15 @@ const LanguageScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
         {/* Header */}
         <View style={styles.header}>
-          {flags.GLASS_V2_ENABLED ? (
-            <GlassPressable
-              onPress={() => navigation.goBack()}
-              size="sm"
-              style={styles.backButton}
-            >
-              <BackIcon size={32} color="#fff" />
-            </GlassPressable>
-          ) : (
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <View style={styles.backButtonGlass}>
-                <BackIcon size={32} color="#fff" />
-              </View>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <View style={styles.backButtonModern}>
+              <BackIcon size={24} color="#fff" />
+            </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -106,66 +96,38 @@ const LanguageScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Language Grid */}
+          {/* Modern Language Grid */}
           <View style={styles.gridContainer}>
             <View style={styles.grid}>
               {LANGUAGES.map((lang) => (
                 <View key={lang.code} style={styles.cardWrapper}>
-                  {flags.GLASS_V2_ENABLED ? (
-                    <Pressable
-                      style={({ pressed }) => ([
-                        styles.card,
-                        isLoading && styles.cardDisabled,
-                        Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
-                      ])}
-                      android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
-                      onPress={() => handleLanguageSelect(lang.code)}
-                      disabled={isLoading}
-                    >
-                      <NewGlassCard variant="raised" size="lg" style={styles.cardGlass}>
-                        <View style={styles.flagContainer}>
-                          <LanguageFlags code={lang.code} size={40} />
+                  <TouchableOpacity
+                    style={[
+                      styles.modernCard,
+                      language === lang.code && styles.selectedCard,
+                      isLoading && styles.cardDisabled
+                    ]}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cardContent}>
+                      <View style={styles.flagContainer}>
+                        <LanguageFlags code={lang.code} size={48} />
+                      </View>
+                      <Text style={[
+                        styles.languageText,
+                        language === lang.code && styles.languageTextActive
+                      ]}>
+                        {lang.label}
+                      </Text>
+                      {language === lang.code && (
+                        <View style={styles.modernIndicator}>
+                          <Text style={styles.checkText}>✓</Text>
                         </View>
-                        <Text style={[
-                          styles.language,
-                          language === lang.code && styles.languageActive
-                        ]}>
-                          {lang.label}
-                        </Text>
-                        {language === lang.code && (
-                          <GlassIndicator active />
-                        )}
-                      </NewGlassCard>
-                    </Pressable>
-                  ) : (
-                    <Pressable
-                      style={({ pressed }) => ([
-                        styles.card,
-                        isLoading && styles.cardDisabled,
-                        Platform.OS === 'ios' && { opacity: pressed ? 0.85 : 1 }
-                      ])}
-                      android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
-                      onPress={() => handleLanguageSelect(lang.code)}
-                      disabled={isLoading}
-                    >
-                      <GlassCard style={styles.cardGlass}>
-                        <View style={styles.flagContainer}>
-                          <LanguageFlags code={lang.code} size={40} />
-                        </View>
-                        <Text style={[
-                          styles.language,
-                          language === lang.code && styles.languageActive
-                        ]}>
-                          {lang.label}
-                        </Text>
-                        {language === lang.code && (
-                          <View style={styles.selectedIndicator}>
-                            <Text style={styles.selectedText}>✓</Text>
-                          </View>
-                        )}
-                      </GlassCard>
-                    </Pressable>
-                  )}
+                      )}
+                    </View>
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -204,17 +166,12 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: 'flex-start',
   },
-  backButtonGlass: {
+  backButtonModern: {
     padding: 12,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 1,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
   },
   titleSection: {
     paddingHorizontal: 24,
@@ -251,60 +208,62 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     padding: CARD_MARGIN,
   },
-  card: {
+  modernCard: {
     width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    minHeight: 130,
   },
-  cardGlass: {
+  selectedCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderWidth: 3,
+  },
+  cardDisabled: {
+    opacity: 0.5,
+  },
+  cardContent: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
     position: 'relative',
-  },
-
-  cardDisabled: {
-    opacity: 0.5,
+    minHeight: 130,
   },
   flagContainer: {
     marginBottom: 12,
     alignItems: 'center',
   },
-  language: {
+  languageText: {
     fontSize: 16,
     textAlign: 'center',
     color: '#fff',
     fontWeight: '600',
-    letterSpacing: 0.1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    letterSpacing: 0.3,
   },
-  languageActive: {
+  languageTextActive: {
     color: '#fff',
-    fontWeight: '700',
-    fontSize: 17,
+    fontWeight: '800',
+    fontSize: 18,
   },
-  selectedIndicator: {
+  modernIndicator: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    borderWidth: 2,
+    borderColor: '#667eea',
   },
-  selectedText: {
+  checkText: {
     color: '#667eea',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '900',
   },
 });
 
