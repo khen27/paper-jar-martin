@@ -723,6 +723,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 6,
+    zIndex: 10,
   },
   favoritesBadgeText: {
     color: '#fff',
@@ -841,19 +842,19 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   partnerIconBg: {
-    backgroundColor: 'rgba(33, 150, 243, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(33, 150, 243, 0.3)',
+    backgroundColor: 'rgba(255, 107, 107, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 107, 107, 0.6)',
   },
   friendIconBg: {
-    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(76, 175, 80, 0.3)',
+    backgroundColor: 'rgba(255, 206, 84, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 206, 84, 0.6)',
   },
   partyIconBg: {
-    backgroundColor: 'rgba(255, 152, 0, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 152, 0, 0.3)',
+    backgroundColor: 'rgba(138, 43, 226, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(138, 43, 226, 0.6)',
   },
   textContainer: {
     flex: 1,
@@ -998,19 +999,19 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   partnerIconBgRefresh: {
-    backgroundColor: 'rgba(33, 150, 243, 0.3)', // More prominent blue background
-    borderWidth: 1.5,
-    borderColor: 'rgba(33, 150, 243, 0.4)',
+    backgroundColor: 'rgba(255, 107, 107, 0.4)', // Coral red background
+    borderWidth: 2,
+    borderColor: 'rgba(255, 107, 107, 0.7)',
   },
   friendIconBgRefresh: {
-    backgroundColor: 'rgba(76, 175, 80, 0.3)', // More prominent green background
-    borderWidth: 1.5,
-    borderColor: 'rgba(76, 175, 80, 0.4)',
+    backgroundColor: 'rgba(255, 206, 84, 0.4)', // Golden yellow background
+    borderWidth: 2,
+    borderColor: 'rgba(255, 206, 84, 0.7)',
   },
   partyIconBgRefresh: {
-    backgroundColor: 'rgba(255, 152, 0, 0.3)', // More prominent orange background
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 152, 0, 0.4)',
+    backgroundColor: 'rgba(138, 43, 226, 0.4)', // Purple background
+    borderWidth: 2,
+    borderColor: 'rgba(138, 43, 226, 0.7)',
   },
   textContainerRefresh: {
     flex: 1,
