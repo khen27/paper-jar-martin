@@ -46,7 +46,6 @@ const ColorScreen = ({ navigation }) => {
           styles.colorCard,
           { width: CARD_WIDTH },
           isSelected && styles.selectedCard,
-          isSelected && { borderColor: theme.colors[0], borderWidth: 3 },
         ]}
         onPress={() => handleThemeSelect(theme.id)}
         activeOpacity={0.8}
@@ -80,7 +79,7 @@ const ColorScreen = ({ navigation }) => {
                 borderWidth: 2,
               }
             ]}
-            iconColor={isSelected ? '#ffffff' : undefined}
+            iconColor="#ffffff"
           />
         </ModernCard>
       </TouchableOpacity>
