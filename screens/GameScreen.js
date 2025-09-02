@@ -456,7 +456,7 @@ const GameScreen = ({ route, navigation }) => {
             ]}
             {...panResponder.panHandlers}
           >
-            <ModernCard variant="surface" size="lg">
+            <ModernCard variant="surface" size="lg" style={styles.questionCard}>
               <Text style={styles.questionText}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
@@ -805,12 +805,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
+    borderWidth: 0,
     ...tokens.shadows.md,
   },
   modernMainButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    borderWidth: 0,
     ...tokens.shadows.lg,
   },
   activeActionButton: {
@@ -838,6 +840,11 @@ const styles = StyleSheet.create({
     color: tokens.colors.text.primary,
     textAlign: 'center',
     letterSpacing: 0.3,
+  },
+  // Question card tweaks for a single clean surface (no inner frame)
+  questionCard: {
+    borderWidth: 0,
+    padding: tokens.spacing['2xl'],
   },
 });
 

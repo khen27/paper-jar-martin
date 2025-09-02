@@ -92,17 +92,17 @@ const AdBanner = ({ onPress }) => {
         >
           <View style={styles.bottomAdInner}>
             {/* Sponsored label */}
-            <ModernCard variant="subtle" size="xs" style={styles.sponsoredWrapper}>
-              <Text style={styles.sponsoredText}>Sponsored</Text>
+            <ModernCard variant="surface" size="xs" style={styles.sponsoredWrapper}>
+              <Text style={styles.sponsoredText}>SPONSORED</Text>
             </ModernCard>
-            
+
             {/* Ad content */}
             <View style={styles.adTextContainer}>
               <Text style={styles.bottomAdHeadline} numberOfLines={1}>
                 {currentAd.headline}
               </Text>
             </View>
-            
+
             {/* CTA Button */}
             <ModernButton variant="secondary" size="sm" style={styles.ctaButton}>
               <Text style={styles.bottomAdCTA} numberOfLines={1}>

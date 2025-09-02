@@ -15,7 +15,7 @@ import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { PartyIcon } from '../components/GameModeIcons';
-import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { ModernCard, ModernButton, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
 
 const { width } = Dimensions.get('window');
@@ -251,31 +251,9 @@ const UpgradeScreen = ({ navigation, route }) => {
               },
             ]}
           >
-            <Animated.View 
-              style={[
-                styles.premiumBadge,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
-              {/* Outer circle with gradient */}
-              <LinearGradient
-                colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
-                style={styles.badgeGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-              
-              {/* Inner circle for better concentric effect */}
-              <View style={styles.innerCircle}>
-                <LinearGradient
-                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                  style={styles.innerCircleGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-                
-                {/* Icon container */}
-                <View style={styles.iconContainer}>
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <ModernCard variant="strong" size="lg" style={styles.heroBadgeCard}>
+                <View style={styles.heroIconContainer}>
                   {isFavoritesUpgrade ? (
                     <Svg width={40} height={40} viewBox="0 0 24 24" fill="none">
                       <G clipPath="url(#clip0_4418_8679)">
@@ -294,7 +272,7 @@ const UpgradeScreen = ({ navigation, route }) => {
                     <PartyIcon size={40} color="#fff" />
                   )}
                 </View>
-              </View>
+              </ModernCard>
             </Animated.View>
             
             <Text style={styles.heroTitle}>
@@ -321,14 +299,7 @@ const UpgradeScreen = ({ navigation, route }) => {
               {isFavoritesUpgrade ? (
                 <>
                   {/* Unlimited Favorites */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
                           <G clipPath="url(#clip0_favorites)">
@@ -348,18 +319,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Save as many favorite questions as you want
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Extended Library */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <MoreQuestionsIcon size={28} color="#fff" />
                       </View>
@@ -367,18 +330,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Massive collection to choose your favorites from
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Party Mode Access */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <PartyModeIcon size={28} color="#fff" />
                       </View>
@@ -386,18 +341,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Unlock the ultimate party game experience
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Custom Categories */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <ExclusiveCategoriesIcon size={28} color="#fff" />
                       </View>
@@ -405,20 +352,12 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Exclusive categories to save from
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </>
               ) : (
                 <>
                   {/* Party Mode Access */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <PartyModeIcon size={28} color="#fff" />
                       </View>
@@ -426,18 +365,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Unlock the ultimate party game experience
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Extended Library */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <MoreQuestionsIcon size={28} color="#fff" />
                       </View>
@@ -445,18 +376,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Massive collection of conversation starters
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Exclusive Categories */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <ExclusiveCategoriesIcon size={28} color="#fff" />
                       </View>
@@ -464,18 +387,10 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Exclusive categories and specialized themes
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
 
                   {/* Custom Questions */}
-                  <View style={styles.featureCard}>
-                    <View style={styles.featureCardGlass}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.08)']}
-                        style={styles.featureCardGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      />
+                  <ModernCard variant="surface" size="md" style={styles.featureCardModern}>
                       <View style={styles.featureIconContainer}>
                         <CustomQuestionsIcon size={28} color="#fff" />
                       </View>
@@ -483,8 +398,7 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={styles.featureDescription}>
                         Create and save your own conversation starters
                       </Text>
-                    </View>
-                  </View>
+                  </ModernCard>
                 </>
               )}
             </View>
@@ -507,24 +421,12 @@ const UpgradeScreen = ({ navigation, route }) => {
                   onPress={() => handlePlanSelect(plan.id)}
                   activeOpacity={0.8}
                 >
-                  <View style={styles.planGlass}>
+                  <ModernCard variant={selectedPlan === plan.id ? 'strong' : 'surface'} size="lg" style={styles.planCard}>
                     {plan.savings && (
                       <View style={styles.savingsBadge}>
                         <Text style={styles.savingsText}>{plan.savings}</Text>
                       </View>
                     )}
-                    <LinearGradient
-                      colors={
-                        selectedPlan === plan.id
-                          ? plan.id === 'yearly'
-                            ? ['rgba(76, 175, 80, 0.4)', 'rgba(76, 175, 80, 0.2)', 'rgba(255, 255, 255, 0.1)']
-                            : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.15)']
-                          : ['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.05)']
-                      }
-                      style={styles.planGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    />
                     <Text style={styles.planTitle}>{plan.title}</Text>
                     <View style={styles.priceContainer}>
                       <Text style={styles.planPrice}>{plan.price}</Text>
@@ -532,11 +434,9 @@ const UpgradeScreen = ({ navigation, route }) => {
                     </View>
                     <Text style={styles.planSubtitle}>{plan.subtitle}</Text>
                     {selectedPlan === plan.id && (
-                      <View style={styles.selectedIndicator}>
-                        <Text style={styles.selectedText}>✓</Text>
-                      </View>
+                      <ModernSelectionIndicator active size="md" />
                     )}
-                  </View>
+                  </ModernCard>
                 </TouchableOpacity>
               ))}
             </View>
@@ -552,22 +452,15 @@ const UpgradeScreen = ({ navigation, route }) => {
               },
             ]}
           >
-            <TouchableOpacity
-              style={styles.upgradeButton}
+            <ModernButton
+              variant="gradient"
+              size="lg"
               onPress={handleUpgrade}
               disabled={isProcessing}
-              activeOpacity={0.8}
+              style={styles.upgradeModern}
             >
-              <LinearGradient
-                colors={['#4CAF50', '#45a049', '#388e3c']}
-                style={styles.upgradeGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
               <View style={styles.upgradeButtonContent}>
-                <View style={styles.iconContainer}>
-                  <UnlockIcon size={22} color="#fff" />
-                </View>
+                <UnlockIcon size={22} color="#fff" />
                 <Text style={styles.upgradeText}>
                   {isProcessing 
                     ? (translations[language]?.processing || 'Processing...') 
@@ -575,16 +468,13 @@ const UpgradeScreen = ({ navigation, route }) => {
                   }
                 </Text>
               </View>
-            </TouchableOpacity>
+            </ModernButton>
 
-            <TouchableOpacity
-              style={styles.restoreButton}
-              onPress={handleRestore}
-            >
+            <ModernButton variant="outline" size="md" onPress={handleRestore} style={styles.restoreModern}>
               <Text style={styles.restoreText}>
                 {translations[language]?.restorePurchases || 'Restore Purchases'}
               </Text>
-            </TouchableOpacity>
+            </ModernButton>
 
             <Text style={styles.disclaimer}>
               {translations[language]?.autoRenew || 'Subscription automatically renews unless cancelled 24 hours before renewal.'}
@@ -704,57 +594,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: tokens.spacing.md,
   },
-  featureCard: {
-    width: '48%', // Two columns
-    minWidth: 150, // Ensure minimum readable size
-    aspectRatio: 1.1, // Slightly taller than wide
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 10,
-    marginBottom: 12,
-  },
-  featureCardGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    flex: 1,
-  },
-  featureCardGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+  featureCardModern: {
+    width: '48%',
+    minWidth: 150,
+    aspectRatio: 1.1,
   },
   featureIconContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-    marginBottom: 10,
+    marginBottom: tokens.spacing.sm,
+    backgroundColor: tokens.colors.surface.medium,
   },
   featureTitle: {
     fontSize: 14,
@@ -783,43 +637,18 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   pricingPlans: {
-    gap: 16,
+    gap: tokens.spacing.md,
   },
   pricingPlan: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 10,
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   selectedPlan: {
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 16,
     transform: [{ scale: 1.02 }],
   },
-  planGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: 20,
-    padding: 24,
-    paddingBottom: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+  planCard: {
     alignItems: 'center',
     position: 'relative',
-    overflow: 'hidden',
     minHeight: 140,
-  },
-  planGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
   },
   savingsBadge: {
     position: 'absolute',
@@ -912,24 +741,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  upgradeButton: {
+  upgradeModern: {
     width: '100%',
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 20,
-    marginBottom: 24,
-    position: 'relative',
-  },
-  upgradeGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    marginBottom: tokens.spacing.lg,
   },
   upgradeButtonContent: {
     flexDirection: 'row',
@@ -948,10 +762,8 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  restoreButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginBottom: 20,
+  restoreModern: {
+    marginBottom: tokens.spacing.lg,
   },
   restoreText: {
     fontSize: 16,
