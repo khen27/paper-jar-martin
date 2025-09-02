@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "validate:data": "node scripts/validateDataset.js",
+    "validate:full": "node scripts/validate-full-dataset.js",
+    "i18n:list-missing": "node scripts/list-missing-translations.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"

@@ -16,15 +16,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { dataset } from '../full_dataset';
+import { play_dataset } from '../play_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
+import { getLocalizedText, requireText, isTaggedPlaceholder } from '../utils/i18n';
 
 const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
+
+const USE_POC = false; // Toggle POC off; use full dataset with safe fallback until validator passes
+const ACTIVE_DATASET = USE_POC ? play_dataset : dataset;
 
 const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
@@ -160,25 +165,23 @@ const GameScreen = ({ route, navigation }) => {
     }
   };
 
-  const cleanText = (text) => {
-    // Remove language prefix like [EN], [CS], etc. and number suffix like (19)
-    return text.replace(/\[[A-Z]{2}\]\s*/, '').replace(/\s*\(\d+\)\??$/, '');
-  };
+  // Centralized i18n utility handles stripping tags and fallbacks
 
   const getRandomQuestion = () => {
     try {
       logAction('GETTING_RANDOM_QUESTION', { gameMode });
       console.log('GameScreen: Getting random question for language:', language);
-      console.log('GameScreen: Dataset length:', dataset.length);
+      console.log('GameScreen: Dataset length:', ACTIVE_DATASET.length);
       
       // Get random topic
-      const randomTopicIndex = Math.floor(Math.random() * dataset.length);
-      const topic = dataset[randomTopicIndex];
+      const randomTopicIndex = Math.floor(Math.random() * ACTIVE_DATASET.length);
+      const topic = ACTIVE_DATASET[randomTopicIndex];
       console.log('GameScreen: Selected topic index:', randomTopicIndex);
 
-      // Randomly choose between normal, crazy, or challenge questions
-      const questionTypes = ['questions', 'crazy_questions', 'challenges'];
-      const randomType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+      // Randomly choose between non-empty categories only
+      const availableTypes = ['questions', 'crazy_questions', 'challenges']
+        .filter((t) => Array.isArray(topic[t]) && topic[t].length > 0);
+      const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
       console.log('GameScreen: Selected question type:', randomType);
       
       // Get random question from chosen type
@@ -191,16 +194,13 @@ const GameScreen = ({ route, navigation }) => {
       // Store the full question object for favorites
       setCurrentQuestionObject(questionObject);
 
-      // Return question in current language or fallback, with prefixes removed
-      console.log('GameScreen: Attempting to get text for language:', language);
-      console.log('GameScreen: Available languages in question:', Object.keys(questionObject));
-      const text = questionObject[language] || questionObject.en || questionObject.cs;
-      console.log('GameScreen: Selected text source:', 
-        questionObject[language] ? `${language} (primary)` : 
-        questionObject.en ? 'en (fallback 1)' : 'cs (fallback 2)');
-      console.log('GameScreen: Raw text before cleaning:', text);
-      const cleanedText = cleanText(text);
-      console.log('GameScreen: Cleaned text:', cleanedText);
+      // Selection mode: strict for POC, safe fallback for full dataset
+      const cleanedText = USE_POC
+        ? requireText(questionObject, language)
+        : getLocalizedText(questionObject, language);
+      if (!USE_POC && isTaggedPlaceholder(questionObject[language])) {
+        console.log('i18n:fallback-used', { lang: language });
+      }
       
       logAction('QUESTION_GENERATED', { 
         topicIndex: randomTopicIndex,
@@ -263,8 +263,8 @@ const GameScreen = ({ route, navigation }) => {
       if (typeof f.question === 'string') {
         return f.question === currentQuestion;
       } else if (typeof f.question === 'object') {
-        const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
-        return cleanText(storedText || '') === currentQuestion;
+        const storedText = getLocalizedText(f.question, language);
+        return storedText === currentQuestion;
       }
       return false;
     });
@@ -287,7 +287,7 @@ const GameScreen = ({ route, navigation }) => {
       // Create cleaned version of the question object for storage
       const cleanedQuestionObject = {};
       Object.keys(currentQuestionObject).forEach(lang => {
-        cleanedQuestionObject[lang] = cleanText(currentQuestionObject[lang] || '');
+        cleanedQuestionObject[lang] = (currentQuestionObject[lang] || '').trim();
       });
       
       newFavorites.push({
@@ -381,8 +381,8 @@ const GameScreen = ({ route, navigation }) => {
     if (typeof f.question === 'string') {
       return f.question === currentQuestion;
     } else if (typeof f.question === 'object') {
-      const storedText = f.question[language] || f.question.en || f.question.cs || Object.values(f.question)[0];
-      return cleanText(storedText || '') === currentQuestion;
+      const storedText = getLocalizedText(f.question, language);
+      return storedText === currentQuestion;
     }
     return false;
   });
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 0,
-    ...tokens.shadows.lg,
+    //...tokens.shadows.lg,
   },
   activeActionButton: {
     backgroundColor: tokens.colors.surface.strong,
