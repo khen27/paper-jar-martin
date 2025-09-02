@@ -64,7 +64,6 @@ const ColorScreen = ({ navigation }) => {
           {/* Theme Info */}
           <View style={styles.themeInfo}>
             <Text style={styles.themeName}>{theme.name}</Text>
-            <Text style={styles.themeDescription}>{theme.description}</Text>
           </View>
           
           {/* Selection Indicator */}
@@ -182,11 +181,11 @@ const styles = StyleSheet.create({
   },
   selectedCard: {
     transform: [{ scale: 1.05 }],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 4 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 8,
+   // elevation: 8,
   },
   cardContent: {
     padding: tokens.spacing.md,
@@ -212,13 +211,6 @@ const styles = StyleSheet.create({
     fontSize: tokens.typography.sizes.lg,
     fontWeight: tokens.typography.weights.semibold,
     color: tokens.colors.text.primary,
-    marginBottom: tokens.spacing.xs,
-    textAlign: 'center',
-  },
-  themeDescription: {
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: tokens.typography.weights.medium,
-    color: tokens.colors.text.secondary,
     textAlign: 'center',
   },
   selectionIndicator: {
