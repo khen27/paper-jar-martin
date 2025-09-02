@@ -13,7 +13,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import BackIcon from '../components/BackIcon';
+import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width, height } = Dimensions.get('window');
 
@@ -171,8 +172,10 @@ const FavoritesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={gradients.primary.colors}
         style={styles.gradient}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       >
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}

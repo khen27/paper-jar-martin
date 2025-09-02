@@ -14,8 +14,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import BackIcon from '../components/BackIcon';
 import { PartyIcon } from '../components/GameModeIcons';
+import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { tokens, gradients } from '../theme/tokens';
 
 const { width } = Dimensions.get('window');
 
@@ -224,10 +225,10 @@ const UpgradeScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       {/* Premium Background Gradient */}
       <LinearGradient
-        colors={['#ff9800', '#ff5722', '#e91e63']}
+        colors={gradients.primary.colors}
         style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
       />
       
       <SafeAreaView style={styles.safeArea}>
