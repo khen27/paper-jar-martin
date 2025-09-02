@@ -152,7 +152,7 @@ export const tokens = {
 // Gradient definitions
 export const gradients = {
   primary: {
-    colors: ['#667eea', '#f093fb'],
+    colors: ['#FF5722', '#FF7043'],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   },
