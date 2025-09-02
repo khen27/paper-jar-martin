@@ -70,7 +70,13 @@ const ColorScreen = ({ navigation }) => {
           <ModernSelectionIndicator 
             active={isSelected} 
             size="md"
-            style={styles.selectionIndicator}
+            style={[
+              styles.selectionIndicator,
+              isSelected && { 
+                backgroundColor: theme.colors[0],
+              }
+            ]}
+            iconColor="#ffffff"
           />
         </ModernCard>
       </TouchableOpacity>
