@@ -3,6 +3,14 @@
 
 module.exports = {
   en: require('./en.json'),
+  es: require('./es.json'),
+  fr: require('./fr.json'),
+  pt: require('./pt.json'),
+  ru: require('./ru.json'),
+  zh: require('./zh.json'),
+  hi: require('./hi.json'),
+  ur: require('./ur.json'),
+  bn: require('./bn.json'),
   // Add more languages as they are completed
 };
 
