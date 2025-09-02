@@ -447,10 +447,11 @@ const GameScreen = ({ route, navigation }) => {
           />
 
           {/* Premium Question Box with Swipe Gesture */}
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.questionBoxContainer,
               {
+                width: '100%',
+                marginBottom: tokens.spacing['4xl'],
                 transform: [{ translateX: swipeTranslateX }],
                 opacity: swipeOpacity,
               }
@@ -621,12 +622,7 @@ const styles = StyleSheet.create({
     height: 180,
     marginVertical: 15,
   },
-  questionBoxContainer: {
-    width: '100%',
-    marginBottom: tokens.spacing['4xl'],
-    borderRadius: tokens.radius['2xl'],
-    overflow: 'hidden',
-  },
+
   questionBoxGradient: {
     position: 'absolute',
     left: 0,

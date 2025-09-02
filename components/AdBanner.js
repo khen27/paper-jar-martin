@@ -138,8 +138,6 @@ const styles = StyleSheet.create({
   },
   bottomAdContent: {
     flex: 1,
-    borderRadius: tokens.radius.lg,
-    overflow: 'hidden',
   },
   bottomAdInner: {
     flex: 1,
