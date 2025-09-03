@@ -12,19 +12,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { translations } from '../translations';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
+import { tokens } from '../theme/tokens';
+import { getLocalizedText, stripTags } from '../utils/i18n';
 
 const { width, height } = Dimensions.get('window');
 
 const FavoritesScreen = ({ navigation }) => {
   const { language } = useLanguage();
+  const { getCurrentGradient, currentTheme } = useTheme();
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     loadFavorites();
   }, []);
+
+  // Reload favorites when language changes to update displayed text
+  useEffect(() => {
+    loadFavorites();
+  }, [language]);
+
+  // Force re-render when theme changes to update gradient
+  useEffect(() => {
+    // This effect will trigger a re-render when theme changes
+    // The getCurrentGradient() call in the render will pick up the new theme
+  }, [getCurrentGradient]);
 
   const loadFavorites = async () => {
     try {
@@ -124,18 +138,15 @@ const FavoritesScreen = ({ navigation }) => {
       return translations[language]?.noQuestion || 'No question';
     }
 
-    // Handle old format (string)
+    // Handle old format (string) - strip tags and numbers
     if (typeof questionItem.question === 'string') {
-      return questionItem.question;
+      return stripTags(questionItem.question);
     }
 
-    // Handle new format (object with multiple languages)
+    // Handle new format (object with multiple languages) - use same logic as GameScreen
     if (typeof questionItem.question === 'object') {
-      return questionItem.question[language] || 
-             questionItem.question.en || 
-             questionItem.question.cs || 
-             Object.values(questionItem.question)[0] || 
-             translations[language]?.noQuestion || 'No question';
+      const localizedText = getLocalizedText(questionItem.question, language);
+      return localizedText || translations[language]?.noQuestion || 'No question';
     }
 
     return translations[language]?.noQuestion || 'No question';
@@ -172,10 +183,10 @@ const FavoritesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={getCurrentGradient().colors}
         style={styles.gradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={getCurrentGradient().start}
+        end={getCurrentGradient().end}
       >
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}
@@ -309,23 +320,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 107, 107, 0.25)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 107, 107, 0.5)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: tokens.colors.surface.strong,
+    borderWidth: 1,
+    borderColor: tokens.colors.border.light,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 4,
   },
   removeButtonText: {
-    fontSize: 20,
-    color: '#ff6b6b',
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowOpacity: 1,
-    textShadowRadius: 2,
+    fontSize: 18,
+    color: tokens.colors.text.primary,
+    fontWeight: '800',
   },
   emptyContainer: {
     alignItems: 'center',
