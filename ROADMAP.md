@@ -7,8 +7,7 @@
 
 **Checkpoint 1 (2026-10-10): Web app + PWA + install reward** — test on both phones:
 
-🔗 **Test link: https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea--ih27h3lekg.expo.app**
-*(stable link: https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app — may take a bit to go live)*
+🔗 **Test link: https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**
 
 1. **Open the link on your iPhone (Safari) and Android (Chrome).** App should load fast and look like the native app.
 2. **Play Partner mode** — tap the jar refresh button ~10 times. Every question should be different (no repeats).
