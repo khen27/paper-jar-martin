@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  Dimensions,
   PanResponder,
   Platform,
+  Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,20 +17,31 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { dataset } from '../full_dataset';
 import { play_dataset } from '../play_dataset';
+import { brnoDataset } from '../brno_dataset';
 import { HintIcon, RefreshIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
-import { getLocalizedText, requireText, isTaggedPlaceholder } from '../utils/i18n';
+import { getLocalizedText } from '../utils/i18n';
 import { isRTL } from '../utils/rtl';
+import { bonusDataset } from '../bonus_dataset';
+import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
+import { appWidth as width } from '../utils/layout';
 
-const { width, height } = Dimensions.get('window');
 const glassImage = require('../assets/glass.png');
 
 const USE_POC = false; // Toggle POC off; use full dataset with safe fallback until validator passes
 const ACTIVE_DATASET = USE_POC ? play_dataset : dataset;
+
+const buzz = () => {
+  try {
+    Vibration.vibrate(30);
+  } catch (e) {
+    // Not supported (e.g. iOS Safari) — ignore
+  }
+};
 
 const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
@@ -40,7 +51,7 @@ const GameScreen = ({ route, navigation }) => {
   const [showHints, setShowHints] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
   const [favorites, setFavorites] = useState([]);
-  const [gameMode, setGameMode] = useState(null);
+  const gameMode = route.params?.gameMode || 'partner';
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -50,6 +61,8 @@ const GameScreen = ({ route, navigation }) => {
   // Swipe gesture handling
   const swipeTranslateX = useRef(new Animated.Value(0)).current;
   const swipeOpacity = useRef(new Animated.Value(1)).current;
+  // PanResponder is created once, so its handlers must read the latest render's functions through this ref
+  const latestRef = useRef({});
 
   // Comprehensive logging function
   const logAction = useCallback((action, details = {}) => {
@@ -62,19 +75,19 @@ const GameScreen = ({ route, navigation }) => {
       currentQuestion: currentQuestion ? currentQuestion.substring(0, 50) + '...' : null,
       details,
     };
-    console.log('🎮 PAPER JAR GAME - USER ACTION:', logEntry);
-    
-    // Additional logging for debugging
     if (__DEV__) {
-      console.log('🔍 DEBUG - GameScreen State:', {
-        gameMode,
-        currentQuestion,
-        showHints,
-        showChallenge,
-        favoritesCount: favorites.length,
-      });
+      console.log('🎮 PAPER JAR GAME - USER ACTION:', logEntry);
     }
-  }, [language, gameMode, currentQuestion, favorites.length]);
+  }, [language, gameMode, currentQuestion]);
+
+  // Swipe animations use the JS driver: these values are also set directly via setValue while dragging,
+  // and on the New Architecture setValue does not reach a view after a native-driven animation has run.
+  const snapBack = () => {
+    Animated.parallel([
+      Animated.spring(swipeTranslateX, { toValue: 0, useNativeDriver: false }),
+      Animated.spring(swipeOpacity, { toValue: 1, useNativeDriver: false }),
+    ]).start();
+  };
 
   // PanResponder for swipe gestures
   const panResponder = useRef(
@@ -84,7 +97,7 @@ const GameScreen = ({ route, navigation }) => {
         return Math.abs(gestureState.dx) > 20 && Math.abs(gestureState.dy) < 80;
       },
       onPanResponderGrant: () => {
-        logAction('SWIPE_STARTED');
+        latestRef.current.logAction('SWIPE_STARTED');
       },
       onPanResponderMove: (evt, gestureState) => {
         // Update the animated value for visual feedback
@@ -99,23 +112,24 @@ const GameScreen = ({ route, navigation }) => {
         if (Math.abs(gestureState.dx) > swipeThreshold) {
           // Valid swipe - animate out and get new question
           const direction = gestureState.dx > 0 ? 'right' : 'left';
-          logAction('SWIPE_COMPLETED', { direction, distance: Math.abs(gestureState.dx) });
+          latestRef.current.logAction('SWIPE_COMPLETED', { direction, distance: Math.abs(gestureState.dx) });
+          buzz();
           
           // Animate the current question out
           Animated.parallel([
             Animated.timing(swipeTranslateX, {
               toValue: gestureState.dx > 0 ? width : -width,
               duration: 200,
-              useNativeDriver: true,
+              useNativeDriver: false,
             }),
             Animated.timing(swipeOpacity, {
               toValue: 0,
               duration: 200,
-              useNativeDriver: true,
+              useNativeDriver: false,
             }),
           ]).start(() => {
             // Generate new question immediately without shake animation
-            const newQuestion = getRandomQuestion();
+            const newQuestion = latestRef.current.getRandomQuestion();
             setCurrentQuestion(newQuestion);
             
             // Reset animation values
@@ -124,95 +138,65 @@ const GameScreen = ({ route, navigation }) => {
           });
         } else {
           // Not enough swipe - animate back to original position
-          logAction('SWIPE_CANCELLED', { distance: Math.abs(gestureState.dx) });
-          Animated.parallel([
-            Animated.spring(swipeTranslateX, {
-              toValue: 0,
-              useNativeDriver: true,
-            }),
-            Animated.spring(swipeOpacity, {
-              toValue: 1,
-              useNativeDriver: true,
-            }),
-          ]).start();
+          latestRef.current.logAction('SWIPE_CANCELLED', { distance: Math.abs(gestureState.dx) });
+          snapBack();
         }
+      },
+      // The parent ScrollView can steal the gesture mid-drag; don't leave the card stranded off-screen
+      onPanResponderTerminate: () => {
+        snapBack();
       },
     })
   ).current;
 
-  // Initialize game mode from route params
+  // Load favorites on mount and whenever the screen regains focus (e.g. returning from Upgrade)
   useEffect(() => {
-    const mode = route.params?.gameMode || 'partner';
-    setGameMode(mode);
-    logAction('GAME_MODE_INITIALIZED', { mode });
-  }, [route.params?.gameMode, logAction]);
-
-  // Load favorites on mount
-  useEffect(() => {
-    logAction('LOADING_FAVORITES');
     loadFavorites();
-  }, [logAction]);
+    return navigation.addListener('focus', loadFavorites);
+  }, [navigation]);
 
   const loadFavorites = async () => {
     try {
       const stored = await AsyncStorage.getItem('favorites');
       const favoritesData = stored ? JSON.parse(stored) : [];
-      console.log('GameScreen: Loaded favorites:', favoritesData.length, 'items');
       setFavorites(favoritesData);
-      logAction('FAVORITES_LOADED', { count: favoritesData.length });
     } catch (e) {
       console.error('GameScreen: Error loading favorites:', e);
-      logAction('FAVORITES_LOAD_ERROR', { error: e.message });
     }
   };
 
-  // Centralized i18n utility handles stripping tags and fallbacks
+  // The active deck for this mode+language, flattened for the shuffle bag.
+  const deckInfo = useMemo(() => {
+    let key, data;
+    if (gameMode === 'brnoPrague' && language === 'cs') {
+      key = 'brno';
+      data = brnoDataset;
+    } else if (gameMode === 'homePack') {
+      key = 'homePack';
+      data = bonusDataset;
+    } else {
+      key = 'main';
+      data = ACTIVE_DATASET;
+    }
+    return { key, data, refs: flattenDataset(data) };
+  }, [gameMode, language]);
 
-  const { brnoDataset } = require('../brno_dataset');
-
+  // Draw the next question from the shuffle bag (no repeats until the deck is exhausted).
   const getRandomQuestion = () => {
     try {
-      logAction('GETTING_RANDOM_QUESTION', { gameMode });
-      console.log('GameScreen: Getting random question for language:', language);
-      const active = gameMode === 'brnoPrague' && language === 'cs' ? brnoDataset : ACTIVE_DATASET;
-      console.log('GameScreen: Dataset length:', active.length);
-      
-      // Get random topic
-      const randomTopicIndex = Math.floor(Math.random() * active.length);
-      const topic = active[randomTopicIndex];
-      console.log('GameScreen: Selected topic index:', randomTopicIndex);
-
-      // Randomly choose between non-empty categories only
-      const availableTypes = ['questions', 'crazy_questions', 'challenges']
-        .filter((t) => Array.isArray(topic[t]) && topic[t].length > 0);
-      const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-      console.log('GameScreen: Selected question type:', randomType);
-      
-      // Get random question from chosen type
-      const questions = topic[randomType];
-      const randomQuestionIndex = Math.floor(Math.random() * questions.length);
-      const questionObject = questions[randomQuestionIndex];
-      console.log('GameScreen: Selected question index:', randomQuestionIndex);
-      console.log('GameScreen: Raw question object:', questionObject);
+      const { data, key, refs } = deckInfo;
+      const ref = refs[nextIndex(key, refs.length)];
+      const questionObject = data[ref.topicIndex][ref.type][ref.questionIndex];
 
       // Store the full question object for favorites
       setCurrentQuestionObject(questionObject);
 
-      // Selection mode: strict for POC, safe fallback for full dataset
-      const cleanedText = USE_POC
-        ? requireText(questionObject, language)
-        : getLocalizedText(questionObject, language);
-      if (!USE_POC && isTaggedPlaceholder(questionObject[language])) {
-        console.log('i18n:fallback-used', { lang: language });
-      }
-      
-      logAction('QUESTION_GENERATED', { 
-        topicIndex: randomTopicIndex,
-        questionType: randomType,
-        questionIndex: randomQuestionIndex,
-        textLength: cleanedText.length
+      const cleanedText = getLocalizedText(questionObject, language);
+      logAction('QUESTION_GENERATED', {
+        topicIndex: ref.topicIndex,
+        questionType: ref.type,
+        questionIndex: ref.questionIndex,
       });
-      
       return cleanedText;
     } catch (e) {
       console.error('GameScreen: Error getting random question:', e);
@@ -223,7 +207,7 @@ const GameScreen = ({ route, navigation }) => {
 
   const triggerShake = () => {
     logAction('SHAKE_TRIGGERED');
-    console.log('GameScreen: Triggering shake animation');
+    buzz();
     // Reset current states
     setShowHints(false);
     setShowChallenge(false);
@@ -247,19 +231,15 @@ const GameScreen = ({ route, navigation }) => {
       }),
     ]).start(() => {
       // Get new question after animation completes
-      const newQuestion = getRandomQuestion();
-      console.log('GameScreen: Setting new question:', newQuestion);
-      setCurrentQuestion(newQuestion);
+      setCurrentQuestion(getRandomQuestion());
     });
   };
 
   const toggleFavorite = async () => {
     if (!currentQuestion || !currentQuestionObject) {
-      console.log('GameScreen: No current question to toggle favorite');
       return;
     }
     logAction('TOGGLING_FAVORITE', { questionLength: currentQuestion.length });
-    console.log('GameScreen: Toggling favorite for question:', currentQuestion);
     const newFavorites = [...favorites];
     
     // Find existing favorite by checking if any stored question matches the current text
@@ -275,19 +255,16 @@ const GameScreen = ({ route, navigation }) => {
     
     let isAdding = false;
     if (index > -1) {
-      console.log('GameScreen: Removing from favorites');
       newFavorites.splice(index, 1);
       logAction('FAVORITE_REMOVED', { index });
     } else {
       // Check if user has reached the free limit of 5 favorites
       if (favorites.length >= 5) {
-        console.log('GameScreen: Free limit reached, redirecting to upgrade');
         logAction('FAVORITES_LIMIT_REACHED', { currentCount: favorites.length });
         navigation.navigate('Upgrade', { upgradeReason: 'favorites' });
         return;
       }
       
-      console.log('GameScreen: Adding to favorites');
       // Create cleaned version of the question object for storage
       const cleanedQuestionObject = {};
       Object.keys(currentQuestionObject).forEach(lang => {
@@ -305,7 +282,6 @@ const GameScreen = ({ route, navigation }) => {
     try {
       await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavorites(newFavorites);
-      console.log('GameScreen: Updated favorites count:', newFavorites.length);
       
       // Show toast notification
       if (isAdding) {
@@ -360,25 +336,31 @@ const GameScreen = ({ route, navigation }) => {
 
 
 
-  // Initialize first question only once when component mounts
-  useEffect(() => {
-    console.log('GameScreen: Initializing first question');
-    const initialQuestion = getRandomQuestion();
-    setCurrentQuestion(initialQuestion);
-  }, []); // Empty dependency array - only run once on mount
+  latestRef.current = { getRandomQuestion, logAction };
 
-  // Auto-generate new question when language changes
+  // Draw a question whenever the active deck changes (mount, mode change, cs<->other in Brno mode).
+  // Waits for the persisted shuffle-bag state so progress survives restarts.
   useEffect(() => {
-    if (currentQuestion) { // Only update if we already have a question (not on initial mount)
-      console.log('GameScreen: Language changed to:', language);
-      logAction('LANGUAGE_CHANGED', { newLanguage: language });
-      
-      // Get new question in the new language
-      const newQuestion = getRandomQuestion();
-      setCurrentQuestion(newQuestion);
-      console.log('GameScreen: Updated question for new language:', newQuestion);
+    let cancelled = false;
+    (async () => {
+      await initBag(deckInfo.key, deckInfo.refs.length);
+      if (!cancelled) {
+        logAction('GAME_MODE_INITIALIZED', { mode: gameMode, deck: deckInfo.key });
+        setShowHints(false);
+        setCurrentQuestion(getRandomQuestion());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [deckInfo.key]);
+
+  // On language change, re-localize the question that's on screen instead of drawing a new one.
+  useEffect(() => {
+    if (currentQuestionObject) {
+      setCurrentQuestion(getLocalizedText(currentQuestionObject, language));
     }
-  }, [language]); // Only depend on language changes // Remove logAction from dependencies to prevent loops
+  }, [language]);
 
   // Check if current question is in favorites
   const isFavorite = currentQuestion && currentQuestionObject && favorites.some(f => {
@@ -391,9 +373,6 @@ const GameScreen = ({ route, navigation }) => {
     return false;
   });
 
-  console.log('GameScreen: Rendering with current question:', currentQuestion);
-  console.log('GameScreen: Current language:', language);
-  console.log('GameScreen: Is favorite:', isFavorite);
 
   return (
     <View style={styles.container}>

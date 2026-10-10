@@ -1,10 +1,12 @@
 {
-  "name": "jarwpapers",
+  "name": "paper-jar",
   "version": "1.0.0",
   "license": "0BSD",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "build:web": "node scripts/build-web.js",
+    "serve:web": "npx serve dist -l 8000",
     "validate:data": "node scripts/validateDataset.js",
     "validate:full": "node scripts/validate-full-dataset.js",
     "i18n:list-missing": "node scripts/list-missing-translations.js",
@@ -14,34 +16,28 @@
   },
   "dependencies": {
     "@expo-google-fonts/noto-naskh-arabic": "^0.2.3",
+    "@expo/metro-runtime": "~5.0.5",
     "@expo/vector-icons": "^14.1.0",
-    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
-    "@tamagui/animations-react-native": "^1.132.23",
-    "@tamagui/config": "^1.132.23",
-    "@tamagui/core": "^1.132.23",
-    "@tamagui/font-inter": "^1.132.23",
-    "@tamagui/theme-base": "^1.132.23",
-    "expo": "~53.0.20",
+    "expo": "~53.0.27",
     "expo-blur": "~14.1.5",
-    "expo-constants": "~17.1.7",
+    "expo-constants": "~17.1.8",
     "expo-font": "~13.3.2",
     "expo-linear-gradient": "~14.1.5",
-    "expo-notifications": "~0.31.3",
-    "expo-sensors": "~14.1.4",
     "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.5",
+    "react-dom": "19.0.0",
+    "react-native": "0.79.6",
     "react-native-gesture-handler": "~2.24.0",
-    "react-native-paper": "4.9.2",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
-    "react-native-svg": "^15.11.2",
+    "react-native-svg": "15.11.2",
     "react-native-svg-transformer": "^1.5.1",
-    "react-native-vector-icons": "^10.3.0"
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -49,5 +45,6 @@
     "typescript": "~5.8.3"
   },
   "private": true,
-  "overrides": {}
+  "overrides": {},
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -1,7 +1,8 @@
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import React from 'react';
-import { View, Image, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
+import { View, Image, StyleSheet, Platform, Animated, Easing } from 'react-native';
+import { appWidth, appHeight } from './utils/layout';
 import { useFonts } from 'expo-font';
 import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import { NavigationContainer } from '@react-navigation/native';
@@ -14,6 +15,7 @@ import FavoritesScreen from './screens/FavoritesScreen';
 import LanguageScreen from './screens/LanguageScreen';
 import ColorScreen from './screens/ColorScreen';
 import UpgradeScreen from './screens/UpgradeScreen';
+import InstallScreen from './screens/InstallScreen';
 
 const Stack = createStackNavigator();
 
@@ -32,7 +34,8 @@ export default function App() {
   const glassOpacity = React.useRef(new Animated.Value(0)).current;
 
   // Confetti setup
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const screenWidth = appWidth;
+  const screenHeight = appHeight;
   const confettiCount = 24;
   const confettiColors = ['#8B5CF6', '#A78BFA', '#F472B6', '#60A5FA', '#34D399', '#FBBF24'];
   const glassSize = screenWidth * 0.5;
@@ -172,6 +175,8 @@ export default function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
+        {/* On desktop browsers the app renders in a centered phone-width column */}
+        <View style={styles.webFrame}>
         <View style={styles.root} onLayout={onLayoutRootView}>
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -202,6 +207,11 @@ export default function App() {
             />
             <Stack.Screen name="Game" component={GameScreen} />
             <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            <Stack.Screen
+              name="Install"
+              component={InstallScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
             </Stack.Navigator>
           </NavigationContainer>
 
@@ -255,15 +265,23 @@ export default function App() {
             </View>
           )}
         </View>
+        </View>
       </LanguageProvider>
     </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  webFrame: {
+    flex: 1,
+    backgroundColor: '#17171f',
+    alignItems: 'center',
+  },
   root: {
     flex: 1,
     backgroundColor: '#ffffff',
+    width: '100%',
+    ...(Platform.OS === 'web' ? { maxWidth: 480 } : null),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

@@ -5,8 +5,6 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  Dimensions,
-  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,16 +12,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { translations } from '../translations';
-import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { ModernCard, ModernButton, ModernBackButton, AppDialog } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { getLocalizedText, stripTags } from '../utils/i18n';
-
-const { width, height } = Dimensions.get('window');
+import { appWidth as width, appHeight as height } from '../utils/layout';
 
 const FavoritesScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient, currentTheme } = useTheme();
   const [favorites, setFavorites] = useState([]);
+  const [removeIndex, setRemoveIndex] = useState(null); // index pending delete confirmation
 
   useEffect(() => {
     loadFavorites();
@@ -153,21 +151,7 @@ const FavoritesScreen = ({ navigation }) => {
   };
 
   const confirmRemove = (index) => {
-    Alert.alert(
-      translations[language]?.removeFavorite || translations.cs.removeFavorite,
-      translations[language]?.removeFavoriteConfirm || translations.cs.removeFavoriteConfirm,
-      [
-        {
-          text: translations[language]?.cancel || translations.cs.cancel,
-          style: 'cancel',
-        },
-        {
-          text: translations[language]?.remove || translations.cs.remove,
-          style: 'destructive',
-          onPress: () => removeFavorite(index),
-        },
-      ]
-    );
+    setRemoveIndex(index);
   };
 
   const removeFavorite = async (index) => {
@@ -241,6 +225,21 @@ const FavoritesScreen = ({ navigation }) => {
           />
         </SafeAreaView>
       </LinearGradient>
+
+      <AppDialog
+        visible={removeIndex !== null}
+        title={translations[language]?.removeFavorite || translations.cs.removeFavorite}
+        message={translations[language]?.removeFavoriteConfirm || translations.cs.removeFavoriteConfirm}
+        buttons={[
+          { text: translations[language]?.cancel || translations.cs.cancel, style: 'cancel' },
+          {
+            text: translations[language]?.remove || translations.cs.remove,
+            style: 'destructive',
+            onPress: () => removeFavorite(removeIndex),
+          },
+        ]}
+        onRequestClose={() => setRemoveIndex(null)}
+      />
     </View>
   );
 };

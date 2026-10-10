@@ -5,7 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,11 +15,11 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
 import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } from '../components/GameModeIcons';
-import { ModernCard, ModernButton } from '../components/ui';
+import { ModernCard, ModernButton, AppDialog } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
-
-const { width, height } = Dimensions.get('window');
+import { isInstalledApp } from '../utils/install';
+import { appWidth as width, appHeight as height } from '../utils/layout';
 
 // Feature Flag for OtázoJar Refresh
 const OTAZO_JAR_REFRESH_ENABLED = true;
@@ -30,6 +30,8 @@ const HomeScreen = ({ navigation }) => {
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+  const homePackUnlocked = isInstalledApp();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const titleOpacity = useRef(new Animated.Value(0)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
@@ -59,17 +61,10 @@ const HomeScreen = ({ navigation }) => {
       selectedMode,
       details,
     };
-    console.log('🎮 PAPER JAR - USER ACTION:', logEntry);
-    
-    // Additional logging for debugging
     if (__DEV__) {
-      console.log('🔍 DEBUG - Component State:', {
-        displayText,
-        selectedMode,
-        language,
-      });
+      console.log('🎮 PAPER JAR - USER ACTION:', logEntry);
     }
-  }, [language, selectedMode, displayText]);
+  }, [language, selectedMode]);
 
   // Cleanup function for typing animation
   const cleanupTypingAnimation = useCallback(() => {
@@ -85,11 +80,8 @@ const HomeScreen = ({ navigation }) => {
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
     
-    logAction('TYPING_ANIMATION_STARTED', { 
-      text: OTAZO_JAR_REFRESH_ENABLED ? 'OtázkoJar' : 'Paper Jar' 
-    });
-    
-    const text = OTAZO_JAR_REFRESH_ENABLED ? 'OtázkoJar' : 'Paper Jar';
+    const text = 'Paper Jar';
+    logAction('TYPING_ANIMATION_STARTED', { text });
     let currentIndex = 0;
     setDisplayText('');
 
@@ -189,6 +181,17 @@ const HomeScreen = ({ navigation }) => {
     return cleanupTypingAnimation;
   }, [language]); // Removed other dependencies to prevent infinite loop
 
+  const loadFavorites = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('favorites');
+      const favoritesData = stored ? JSON.parse(stored) : [];
+      setFavoritesCount(favoritesData.length);
+      logAction('FAVORITES_COUNT_LOADED', { count: favoritesData.length });
+    } catch (e) {
+      console.error('Error loading favorites count:', e);
+    }
+  }, []);
+
   // Load favorites count on mount and when screen is focused
   useEffect(() => {
     loadFavorites();
@@ -200,14 +203,25 @@ const HomeScreen = ({ navigation }) => {
     return unsubscribe;
   }, [navigation, loadFavorites]);
 
+  // One-time celebration the first time the app launches from a home-screen icon (web PWA)
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !homePackUnlocked) return;
+    (async () => {
+      try {
+        const seen = await AsyncStorage.getItem('@paper_jar_homepack_celebrated');
+        if (!seen) {
+          setShowUnlockDialog(true);
+          await AsyncStorage.setItem('@paper_jar_homepack_celebrated', '1');
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
   // Initial animations
   useEffect(() => {
     logAction('COMPONENT_MOUNTED');
-    
-    // Feature flag logging
-    if (OTAZO_JAR_REFRESH_ENABLED) {
-      console.log('🎯 OtázoJar Refresh: Phase 1 Active - Layout & Typography');
-    }
 
     // Start entrance animations
     Animated.timing(fadeAnim, {
@@ -235,27 +249,8 @@ const HomeScreen = ({ navigation }) => {
       ])
     );
 
-    // Start cursor blinking
-    const cursorAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          toValue: 0,
-          duration: 600,
-          // easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          toValue: 1,
-          duration: 600,
-          // easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
     animationRef.current = glassAnimation;
     glassAnimation.start();
-    cursorAnimation.start();
 
     // Start typing animation after a delay
     setTimeout(() => {
@@ -338,17 +333,6 @@ const HomeScreen = ({ navigation }) => {
     });
   }, [taglineOpacity]);
 
-  const loadFavorites = useCallback(async () => {
-    try {
-      const stored = await AsyncStorage.getItem('favorites');
-      const favoritesData = stored ? JSON.parse(stored) : [];
-      setFavoritesCount(favoritesData.length);
-      logAction('FAVORITES_COUNT_LOADED', { count: favoritesData.length });
-    } catch (e) {
-      console.error('Error loading favorites count:', e);
-    }
-  }, []);
-
   const handleFavoritesPress = () => {
     logAction('FAVORITES_BUTTON_PRESSED');
     navigation.navigate('Favorites');
@@ -390,7 +374,7 @@ const HomeScreen = ({ navigation }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [logAction, partnerButtonScale, friendButtonScale, partyButtonScale]);
+  }, [logAction, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
 
   const onGameModePressOut = useCallback((mode) => {
     if (OTAZO_JAR_REFRESH_ENABLED) {
@@ -405,7 +389,7 @@ const HomeScreen = ({ navigation }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [partnerButtonScale, friendButtonScale, partyButtonScale]);
+  }, [partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
 
   return (
     <View style={styles.container}>
@@ -610,7 +594,7 @@ const HomeScreen = ({ navigation }) => {
                   onPressOut={() => onGameModePressOut('brnoPrague')}
                   activeOpacity={0.8}
                 >
-                  <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
+                  <Animated.View style={{ transform: [{ scale: brnoButtonScale }] }}>
                     <ModernCard
                       variant="surface"
                       size="lg"
@@ -633,6 +617,42 @@ const HomeScreen = ({ navigation }) => {
                   </Animated.View>
                 </TouchableOpacity>
               )}
+
+              {/* Home Screen Pack — install reward */}
+              <TouchableOpacity
+                onPress={() => {
+                  if (homePackUnlocked) {
+                    handleGameModeSelect('homePack');
+                  } else {
+                    logAction('INSTALL_GUIDE_OPENED');
+                    navigation.navigate('Install');
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <ModernCard
+                  variant="surface"
+                  size="lg"
+                  style={[styles.modernGameModeCard, !homePackUnlocked && styles.lockedCard]}
+                >
+                  <View style={styles.modernButtonInner}>
+                    <View style={[styles.modernIconContainer, styles.homePackIconBg]}>
+                      <Text style={styles.homePackEmoji}>{homePackUnlocked ? '⭐' : '🔒'}</Text>
+                    </View>
+                    <View style={styles.modernTextContainer}>
+                      <Text style={styles.modernGameModeText}>
+                        {translations[language]?.homePackMode || 'Home Screen Pack'}
+                      </Text>
+                      <Text style={styles.modernGameModeSubtext}>
+                        {homePackUnlocked
+                          ? translations[language]?.homePackSubtext || 'Bonus questions — your install reward'
+                          : translations[language]?.homePackLockedSubtext ||
+                            'Add Paper Jar to your home screen to unlock'}
+                      </Text>
+                    </View>
+                  </View>
+                </ModernCard>
+              </TouchableOpacity>
 
               {/* Party Mode - Commented Out */}
               {/*
@@ -672,6 +692,23 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <AppDialog
+        visible={showUnlockDialog}
+        title={translations[language]?.homePackUnlockedTitle || '🎉 Home Screen Pack unlocked!'}
+        message={
+          translations[language]?.homePackUnlockedMsg ||
+          'Thanks for adding Paper Jar to your home screen. A bonus question pack is yours.'
+        }
+        buttons={[
+          {
+            text: translations[language]?.letsPlay || "Let's play!",
+            onPress: () => handleGameModeSelect('homePack'),
+          },
+          { text: translations[language]?.later || 'Later', style: 'cancel' },
+        ]}
+        onRequestClose={() => setShowUnlockDialog(false)}
+      />
     </View>
   );
 };
@@ -1283,6 +1320,17 @@ const styles = StyleSheet.create({
   },
   modernTextContainer: {
     flex: 1,
+  },
+  lockedCard: {
+    opacity: 0.75,
+  },
+  homePackIconBg: {
+    backgroundColor: 'rgba(251, 191, 36, 0.55)',
+    borderWidth: 2,
+    borderColor: 'rgba(251, 191, 36, 1)',
+  },
+  homePackEmoji: {
+    fontSize: 26,
   },
   modernGameModeText: {
     fontSize: tokens.typography.sizes.lg,
