@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "jarwpapers",
+    "name": "Paper Jar",
     "slug": "snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,7 +28,13 @@
       "package": "cz.mpap.jarwpapers"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Paper Jar",
+      "shortName": "Paper Jar",
+      "themeColor": "#FF6B6B",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
       "eas": {

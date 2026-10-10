@@ -1,11 +1,45 @@
-# Sample Snack app
+# OtázkoJar (jarwpapers)
 
-Open the `App.js` file to start writing some code. You can preview the changes directly on your phone or tablet by scanning the **QR code** or use the iOS or Android emulators. When you're done, click **Save** and share the link!
+Expo SDK 53 / React Native 0.79 app.
 
-When you're ready to see everything that Expo provides (or if you want to use your own editor) you can **Download** your project and use it with [expo cli](https://docs.expo.dev/get-started/installation/#expo-cli)).
+## Setup
 
-All projects created in Snack are publicly available, so you can easily share the link to this project via link, or embed it on a web page with the `<>` button.
+```bash
+npm install
+```
 
-If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
+A plain `npm install` works; no `--legacy-peer-deps` or `--force` needed.
 
-Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
+## Run on the web (PWA)
+
+```bash
+npm run build:web   # builds the PWA into dist/
+npm run serve:web   # serves it at http://localhost:8000
+npx eas-cli deploy  # deploys dist/ to EAS Hosting (HTTPS link for phone testing)
+```
+
+The web build is a full PWA: installable to the home screen, works offline, and unlocks
+the "Home Screen Pack" bonus deck when launched from the home-screen icon.
+
+## Run on emulators / simulators
+
+```bash
+npm run android   # Android emulator (start one from Android Studio first, or let Expo launch it)
+npm run ios       # iOS Simulator (requires Xcode)
+```
+
+Both commands open the app in **Expo Go**. Expo Go only supports one SDK version at a time, so the
+emulator/simulator must have the Expo Go build for **SDK 53**. When Expo asks
+"Expo Go x.y.z is recommended for SDK 53... Install the recommended Expo Go version?", answer **yes**.
+
+### Troubleshooting
+
+- **iOS: "You have not agreed to the Xcode license agreements"** — run `sudo xcodebuild -license accept` once.
+- **Android emulator window crashes on launch** — start it from the terminal with software rendering:
+  `~/Library/Android/sdk/emulator/emulator -avd Pixel_9 -gpu swiftshader_indirect`
+  (or `-no-window` to run it headless), then run `npm run android`.
+
+## Scripts
+
+- `npm run validate:data` / `npm run validate:full` — dataset sanity checks
+- `npm run i18n:list-missing -- <lang>` — list questions missing a translation for a language

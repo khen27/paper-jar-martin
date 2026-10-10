@@ -7,18 +7,15 @@ import {
   SafeAreaView,
   ScrollView,
   Animated,
-  Alert,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { PartyIcon } from '../components/GameModeIcons';
-import { ModernCard, ModernButton, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
+import { ModernCard, ModernButton, ModernBackButton, ModernSelectionIndicator, AppDialog } from '../components/ui';
 import { tokens, gradients } from '../theme/tokens';
-
-const { width } = Dimensions.get('window');
+import { appWidth as width } from '../utils/layout';
 
 // Premium Unlock Icon Component
 const UnlockIcon = ({ size = 24, color = '#fff' }) => {
@@ -128,6 +125,7 @@ const UpgradeScreen = ({ navigation, route }) => {
   const { language } = useLanguage();
   const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dialog, setDialog] = useState(null); // { title, message, buttons }
   
   // Get upgrade reason from route params
   const upgradeReason = route?.params?.upgradeReason || 'party';
@@ -180,25 +178,27 @@ const UpgradeScreen = ({ navigation, route }) => {
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
-      Alert.alert(
-        translations[language]?.upgradeSuccess || 'Upgrade Successful!',
-        translations[language]?.upgradeSuccessMessage || 'Welcome to Paper Jar Premium! You can now access Party Mode and all premium features.',
-        [
+      setDialog({
+        title: translations[language]?.upgradeSuccess || 'Upgrade Successful!',
+        message:
+          translations[language]?.upgradeSuccessMessage ||
+          'Welcome to Paper Jar Premium! You can now access Party Mode and all premium features.',
+        buttons: [
           {
             text: translations[language]?.startPlaying || 'Start Playing',
             onPress: () => navigation.navigate('Game', { gameMode: 'party' }),
           },
-        ]
-      );
+        ],
+      });
     }, 2000);
   };
 
   const handleRestore = () => {
-    Alert.alert(
-      translations[language]?.restorePurchases || 'Restore Purchases',
-      translations[language]?.restoreMessage || 'Checking for previous purchases...',
-      [{ text: 'OK' }]
-    );
+    setDialog({
+      title: translations[language]?.restorePurchases || 'Restore Purchases',
+      message: translations[language]?.restoreMessage || 'Checking for previous purchases...',
+      buttons: [{ text: 'OK' }],
+    });
   };
 
   const pricingPlans = [
@@ -482,6 +482,14 @@ const UpgradeScreen = ({ navigation, route }) => {
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
+
+      <AppDialog
+        visible={dialog !== null}
+        title={dialog?.title}
+        message={dialog?.message}
+        buttons={dialog?.buttons || []}
+        onRequestClose={() => setDialog(null)}
+      />
     </View>
   );
 };

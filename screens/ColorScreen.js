@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +12,7 @@ import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../compo
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 
-const { width } = Dimensions.get('window');
+import { appWidth as width } from '../utils/layout';
 const COLUMN_GAP = 16;
 const CARD_MARGIN = 8;
 const NUM_COLUMNS = 2;
