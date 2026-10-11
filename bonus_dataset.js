@@ -1,4 +1,4 @@
-// "Golden Jar" — bonus deck unlocked by adding Paper Jar to your home screen.
+// "Golden Jar" — bonus deck unlocked by adding Talk Trap to your home screen.
 // Fun, fast, feel-good questions. CS + EN (other languages fall back to EN).
 export const bonusDataset = [
   {

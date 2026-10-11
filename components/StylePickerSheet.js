@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useResponsive } from '../utils/responsive';
+import FunIcon, { hasFunIcon } from './FunIcon';
 
-const StyleOption = ({ emoji, title, desc, chips, colors, onPress }) => {
+const StyleOption = ({ icon, title, desc, chips, colors, onPress }) => {
   const scale = useRef(new Animated.Value(1)).current;
   return (
     <Pressable
@@ -20,7 +21,7 @@ const StyleOption = ({ emoji, title, desc, chips, colors, onPress }) => {
       <Animated.View style={[styles.optionWrap, { transform: [{ scale }] }]}>
         <View style={[styles.optionBase, { backgroundColor: colors[1] }]} />
         <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.option}>
-          <Text style={styles.optionEmoji}>{emoji}</Text>
+          <FunIcon name={icon} size={58} style={styles.optionIcon} />
           <View style={styles.optionText}>
             <Text style={styles.optionTitle}>{title}</Text>
             <Text style={styles.optionDesc}>{desc}</Text>
@@ -41,7 +42,7 @@ const StyleOption = ({ emoji, title, desc, chips, colors, onPress }) => {
 /**
  * Bottom sheet that asks how to play a mode: Classic (talk & challenges) or Drinks.
  */
-const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose, lockedVariants = [] }) => {
+const StylePickerSheet = ({ visible, modeEmoji, modeIcon, modeTitle, t, onPick, onClose, lockedVariants = [] }) => {
   const slide = useRef(new Animated.Value(0)).current;
   const { isWide } = useResponsive();
   const lockMark = (v) => (lockedVariants.includes(v) ? ' 👑' : '');
@@ -71,12 +72,16 @@ const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose, l
         >
           <Pressable>
             {!isWide && <View style={styles.handle} />}
-            <Text style={styles.modeEmoji}>{modeEmoji}</Text>
+            {hasFunIcon(modeIcon) ? (
+              <FunIcon name={modeIcon} size={64} style={styles.modeIcon} />
+            ) : (
+              <Text style={styles.modeEmoji}>{modeEmoji}</Text>
+            )}
             <Text style={styles.title}>{modeTitle}</Text>
             <Text style={styles.subtitle}>{t('stylePickerTitle', 'How do you want to play?')}</Text>
 
             <StyleOption
-              emoji="🎤"
+              icon="classic"
               title={t('classicTitle', 'Classic') + lockMark('classic')}
               desc={t('classicDesc', 'Talk, laugh and do funny challenges.')}
               chips={[
@@ -89,7 +94,7 @@ const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose, l
             />
 
             <StyleOption
-              emoji="🍻"
+              icon="drinks"
               title={t('drinksTitle', 'Drinks') + lockMark('drinks')}
               desc={t('drinksDesc', 'Answer or drink. Vote together — the winner drinks.')}
               chips={[
@@ -165,7 +170,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  optionEmoji: { fontSize: 46, marginRight: 14 },
+  optionIcon: { marginRight: 12 },
+  modeIcon: { alignSelf: 'center' },
   optionText: { flex: 1 },
   optionTitle: { color: '#fff', fontSize: 22, fontWeight: '900' },
   optionDesc: { color: 'rgba(255,255,255,0.95)', fontSize: 14, fontWeight: '600', marginTop: 2, lineHeight: 19 },

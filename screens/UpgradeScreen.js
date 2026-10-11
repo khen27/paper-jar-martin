@@ -7,33 +7,44 @@ import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../translations';
 import { ModernBackButton, AppDialog } from '../components/ui';
 import ChunkyButton from '../components/ChunkyButton';
-import { PLANS, hasPremium } from '../utils/entitlements';
+import { PLANS, hasPremium, PAYMENTS_LIVE, grantAdUnlock, deckAdKey, AD_UNLOCK_DECK_MS } from '../utils/entitlements';
+import { useTheme } from '../contexts/ThemeContext';
+import FunIcon from '../components/FunIcon';
+import AdModal from '../components/AdModal';
+import SeasonalDecor from '../components/SeasonalDecor';
 import { track } from '../utils/analytics';
 
 const BENEFITS = [
-  { emoji: '🔥', key: 'benefitAdult', fallback: 'Adult Fun, Workout & Office packs' },
-  { emoji: '🍻', key: 'benefitDrinks', fallback: 'Every Drinks edition' },
-  { emoji: '❤️', key: 'benefitFavorites', fallback: 'Unlimited favorites' },
-  { emoji: '✍️', key: 'benefitCustom', fallback: 'Unlimited custom cards' },
-  { emoji: '🆕', key: 'benefitNew', fallback: 'New cards every month' },
+  { icon: 'adult', key: 'benefitAdult', fallback: 'Adult Fun, Workout & Office packs' },
+  { icon: 'drinks', key: 'benefitDrinks', fallback: 'Every Drinks edition' },
+  { icon: 'halloween', key: 'benefitSkins', fallback: 'Seasonal skins: Halloween, Fall, Winter' },
+  { icon: 'partner', key: 'benefitFavorites', fallback: 'Unlimited favorites' },
+  { icon: 'custom', key: 'benefitCustom', fallback: 'Unlimited custom cards' },
+  { icon: 'gift', key: 'benefitNew', fallback: 'New seasonal packs all year' },
 ];
 
 const HEADLINES = {
   pack: ['upgradeHeadlinePack', 'Loving it? Unlock the full deck'],
   favorites: ['upgradeHeadlineFavorites', 'Keep every card you love'],
   custom: ['upgradeHeadlineCustom', 'Write as many cards as you want'],
+  skin: ['upgradeHeadlineSkin', 'Dress Talk Trap up for the season'],
 };
 
 const UpgradeScreen = ({ navigation, route }) => {
   const { language } = useLanguage();
   const { settings, updateSettings } = useSettings();
+  const { getCurrentGradient } = useTheme();
+  const g = getCurrentGradient();
+  const [adOpen, setAdOpen] = useState(false);
+  const adMode = route?.params?.gameMode;
+  const adVariant = route?.params?.variant || 'classic';
   const t = (key, fallback) => translations[language]?.[key] || fallback;
   const reason = route?.params?.upgradeReason || 'general';
   const [plan, setPlan] = useState('yearly');
   const [dialog, setDialog] = useState(null);
   const crown = useRef(new Animated.Value(0)).current;
   const isPremium = hasPremium(settings);
-  const [headKey, headFallback] = HEADLINES[reason] || ['upgradeHeadline', 'Paper Jar Premium'];
+  const [headKey, headFallback] = HEADLINES[reason] || ['upgradeHeadline', 'Talk Trap Premium'];
   const selected = PLANS.find((p) => p.id === plan);
 
   useEffect(() => {
@@ -49,13 +60,13 @@ const UpgradeScreen = ({ navigation, route }) => {
   const price = (p) => (language === 'cs' ? p.price : p.priceEn);
 
   const purchase = () => {
-    track('paywall_purchase_test', { plan, reason });
+    track(PAYMENTS_LIVE ? 'paywall_purchase' : 'paywall_free_trial', { plan, reason });
     updateSettings({ premiumUnlocked: true, premiumPlan: plan });
     setDialog({
       title: t('premiumWelcome', 'Welcome to Premium! 👑'),
       message: t(
-        'upgradeTestMessage',
-        'Test unlock: payments are not live yet, so nothing was charged. Every pack is now open on this device.'
+        'trialStartedMessage',
+        'Your free trial is on. Every pack and skin is open on this device, and nothing is charged: we’ll let you know well before Premium starts costing money.'
       ),
       buttons: [{ text: t('startPlaying', 'Start playing'), onPress: () => navigation.goBack() }],
     });
@@ -63,32 +74,34 @@ const UpgradeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#2B1055', '#7597DE']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={g.colors} start={g.start} end={g.end} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, styles.shade]} />
+      <SeasonalDecor />
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
         </View>
         <ScrollView contentContainerStyle={styles.content}>
-          <Animated.Text
+          <Animated.View
             style={[
               styles.crown,
               { transform: [{ translateY: crown.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }] },
             ]}
           >
-            👑
-          </Animated.Text>
-          <Text style={styles.eyebrow}>Paper Jar Premium</Text>
+            <FunIcon name="crown" size={84} />
+          </Animated.View>
+          <Text style={styles.eyebrow}>Talk Trap Premium</Text>
+          {!PAYMENTS_LIVE && !isPremium && (
+            <View style={styles.betaPill}>
+              <Text style={styles.betaText}>🎁 {t('betaFreeTrial', 'Free trial for everyone while we’re in beta')}</Text>
+            </View>
+          )}
           <Text style={styles.title}>{t(headKey, headFallback)}</Text>
 
           <View style={styles.benefits}>
             {BENEFITS.map((b) => (
               <View key={b.key} style={styles.benefitRow}>
-                <Text style={styles.benefitEmoji}>{b.emoji}</Text>
+                <FunIcon name={b.icon} size={30} style={styles.benefitIcon} />
                 <Text style={styles.benefitText}>{t(b.key, b.fallback)}</Text>
               </View>
             ))}
@@ -129,7 +142,9 @@ const UpgradeScreen = ({ navigation, route }) => {
                       <Text style={[styles.planPeriod, active && styles.planPeriodActive]}>
                         {t(p.periodKey, p.periodFallback)}
                       </Text>
-                      {p.trialDays ? (
+                      {!PAYMENTS_LIVE ? (
+                        <Text style={[styles.trial, active && styles.trialActive]}>{t('freeInBeta', 'free in beta')}</Text>
+                      ) : p.trialDays ? (
                         <Text style={[styles.trial, active && styles.trialActive]}>
                           {p.trialDays} {t('trialDaysFree', 'days free')}
                         </Text>
@@ -141,7 +156,7 @@ const UpgradeScreen = ({ navigation, route }) => {
 
               <ChunkyButton
                 title={
-                  selected?.trialDays
+                  !PAYMENTS_LIVE || selected?.trialDays
                     ? `${t('startTrial', 'Start free trial')} 🎉`
                     : `${t('continue', 'Continue')} 👑`
                 }
@@ -149,13 +164,18 @@ const UpgradeScreen = ({ navigation, route }) => {
                 style={styles.cta}
               />
               <Text style={styles.fineprint}>
-                {selected?.trialDays
-                  ? t('trialFineprint', '3 days free, then the yearly price. Cancel anytime before the trial ends.')
-                  : t('cancelAnytime', 'Cancel anytime.')}
+                {!PAYMENTS_LIVE
+                  ? t('betaFineprint', 'No card needed. Prices above apply only after launch, and we’ll ask before charging anything.')
+                  : selected?.trialDays
+                    ? t('trialFineprint', '3 days free, then the yearly price. Cancel anytime before the trial ends.')
+                    : t('cancelAnytime', 'Cancel anytime.')}
               </Text>
-              <Text style={styles.testNote}>
-                🧪 {t('paymentsNotLive', 'Payments are not live yet: this button only unlocks Premium for testing.')}
-              </Text>
+              {reason === 'pack' && adMode && (
+                <TouchableOpacity onPress={() => setAdOpen(true)} style={styles.adBtn} accessibilityRole="button">
+                  <FunIcon name="ad" size={30} />
+                  <Text style={styles.adBtnText}>{t('watchAdPack', 'Or watch a short ad: play this pack free for 1 hour')}</Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
 
@@ -183,6 +203,19 @@ const UpgradeScreen = ({ navigation, route }) => {
         </ScrollView>
       </SafeAreaView>
 
+      <AdModal
+        visible={adOpen}
+        kind="rewarded"
+        t={t}
+        rewardLabel={t('adRewardPack', 'Unlock for 1 hour')}
+        onReward={() => {
+          updateSettings(grantAdUnlock(settings, deckAdKey(adMode, adVariant), AD_UNLOCK_DECK_MS));
+          setAdOpen(false);
+          navigation.goBack();
+        }}
+        onClose={() => setAdOpen(false)}
+      />
+
       <AppDialog
         visible={!!dialog}
         title={dialog?.title}
@@ -199,7 +232,24 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   header: { paddingHorizontal: 16, paddingVertical: 8 },
   content: { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
-  crown: { fontSize: 64, marginTop: 4 },
+  crown: { marginTop: 4 },
+  shade: { backgroundColor: 'rgba(15,8,40,0.35)' },
+  betaPill: { backgroundColor: '#FFD43B', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5, marginTop: 8 },
+  betaText: { color: '#5C3B00', fontWeight: '900', fontSize: 12 },
+  benefitIcon: { marginRight: 10 },
+  adBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    marginTop: 14,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 18,
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  adBtnText: { color: '#fff', fontWeight: '800', fontSize: 14, flex: 1 },
   eyebrow: {
     color: '#FFD43B',
     fontWeight: '900',
@@ -218,7 +268,6 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   benefitRow: { flexDirection: 'row', alignItems: 'center' },
-  benefitEmoji: { fontSize: 22, width: 36 },
   benefitText: { color: '#fff', fontWeight: '700', fontSize: 16, flex: 1 },
   plans: { flexDirection: 'row', gap: 10, width: '100%', marginBottom: 20 },
   plan: {

@@ -50,6 +50,37 @@ const COLOR_THEMES = {
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   },
+  // Premium seasonal skins: gradient + floating 3D decorations (see SeasonalDecor).
+  halloween: {
+    id: 'halloween',
+    name: 'Halloween',
+    description: 'Midnight purple & pumpkin',
+    colors: ['#2A0E45', '#E8590C'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+    premium: true,
+    decor: ['bat', 'ghost', 'halloween', 'spider'],
+  },
+  autumn: {
+    id: 'autumn',
+    name: 'Fall',
+    description: 'Maple, amber & cinnamon',
+    colors: ['#9A3412', '#F59E0B'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+    premium: true,
+    decor: ['maple', 'autumn', 'candle'],
+  },
+  winter: {
+    id: 'winter',
+    name: 'Winter',
+    description: 'Snowy night & twinkle',
+    colors: ['#0F2A5C', '#4F86C6'],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+    premium: true,
+    decor: ['snowflake', 'sparkles', 'christmas'],
+  },
 };
 
 const ThemeContext = createContext();

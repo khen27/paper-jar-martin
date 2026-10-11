@@ -20,7 +20,9 @@ import GameTile from '../components/GameTile';
 import StylePickerSheet from '../components/StylePickerSheet';
 import { hasDrinksVariant, isKnownMode } from '../utils/decks';
 import { useResponsive } from '../utils/responsive';
-import { lockedVariants, isModeBadgedPremium } from '../utils/entitlements';
+import { lockedVariants, isModeBadgedPremium, isSkinUnlocked } from '../utils/entitlements';
+import { getSeasonalTiles } from '../utils/seasons';
+import SeasonalDecor from '../components/SeasonalDecor';
 import { consumeDeepLink, shareText } from '../utils/share';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,17 +37,20 @@ import { track } from '../utils/analytics';
 const OTAZO_JAR_REFRESH_ENABLED = true;
 
 const MODE_TILES = {
-  partner: { emoji: '💞', colors: ['#FF5E8A', '#E0245E'], titleKey: 'partnerMode', title: 'Partner', subKey: 'partnerTileSub', sub: 'Date night for two' },
-  friend: { emoji: '🍕', colors: ['#8F6BFF', '#5B3FD9'], titleKey: 'friendMode', title: 'Friends', subKey: 'friendTileSub', sub: 'Small crew, big laughs' },
-  party: { emoji: '🎉', colors: ['#FF9F1C', '#FF4E50'], titleKey: 'partyMode', title: 'Party', subKey: 'partyTileSub', sub: 'Pass the phone · 2–8 players', wide: true },
-  adult: { emoji: '🔥', colors: ['#FF3D6E', '#8E2DE2'], titleKey: 'adultMode', title: 'Adult Fun', subKey: 'adultTileSub', sub: 'Flirty truths & dares', corner: '18+' },
-  workout: { emoji: '💪', colors: ['#2ED47A', '#0C9F8C'], titleKey: 'workoutMode', title: 'Workout', subKey: 'workoutTileSub', sub: 'Sweat, reps & gym talk' },
-  knowMe: { emoji: '🧠', colors: ['#3DA9FC', '#1F6FEB'], titleKey: 'knowMeMode', title: 'How well do you know me?', subKey: 'knowMeTileSub', sub: 'Guess answers, score points' },
-  brnoPrague: { emoji: '🍺', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
-  office: { emoji: '💼', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
-  homePack: { emoji: '⭐', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
-  custom: { emoji: '✍️', colors: ['#22D3EE', '#0E7490'], titleKey: 'customMode', title: 'Your cards', subKey: 'customTileSub', sub: 'Write your own questions & dares' },
-  invite: { emoji: '💌', colors: ['#F472B6', '#BE185D'], titleKey: 'inviteTile', title: 'Invite friends', subKey: 'inviteTileSub', sub: 'Send a link and play together' },
+  partner: { icon: 'partner', emoji: '💞', colors: ['#FF5E8A', '#E0245E'], titleKey: 'partnerMode', title: 'Partner', subKey: 'partnerTileSub', sub: 'Date night for two' },
+  friend: { icon: 'friend', emoji: '🍕', colors: ['#8F6BFF', '#5B3FD9'], titleKey: 'friendMode', title: 'Friends', subKey: 'friendTileSub', sub: 'Small crew, big laughs' },
+  party: { icon: 'party', emoji: '🎉', colors: ['#FF9F1C', '#FF4E50'], titleKey: 'partyMode', title: 'Party', subKey: 'partyTileSub', sub: 'Pass the phone · 2–8 players', wide: true },
+  adult: { icon: 'adult', emoji: '🔥', colors: ['#FF3D6E', '#8E2DE2'], titleKey: 'adultMode', title: 'Adult Fun', subKey: 'adultTileSub', sub: 'Flirty truths & dares', corner: '18+' },
+  workout: { icon: 'workout', emoji: '💪', colors: ['#2ED47A', '#0C9F8C'], titleKey: 'workoutMode', title: 'Workout', subKey: 'workoutTileSub', sub: 'Sweat, reps & gym talk' },
+  knowMe: { icon: 'knowMe', emoji: '🧠', colors: ['#3DA9FC', '#1F6FEB'], titleKey: 'knowMeMode', title: 'How well do you know me?', subKey: 'knowMeTileSub', sub: 'Guess answers, score points' },
+  brnoPrague: { icon: 'brnoPrague', emoji: '🍺', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
+  office: { icon: 'office', emoji: '💼', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
+  homePack: { icon: 'homePack', emoji: '⭐', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
+  custom: { icon: 'custom', emoji: '✍️', colors: ['#22D3EE', '#0E7490'], titleKey: 'customMode', title: 'Your cards', subKey: 'customTileSub', sub: 'Write your own questions & dares' },
+  halloween: { icon: 'halloween', emoji: '🎃', colors: ['#3B0F5C', '#F76707'], titleKey: 'halloweenMode', title: 'Halloween', subKey: 'halloweenTileSub', sub: 'Spooky questions & dares' },
+  autumn: { icon: 'autumn', emoji: '🍂', colors: ['#B45309', '#F59E0B'], titleKey: 'autumnMode', title: 'Cozy Fall', subKey: 'autumnTileSub', sub: 'Blankets, tea & stories' },
+  christmas: { icon: 'christmas', emoji: '🎄', colors: ['#166534', '#DC2626'], titleKey: 'christmasMode', title: 'Christmas', subKey: 'christmasTileSub', sub: 'Festive fun for the whole family' },
+  invite: { icon: 'invite', emoji: '💌', colors: ['#F472B6', '#BE185D'], titleKey: 'inviteTile', title: 'Invite friends', subKey: 'inviteTileSub', sub: 'Send a link and play together' },
 };
 
 const MODE_SECTIONS = [
@@ -65,8 +70,14 @@ const MODE_SECTIONS_WIDE = [
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
-  const { getCurrentGradient } = useTheme();
+  const { getCurrentGradient, currentTheme, changeTheme } = useTheme();
   const { settings, updateSettings } = useSettings();
+  const seasonalTiles = getSeasonalTiles(new Date(), !!settings.seasonPreview);
+  const seasonalSection = seasonalTiles.length
+    ? [{ key: 'season', titleKey: 'sectionSeason', fallback: '🍂 Seasonal', modes: seasonalTiles.map((p) => p.mode) }]
+    : [];
+  const [comingSoon, setComingSoon] = useState(null);
+  const [pendingDrinks, setPendingDrinks] = useState(null);
   const { isWide, isPhone, device, maxWidth: columnMax, fs } = useResponsive();
   const splitLayout = device === 'desktop' || device === 'tv';
   const gridColumns = isPhone ? 2 : 3;
@@ -129,7 +140,7 @@ const HomeScreen = ({ navigation }) => {
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
     
-    const text = 'Paper Jar';
+    const text = 'Talk Trap';
     logAction('TYPING_ANIMATION_STARTED', { text });
     let currentIndex = 0;
     setDisplayText('');
@@ -158,7 +169,16 @@ const HomeScreen = ({ navigation }) => {
     typeText();
   }, [logAction, jarScale]);
 
+  // Premium skins fall back to the default theme once premium / the ad unlock runs out.
+  useEffect(() => {
+    if (currentTheme?.premium && !isSkinUnlocked(currentTheme, settings)) changeTheme('sunset-orange');
+  }, [currentTheme, settings.premiumUnlocked, settings.adUnlocks]);
+
   const launchGameMode = useCallback((mode, variant = 'classic') => {
+    if (variant === 'drinks' && !settings.drinksAgeConfirmed) {
+      setPendingDrinks({ mode, variant });
+      return;
+    }
     logAction('NAVIGATING_TO_GAME', { gameMode: mode, variant });
     track('style_selected', { gameMode: mode, variant });
     if (mode === 'party') {
@@ -168,7 +188,7 @@ const HomeScreen = ({ navigation }) => {
     } else {
       navigation.navigate('Game', { gameMode: mode, variant });
     }
-  }, [logAction, navigation]);
+  }, [logAction, navigation, settings.drinksAgeConfirmed]);
 
   // Modes with a Drinks deck ask Classic vs Drinks first; the rest start straight away.
   const handleGameModeSelect = useCallback((mode) => {
@@ -188,9 +208,11 @@ const HomeScreen = ({ navigation }) => {
       shareText({
         message:
           translations[language]?.inviteMessage ||
-          'Come play Paper Jar with us 🎉 Party cards, dares and laughs, free in your browser.',
+          'Come play Talk Trap with us 🎉 Party cards, dares and laughs, free in your browser.',
         event: 'invite_shared',
       });
+    } else if (seasonalTiles.some((p) => p.mode === mode && !p.open)) {
+      setComingSoon(seasonalTiles.find((p) => p.mode === mode));
     } else if (mode === 'homePack' && !homePackUnlocked) {
       logAction('INSTALL_GUIDE_OPENED');
       navigation.navigate('Install');
@@ -199,7 +221,7 @@ const HomeScreen = ({ navigation }) => {
     } else {
       handleGameModeSelect(mode);
     }
-  }, [homePackUnlocked, settings.adultConfirmed, handleGameModeSelect, logAction, navigation, language]);
+  }, [homePackUnlocked, settings.adultConfirmed, handleGameModeSelect, logAction, navigation, language, seasonalTiles]);
 
   // Shared links: ?m=mode&v=variant&c=card open that game (adult still goes through the 18+ gate).
   useEffect(() => {
@@ -216,6 +238,8 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate('Party', { variant: link.variant });
       } else if (link.mode === 'homePack' && !homePackUnlocked) {
         navigation.navigate('Install');
+      } else if (link.variant === 'drinks' && !settings.drinksAgeConfirmed) {
+        setPendingDrinks({ mode: link.mode, variant: 'drinks', startCard: link.card });
       } else if (link.mode !== 'custom') {
         navigation.navigate('Game', { gameMode: link.mode, variant: link.variant, startCard: link.card });
       }
@@ -253,7 +277,7 @@ const HomeScreen = ({ navigation }) => {
 
   // FIXED typing animation effect - only start once
   useEffect(() => {
-    const text = translations[language]?.paperJar || 'Paper Jar';
+    const text = translations[language]?.paperJar || 'Talk Trap';
     logAction('TYPING_ANIMATION_STARTED', { text });
     startTypingAnimation(text);
 
@@ -518,6 +542,7 @@ const HomeScreen = ({ navigation }) => {
         end={getCurrentGradient().end}
       />
       
+      <SeasonalDecor />
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
         <ScrollView
           style={styles.scrollView}
@@ -640,32 +665,45 @@ const HomeScreen = ({ navigation }) => {
             style={[styles.gameMenu, splitLayout && styles.menuColumn]}
             onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}
           >
-            {(isPhone ? MODE_SECTIONS : MODE_SECTIONS_WIDE).map((section) => (
+            {[...seasonalSection, ...(isPhone ? MODE_SECTIONS : MODE_SECTIONS_WIDE)].map((section) => (
               <View key={section.key} style={styles.menuSection}>
                 <Text style={[styles.menuTitle, isWide && { fontSize: fs(20) }]}>
                   {translations[language]?.[section.titleKey] || section.fallback}
                 </Text>
                 <View style={[styles.tileGrid, !isPhone && { justifyContent: 'flex-start', gap: GRID_GAP }]}>
-                  {section.modes.map((mode) => {
+                  {section.modes.map((mode, idx) => {
                     const tile = MODE_TILES[mode];
-                    const locked = mode === 'homePack' && !homePackUnlocked;
+                    const oddLast =
+                      section.key === 'season' && section.modes.length % 2 === 1 && idx === section.modes.length - 1;
+                    const season = seasonalTiles.find((p) => p.mode === mode);
+                    const seasonClosed = season && !season.open;
+                    const locked = (mode === 'homePack' && !homePackUnlocked) || seasonClosed;
                     const premium = isModeBadgedPremium(mode, settings);
                     return (
                       <GameTile
                         key={mode}
                         emoji={tile.emoji}
+                        icon={tile.icon}
                         colors={tile.colors}
-                        wide={tile.wide && isPhone}
+                        wide={(tile.wide || oddLast) && isPhone}
                         width={tileWidth}
                         textScale={device === 'tv' ? 1.3 : 1}
                         locked={locked}
-                        corner={premium ? `👑${tile.corner ? ` ${tile.corner}` : ''}` : tile.corner}
+                        corner={
+                          season && season.open
+                            ? t('limitedCorner', '⏳ Limited')
+                            : premium
+                              ? `👑${tile.corner ? ` ${tile.corner}` : ''}`
+                              : tile.corner
+                        }
                         title={translations[language]?.[tile.titleKey] || tile.title}
                         subtitle={
-                          locked
-                            ? translations[language]?.homePackLockedSubtext ||
-                              'Add Paper Jar to your home screen to unlock'
-                            : translations[language]?.[tile.subKey] || tile.sub
+                          seasonClosed
+                            ? `${t('seasonOpensOn', 'Opens')} ${season.opensOn[1]}. ${season.opensOn[0]}.`
+                            : locked
+                              ? translations[language]?.homePackLockedSubtext ||
+                                'Add Talk Trap to your home screen to unlock'
+                              : translations[language]?.[tile.subKey] || tile.sub
                         }
                         badge={
                           hasDrinksVariant(mode)
@@ -694,7 +732,7 @@ const HomeScreen = ({ navigation }) => {
         title={translations[language]?.homePackUnlockedTitle || '⭐ Golden Jar unlocked!'}
         message={
           translations[language]?.homePackUnlockedMsg ||
-          'Thanks for adding Paper Jar to your home screen. The bonus cards are yours.'
+          'Thanks for adding Talk Trap to your home screen. The bonus cards are yours.'
         }
         buttons={[
           {
@@ -731,9 +769,55 @@ const HomeScreen = ({ navigation }) => {
         onRequestClose={() => setShowAdultDialog(false)}
       />
 
+      <AppDialog
+        visible={!!pendingDrinks}
+        title={t('drinksAgeTitle', '🔞 Drinks edition')}
+        message={t(
+          'drinksAgeMsg',
+          'Only people who are of legal drinking age where you are playing may drink alcohol. Everyone else plays with soft drinks — they count exactly the same. Drink responsibly and never drive after drinking.'
+        )}
+        buttons={[
+          {
+            text: t('drinksAgeConfirm', 'Got it, let’s play'),
+            onPress: () => {
+              const next = pendingDrinks;
+              updateSettings({ drinksAgeConfirmed: true });
+              track('drinks_age_confirmed');
+              setPendingDrinks(null);
+              if (next) {
+                setTimeout(() => {
+                  if (next.mode === 'party') navigation.navigate('Party', { variant: 'drinks' });
+                  else navigation.navigate('Game', { gameMode: next.mode, variant: 'drinks', startCard: next.startCard });
+                }, 300);
+              }
+            },
+          },
+          { text: t('drinksAgeClassic', 'Play Classic instead'), onPress: () => {
+            const next = pendingDrinks;
+            setPendingDrinks(null);
+            if (next) setTimeout(() => launchGameMode(next.mode, 'classic'), 300);
+          } },
+          { text: t('cancel', 'Cancel'), style: 'cancel' },
+        ]}
+        onRequestClose={() => setPendingDrinks(null)}
+      />
+
+      <AppDialog
+        visible={!!comingSoon}
+        title={comingSoon ? `${MODE_TILES[comingSoon.mode].emoji} ${t(MODE_TILES[comingSoon.mode].titleKey, MODE_TILES[comingSoon.mode].title)}` : ''}
+        message={
+          comingSoon
+            ? `${t('seasonComingSoon', 'This seasonal pack opens on')} ${comingSoon.opensOn[1]}. ${comingSoon.opensOn[0]}. (${comingSoon.days} ${t('seasonDays', 'days')}) 🎁`
+            : ''
+        }
+        buttons={[{ text: 'OK' }]}
+        onRequestClose={() => setComingSoon(null)}
+      />
+
       <StylePickerSheet
         visible={!!pendingStyleMode}
         modeEmoji={MODE_TILES[pendingStyleMode]?.emoji}
+        modeIcon={MODE_TILES[pendingStyleMode]?.icon}
         modeTitle={
           pendingStyleMode
             ? translations[language]?.[MODE_TILES[pendingStyleMode].titleKey] ||

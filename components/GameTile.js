@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View, Vibration } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import FunIcon from './FunIcon';
 
 const tap = () => {
   try {
@@ -15,6 +16,7 @@ const tap = () => {
  */
 const GameTile = ({
   emoji,
+  icon,
   title,
   subtitle,
   colors,
@@ -88,9 +90,13 @@ const GameTile = ({
               </View>
             )}
             <View style={wide ? styles.wideRow : null}>
-              <Text style={[styles.emoji, wide && styles.emojiWide, textScale !== 1 && { fontSize: (wide ? 52 : 40) * textScale }]}>
-                {locked ? '🔒' : emoji}
-              </Text>
+              {icon && !locked ? (
+                <FunIcon name={icon} size={(wide ? 64 : 54) * textScale} style={styles.icon} />
+              ) : (
+                <Text style={[styles.emoji, wide && styles.emojiWide, textScale !== 1 && { fontSize: (wide ? 52 : 40) * textScale }]}>
+                  {locked ? '🔒' : emoji}
+                </Text>
+              )}
               <View style={wide ? styles.wideText : null}>
                 <Text
                   style={[styles.title, wide && styles.titleWide, textScale !== 1 && { fontSize: (wide ? 24 : 19) * textScale }]}
@@ -170,6 +176,7 @@ const styles = StyleSheet.create({
   wideRow: { flexDirection: 'row', alignItems: 'center' },
   wideText: { flex: 1, marginLeft: 14 },
   emoji: { fontSize: 40, marginBottom: 8 },
+  icon: { marginBottom: 6, marginLeft: -4 },
   emojiWide: { fontSize: 52, marginBottom: 0 },
   title: {
     color: '#fff',

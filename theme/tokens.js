@@ -1,5 +1,5 @@
 /**
- * Global Design Tokens for Paper Jar / OtázoJar
+ * Global Design Tokens for Talk Trap
  * Clean, modern design system without glass effects
  */
 import { Platform } from 'react-native';

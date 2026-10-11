@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getGameRules } from '../utils/gameRules';
 import { useResponsive } from '../utils/responsive';
 import ChunkyButton from './ChunkyButton';
+import FunIcon, { hasFunIcon } from './FunIcon';
 
 /**
  * "How to play" card shown before a game starts.
@@ -35,7 +36,11 @@ const RulesSheet = ({ visible, mode, variant, title, language, t, onStart, onClo
         >
           <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
             {!isWide && <View style={styles.handle} />}
-            <Text style={[styles.emoji, { fontSize: fs(48) }]}>{rules.emoji}</Text>
+            {hasFunIcon(mode) ? (
+              <FunIcon name={mode} size={fs(72)} style={styles.icon} />
+            ) : (
+              <Text style={[styles.emoji, { fontSize: fs(48) }]}>{rules.emoji}</Text>
+            )}
             <Text style={styles.eyebrow}>{t('howToPlay', 'How to play')}</Text>
             <Text style={[styles.title, { fontSize: fs(26) }]}>
               {title}
@@ -63,8 +68,19 @@ const RulesSheet = ({ visible, mode, variant, title, language, t, onStart, onClo
               </View>
             )}
 
+            <View style={styles.muteBox}>
+              <FunIcon name="mute" size={34} style={styles.muteIcon} />
+              <View style={styles.muteTextWrap}>
+                <Text style={styles.muteTitle}>{t('muteTitle', 'Mute notifications')}</Text>
+                <Text style={[styles.muteText, { fontSize: fs(13) }]}>{rules.muteTip}</Text>
+              </View>
+            </View>
+
             <View style={styles.pact}>
-              <Text style={styles.pactTitle}>🤝 {t('funPactTitle', 'Fun pact')}</Text>
+              <View style={styles.pactHead}>
+                <FunIcon name="handshake" size={26} />
+                <Text style={styles.pactTitle}>{t('funPactTitle', 'Fun pact')}</Text>
+              </View>
               <Text style={[styles.pactText, { fontSize: fs(14) }]}>{rules.funPact}</Text>
             </View>
 
@@ -105,6 +121,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   emoji: { textAlign: 'center', marginTop: 6 },
+  icon: { alignSelf: 'center', marginTop: 4 },
+  muteBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 18,
+    padding: 12,
+    marginBottom: 14,
+  },
+  muteIcon: { marginRight: 10 },
+  muteTextWrap: { flex: 1 },
+  muteTitle: { color: '#fff', fontWeight: '900', fontSize: 14, marginBottom: 2 },
+  muteText: { color: 'rgba(255,255,255,0.85)', fontWeight: '600', lineHeight: 19 },
+  pactHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   eyebrow: {
     color: '#FFD43B',
     fontSize: 12,
@@ -147,7 +177,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0A800',
     transform: [{ rotate: '-1deg' }],
   },
-  pactTitle: { color: '#5C3B00', fontWeight: '900', fontSize: 15, marginBottom: 4 },
+  pactTitle: { color: '#5C3B00', fontWeight: '900', fontSize: 15 },
   pactText: { color: '#5C3B00', fontWeight: '700', lineHeight: 20 },
   cta: { marginBottom: 6 },
   backLink: { alignSelf: 'center', padding: 10 },

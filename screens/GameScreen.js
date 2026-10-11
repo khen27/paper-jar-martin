@@ -31,12 +31,15 @@ import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
 import ConfettiBurst from '../components/ConfettiBurst';
 import RulesSheet from '../components/RulesSheet';
+import DrinkTally from '../components/DrinkTally';
+import AdModal from '../components/AdModal';
+import SeasonalDecor from '../components/SeasonalDecor';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
 import { useSettings } from '../contexts/SettingsContext';
 import { useResponsive } from '../utils/responsive';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { isDeckLocked, FREE_SAMPLE_CARDS, favoritesLimit } from '../utils/entitlements';
+import { isDeckLocked, FREE_SAMPLE_CARDS, favoritesLimit, hasPremium } from '../utils/entitlements';
 import { shareCard } from '../utils/share';
 
 const glassImage = require('../assets/glass.png');
@@ -57,6 +60,8 @@ const GameScreen = ({ route, navigation }) => {
   const { fs, cardMaxWidth, isWide, height: winHeight } = useResponsive();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
   const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
+  const [adBreak, setAdBreak] = useState(false);
+  const adsOn = !!settings.paywallPreview && !hasPremium(settings);
   const [currentRef, setCurrentRef] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [currentQuestionObject, setCurrentQuestionObject] = useState(null); // Store the full question object
@@ -415,7 +420,7 @@ const GameScreen = ({ route, navigation }) => {
       card: gameMode === 'custom' ? null : currentRef,
       teaser:
         gameMode === 'adult'
-          ? t('shareAdultTeaser', 'We’re playing Adult Fun on Paper Jar 🔥 Spicy truths & dares, 18+ only.')
+          ? t('shareAdultTeaser', 'We’re playing Adult Fun on Talk Trap 🔥 Spicy truths & dares, 18+ only.')
           : null,
     });
     if (result === 'downloaded') setShareNote(t('shareDownloaded', 'Image saved, link copied 📋'));
@@ -423,6 +428,11 @@ const GameScreen = ({ route, navigation }) => {
     else setShareNote('');
     if (result === 'downloaded' || result === 'copied') setTimeout(() => setShareNote(''), 2500);
   };
+
+  // Free players (paywall preview on) get a short, skippable ad break every 15 cards.
+  useEffect(() => {
+    if (adsOn && cardCount > 0 && cardCount % 15 === 0) setAdBreak(true);
+  }, [cardCount]);
 
   useKeyboardShortcuts(
     {
@@ -435,7 +445,7 @@ const GameScreen = ({ route, navigation }) => {
       '?': () => setRulesOpen(true),
       Escape: () => navigation.goBack(),
     },
-    !rulesOpen && isFocused
+    !rulesOpen && !adBreak && isFocused
   );
 
   return (
@@ -448,6 +458,7 @@ const GameScreen = ({ route, navigation }) => {
         end={isRTL(language) ? { x: 0, y: 1 } : getCurrentGradient().end}
       />
       
+      <SeasonalDecor />
       <SafeAreaView style={styles.safeArea}>
         {/* Header with Back Button and Game Mode */}
         <View style={[styles.header, { flexDirection: isRTL(language) ? 'row-reverse' : 'row' }]}>
@@ -629,6 +640,12 @@ const GameScreen = ({ route, navigation }) => {
             </ModernButton>
           </View>
 
+          {variant === 'drinks' && (
+            <View style={styles.tallyWrap}>
+              <DrinkTally t={t} />
+            </View>
+          )}
+
           <Pressable onPress={handleShare} accessibilityRole="button" style={styles.shareBtn}>
             <Text style={styles.shareBtnText}>📤 {shareNote || t('shareCard', 'Share this card')}</Text>
           </Pressable>
@@ -663,6 +680,8 @@ const GameScreen = ({ route, navigation }) => {
 
         
       </SafeAreaView>
+
+      <AdModal visible={adBreak} kind="break" t={t} onClose={() => setAdBreak(false)} />
 
       <RulesSheet
         visible={rulesOpen}
@@ -811,6 +830,7 @@ const styles = StyleSheet.create({
   },
   drinksRuleText: { color: '#5C3B00', fontSize: 13, fontWeight: '800', textAlign: 'center' },
   column: { width: '100%', alignItems: 'center', alignSelf: 'center' },
+  tallyWrap: { width: '100%', marginTop: -tokens.spacing.md, marginBottom: tokens.spacing.lg },
   rulesBtn: {
     width: 34,
     height: 34,

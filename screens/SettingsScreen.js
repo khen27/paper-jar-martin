@@ -56,7 +56,7 @@ const SettingsScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title}>{t('settingsTitle', 'Settings')}</Text>
           <Text style={styles.subtitle}>
-            {t('settingsSubtitle', 'Keep Paper Jar simple — tweak only what you need.')}
+            {t('settingsSubtitle', 'Keep Talk Trap simple — tweak only what you need.')}
           </Text>
 
           <ModernCard variant="surface" size="lg" style={styles.card}>
@@ -95,7 +95,7 @@ const SettingsScreen = ({ navigation }) => {
             <TouchableOpacity
               onPress={() =>
                 shareText({
-                  message: t('inviteMessage', 'Come play Paper Jar with us 🎉 Party cards, dares and laughs, free in your browser.'),
+                  message: t('inviteMessage', 'Come play Talk Trap with us 🎉 Party cards, dares and laughs, free in your browser.'),
                   event: 'invite_shared',
                 })
               }
@@ -124,6 +124,13 @@ const SettingsScreen = ({ navigation }) => {
               desc={t('paywallPreviewDesc', 'Locks premium packs after 3 free cards, the way it will work once payments are live.')}
               value={settings.paywallPreview}
               onChange={(v) => updateSettings({ paywallPreview: v })}
+            />
+            <View style={styles.divider} />
+            <ToggleRow
+              title={t('seasonPreviewSetting', 'Open all seasonal packs')}
+              desc={t('seasonPreviewDesc', 'Shows Christmas and other packs before their dates, for testing.')}
+              value={settings.seasonPreview}
+              onChange={(v) => updateSettings({ seasonPreview: v })}
             />
           </ModernCard>
 

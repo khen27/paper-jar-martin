@@ -11,6 +11,9 @@ const DEFAULTS = {
   paywallPreview: false, // test-only: turn on premium gating before real payments exist
   premiumUnlocked: false, // simulated purchase until RevenueCat/Paddle is wired
   premiumPlan: null,
+  adUnlocks: {}, // { 'deck:workout:classic' | 'skin:halloween': expiresAt }
+  drinksAgeConfirmed: false, // legal-drinking-age notice acknowledged
+  seasonPreview: false, // test-only: open every seasonal pack
 };
 
 const SettingsContext = createContext(null);
