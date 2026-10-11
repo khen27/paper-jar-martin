@@ -10,6 +10,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -25,6 +26,11 @@ import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { getLocalizedText } from '../utils/i18n';
 import ConfettiBurst from '../components/ConfettiBurst';
 import ChunkyButton from '../components/ChunkyButton';
+import RulesSheet from '../components/RulesSheet';
+import { useResponsive } from '../utils/responsive';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { isDeckLocked, FREE_SAMPLE_CARDS } from '../utils/entitlements';
+import { shareText } from '../utils/share';
 
 const TIMER_SECONDS = 30;
 
@@ -32,9 +38,13 @@ const PartyScreen = ({ navigation, route }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
   const { settings, updateSettings } = useSettings();
+  const isFocused = useIsFocused();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
   const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
   const { key: deckKey, data: activeDataset } = getDeck('party', variant);
+  const deckLocked = isDeckLocked('party', variant, settings);
+  const { fs, cardMaxWidth, isWide } = useResponsive();
+  const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
 
   const [phase, setPhase] = useState('setup'); // setup | play
   const [nameDraft, setNameDraft] = useState('');
@@ -55,6 +65,11 @@ const PartyScreen = ({ navigation, route }) => {
   const currentPlayer = players[turnIndex] || '';
 
   const drawPrompt = useCallback(async () => {
+    if (deckLocked && round >= FREE_SAMPLE_CARDS) {
+      track('paywall_sample_end', { gameMode: 'party', variant });
+      navigation.navigate('Upgrade', { upgradeReason: 'pack', gameMode: 'party', variant });
+      return false;
+    }
     await initBag(deckKey, refs.length);
     const ref = refs[nextIndex(deckKey, refs.length)];
     const obj = activeDataset[ref.topicIndex][ref.type][ref.questionIndex];
@@ -70,7 +85,8 @@ const PartyScreen = ({ navigation, route }) => {
     } catch (e) {
       // ignore
     }
-  }, [language, refs, activeDataset, deckKey]);
+    return true;
+  }, [language, refs, activeDataset, deckKey, deckLocked, round, navigation, variant]);
 
   useEffect(() => {
     if (phase !== 'play' || !timerOn) {
@@ -110,9 +126,26 @@ const PartyScreen = ({ navigation, route }) => {
   };
 
   const nextTurn = async () => {
-    setTurnIndex((i) => (i + 1) % players.length);
-    await drawPrompt();
+    if (await drawPrompt()) setTurnIndex((i) => (i + 1) % players.length);
   };
+
+  useKeyboardShortcuts(
+    {
+      ' ': nextTurn,
+      Enter: nextTurn,
+      ArrowRight: nextTurn,
+      '?': () => setRulesOpen(true),
+      Escape: () => navigation.goBack(),
+    },
+    phase === 'play' && !rulesOpen && isFocused
+  );
+
+  const inviteFriends = () =>
+    shareText({
+      message: t('inviteMessage', 'Come play Paper Jar with us 🎉 Party cards, dares and laughs, free in your browser.'),
+      mode: 'party',
+      event: 'invite_shared',
+    });
 
   return (
     <View style={styles.container}>
@@ -134,11 +167,22 @@ const PartyScreen = ({ navigation, route }) => {
                 <Text style={styles.pillText}>{t('drinksEdition', 'Drinks 🍻')}</Text>
               </ModernCard>
             )}
+            <TouchableOpacity
+              onPress={() => setRulesOpen(true)}
+              style={styles.rulesBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('howToPlay', 'How to play')}
+            >
+              <Text style={styles.rulesBtnText}>?</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {phase === 'setup' ? (
-          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={[styles.content, { maxWidth: cardMaxWidth + 48 }]}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.heroEmoji}>{variant === 'drinks' ? '🍻' : '🎉'}</Text>
             <Text style={styles.title}>{t('partySetupTitle', 'Pass the phone')}</Text>
             <Text style={styles.subtitle}>
@@ -206,14 +250,28 @@ const PartyScreen = ({ navigation, route }) => {
               onPress={startGame}
               style={styles.startBtn}
             />
+            <TouchableOpacity onPress={inviteFriends} style={styles.inviteBtn} accessibilityRole="button">
+              <Text style={styles.inviteText}>💌 {t('inviteFriends', 'Invite friends to play')}</Text>
+            </TouchableOpacity>
           </ScrollView>
         ) : (
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView
+            contentContainerStyle={[
+              styles.content,
+              { maxWidth: cardMaxWidth + 48 },
+              isWide && { flexGrow: 1, justifyContent: 'center' },
+            ]}
+          >
             <ConfettiBurst burstKey={burstKey} />
             <Text style={styles.passLabel}>📱 {t('passPhoneTo', 'Pass the phone to')}</Text>
             <View style={styles.playerChip}>
-              <Text style={styles.playerName}>{currentPlayer}</Text>
+              <Text style={[styles.playerName, { fontSize: fs(32) }]}>{currentPlayer}</Text>
             </View>
+            {deckLocked && (
+              <Text style={styles.sampleText}>
+                👑 {t('sampleLabel', 'Free sample')} · {Math.min(round, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
+              </Text>
+            )}
 
             {variant === 'drinks' && (
               <View style={styles.drinksRule}>
@@ -237,7 +295,7 @@ const PartyScreen = ({ navigation, route }) => {
                   {t('cardLabel', 'Card')} #{round}
                 </Text>
               </LinearGradient>
-              <Text style={styles.promptText}>{prompt}</Text>
+              <Text style={[styles.promptText, { fontSize: fs(22), lineHeight: fs(31) }]}>{prompt}</Text>
             </Animated.View>
 
             {timerOn && (
@@ -261,6 +319,23 @@ const PartyScreen = ({ navigation, route }) => {
           </ScrollView>
         )}
       </SafeAreaView>
+
+      <RulesSheet
+        visible={rulesOpen}
+        mode="party"
+        variant={variant}
+        title={t('partyMode', 'Party')}
+        language={language}
+        t={t}
+        onStart={() => {
+          track('rules_start', { gameMode: 'party', variant });
+          setRulesOpen(false);
+        }}
+        onClose={() => {
+          setRulesOpen(false);
+          if (phase === 'setup') navigation.goBack();
+        }}
+      />
     </View>
   );
 };
@@ -294,7 +369,21 @@ const styles = StyleSheet.create({
     fontWeight: tokens.typography.weights.semibold,
     fontSize: tokens.typography.sizes.sm,
   },
-  content: { padding: 24, alignItems: 'center', paddingBottom: 48 },
+  content: { padding: 24, alignItems: 'center', paddingBottom: 48, width: '100%', alignSelf: 'center' },
+  rulesBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFD43B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: '#E0A800',
+  },
+  rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
+  inviteBtn: { marginTop: 18, padding: 10 },
+  inviteText: { color: '#fff', fontWeight: '800', fontSize: 15, textDecorationLine: 'underline' },
+  sampleText: { color: '#FFE08A', fontWeight: '900', fontSize: 12, marginBottom: 10 },
   title: {
     fontSize: 28,
     fontWeight: '800',

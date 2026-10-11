@@ -18,6 +18,10 @@ import { knowMeDataset } from '../knowme_dataset';
 import ConfettiBurst from '../components/ConfettiBurst';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
+import { useSettings } from '../contexts/SettingsContext';
+import RulesSheet from '../components/RulesSheet';
+import { useResponsive } from '../utils/responsive';
+import { shareText } from '../utils/share';
 
 const ROUNDS = 6;
 
@@ -34,6 +38,9 @@ const KnowMeScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
+  const { settings } = useSettings();
+  const { cardMaxWidth } = useResponsive();
+  const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
 
   const [phase, setPhase] = useState('setup'); // setup | answer | guess | reveal | score
   const [nameA, setNameA] = useState('');
@@ -107,12 +114,25 @@ const KnowMeScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
-          <ModernCard variant="surface" size="sm" style={styles.pill}>
-            <Text style={styles.pillText}>{t('knowMeMode', 'How well do you know me?')}</Text>
-          </ModernCard>
+          <View style={styles.headerRight}>
+            <ModernCard variant="surface" size="sm" style={styles.pill}>
+              <Text style={styles.pillText}>{t('knowMeMode', 'How well do you know me?')}</Text>
+            </ModernCard>
+            <TouchableOpacity
+              onPress={() => setRulesOpen(true)}
+              style={styles.rulesBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('howToPlay', 'How to play')}
+            >
+              <Text style={styles.rulesBtnText}>?</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[styles.content, { maxWidth: cardMaxWidth + 48 }]}
+          keyboardShouldPersistTaps="handled"
+        >
           {(phase === 'reveal' || phase === 'score') && <ConfettiBurst burstKey={burstKey} />}
 
           {phase === 'setup' && (
@@ -280,6 +300,22 @@ const KnowMeScreen = ({ navigation }) => {
                 {score} {t('knowMeTimes', 'times')}.
               </Text>
               <ModernButton
+                title={`📤 ${t('shareResult', 'Share our result')}`}
+                size="lg"
+                variant="secondary"
+                onPress={() =>
+                  shareText({
+                    message: `${nameA.trim()} & ${nameB.trim()}: ${Math.round((score / ROUNDS) * 100)}% ${t(
+                      'knowMeShareSync',
+                      'in sync on Paper Jar 🧠💞 Can you beat us?'
+                    )}`,
+                    mode: 'knowMe',
+                    event: 'knowme_result_shared',
+                  })
+                }
+                style={styles.cta}
+              />
+              <ModernButton
                 title={t('playAgain', 'Play again')}
                 size="lg"
                 variant="primary"
@@ -302,6 +338,23 @@ const KnowMeScreen = ({ navigation }) => {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      <RulesSheet
+        visible={rulesOpen}
+        mode="knowMe"
+        variant="classic"
+        title={t('knowMeMode', 'How well do you know me?')}
+        language={language}
+        t={t}
+        onStart={() => {
+          track('rules_start', { gameMode: 'knowMe' });
+          setRulesOpen(false);
+        }}
+        onClose={() => {
+          setRulesOpen(false);
+          if (phase === 'setup') navigation.goBack();
+        }}
+      />
     </View>
   );
 };
@@ -324,7 +377,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-  content: { padding: 24, alignItems: 'center', paddingBottom: 48 },
+  content: { padding: 24, alignItems: 'center', paddingBottom: 48, width: '100%', alignSelf: 'center' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rulesBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFD43B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: '#E0A800',
+  },
+  rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
   title: {
     fontSize: 26,
     fontWeight: '800',

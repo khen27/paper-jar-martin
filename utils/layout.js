@@ -1,12 +1,12 @@
-import { Dimensions, Platform } from 'react-native';
+import { Dimensions } from 'react-native';
 
-// On desktop browsers the app renders in a phone-width column (see App.js),
-// so all layout math must use the clamped width, not the full browser width.
-export const MAX_APP_WIDTH = 480;
+// Legacy style math (paddings, title sizes) was tuned for phones, so it uses a
+// "design width" capped at tablet size. Real layout should use useResponsive().
+export const DESIGN_MAX_WIDTH = 600;
 
 const win = Dimensions.get('window');
 
-export const appWidth = Platform.OS === 'web' ? Math.min(win.width, MAX_APP_WIDTH) : win.width;
+export const appWidth = Math.min(win.width, DESIGN_MAX_WIDTH);
 export const appHeight = win.height;
 
-export default { appWidth, appHeight, MAX_APP_WIDTH };
+export default { appWidth, appHeight, DESIGN_MAX_WIDTH };
