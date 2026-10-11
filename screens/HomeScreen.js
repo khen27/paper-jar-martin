@@ -133,14 +133,12 @@ const HomeScreen = ({ navigation }) => {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // After animation, navigate based on mode
+      logAction('NAVIGATING_TO_GAME', { gameMode: mode });
       if (mode === 'party') {
-        // Party Mode requires premium upgrade
-        logAction('PARTY_MODE_PAYWALL_TRIGGERED', { mode });
-        navigation.navigate('Upgrade');
+        navigation.navigate('Party');
+      } else if (mode === 'knowMe') {
+        navigation.navigate('KnowMe');
       } else {
-        // Partner, Friend, and Brno modes are free
-        logAction('NAVIGATING_TO_GAME', { gameMode: mode });
         navigation.navigate('Game', { gameMode: mode });
       }
     });
@@ -586,37 +584,35 @@ const HomeScreen = ({ navigation }) => {
                 </Animated.View>
               </TouchableOpacity>
 
-              {/* Brno vs. Prague - Only for Czech locale */}
-              {language === 'cs' && (
-                <TouchableOpacity
-                  onPressIn={() => onGameModePressIn('brnoPrague')}
-                  onPress={() => handleGameModeSelect('brnoPrague')}
-                  onPressOut={() => onGameModePressOut('brnoPrague')}
-                  activeOpacity={0.8}
-                >
-                  <Animated.View style={{ transform: [{ scale: brnoButtonScale }] }}>
-                    <ModernCard
-                      variant="surface"
-                      size="lg"
-                      style={styles.modernGameModeCard}
-                    >
-                      <View style={styles.modernButtonInner}>
-                        <View style={[styles.modernIconContainer, styles.friendIconBg]}>
-                          <BrnoIcon size={tokens.components.icon.lg} />
-                        </View>
-                        <View style={styles.modernTextContainer}>
-                          <Text style={styles.modernGameModeText}>
-                            Brno vs. Prague
-                          </Text>
-                          <Text style={styles.modernGameModeSubtext}>
-                            Které město je nejlepší?
-                          </Text>
-                        </View>
+              {/* Brno vs. Prague rivalry */}
+              <TouchableOpacity
+                onPressIn={() => onGameModePressIn('brnoPrague')}
+                onPress={() => handleGameModeSelect('brnoPrague')}
+                onPressOut={() => onGameModePressOut('brnoPrague')}
+                activeOpacity={0.8}
+              >
+                <Animated.View style={{ transform: [{ scale: brnoButtonScale }] }}>
+                  <ModernCard
+                    variant="surface"
+                    size="lg"
+                    style={styles.modernGameModeCard}
+                  >
+                    <View style={styles.modernButtonInner}>
+                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
+                        <BrnoIcon size={tokens.components.icon.lg} />
                       </View>
-                    </ModernCard>
-                  </Animated.View>
-                </TouchableOpacity>
-              )}
+                      <View style={styles.modernTextContainer}>
+                        <Text style={styles.modernGameModeText}>
+                          {translations[language]?.brnoPragueMode || 'Brno vs. Prague'}
+                        </Text>
+                        <Text style={styles.modernGameModeSubtext}>
+                          {translations[language]?.brnoPragueModeSubtext || 'Which city is best?'}
+                        </Text>
+                      </View>
+                    </View>
+                  </ModernCard>
+                </Animated.View>
+              </TouchableOpacity>
 
               {/* Home Screen Pack — install reward */}
               <TouchableOpacity
@@ -654,8 +650,7 @@ const HomeScreen = ({ navigation }) => {
                 </ModernCard>
               </TouchableOpacity>
 
-              {/* Party Mode - Commented Out */}
-              {/*
+              {/* Party Mode — pass-the-phone */}
               <TouchableOpacity
                 onPressIn={() => onGameModePressIn('party')}
                 onPress={() => handleGameModeSelect('party')}
@@ -677,14 +672,39 @@ const HomeScreen = ({ navigation }) => {
                           {translations[language]?.partyMode || 'Party'}
                         </Text>
                         <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.partyModeSubtext || 'Perfect for celebrations'}
+                          {translations[language]?.partyModeSubtext || 'Pass the phone — questions & dares'}
                         </Text>
                       </View>
                     </View>
                   </ModernCard>
                 </Animated.View>
               </TouchableOpacity>
-              */}
+
+              {/* How well do you know me? */}
+              <TouchableOpacity
+                onPress={() => handleGameModeSelect('knowMe')}
+                activeOpacity={0.8}
+              >
+                <ModernCard
+                  variant="surface"
+                  size="lg"
+                  style={styles.modernGameModeCard}
+                >
+                  <View style={styles.modernButtonInner}>
+                    <View style={[styles.modernIconContainer, styles.knowMeIconBg]}>
+                      <Text style={styles.homePackEmoji}>🧠</Text>
+                    </View>
+                    <View style={styles.modernTextContainer}>
+                      <Text style={styles.modernGameModeText}>
+                        {translations[language]?.knowMeMode || 'How well do you know me?'}
+                      </Text>
+                      <Text style={styles.modernGameModeSubtext}>
+                        {translations[language]?.knowMeModeSubtext || 'Guess their answers — get a score'}
+                      </Text>
+                    </View>
+                  </View>
+                </ModernCard>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -1331,6 +1351,11 @@ const styles = StyleSheet.create({
   },
   homePackEmoji: {
     fontSize: 26,
+  },
+  knowMeIconBg: {
+    backgroundColor: 'rgba(244, 114, 182, 0.55)',
+    borderWidth: 2,
+    borderColor: 'rgba(244, 114, 182, 1)',
   },
   modernGameModeText: {
     fontSize: tokens.typography.sizes.lg,

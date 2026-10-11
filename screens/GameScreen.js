@@ -29,6 +29,7 @@ import { isRTL } from '../utils/rtl';
 import { bonusDataset } from '../bonus_dataset';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
+import ConfettiBurst from '../components/ConfettiBurst';
 
 const glassImage = require('../assets/glass.png');
 
@@ -52,6 +53,8 @@ const GameScreen = ({ route, navigation }) => {
   const [showChallenge, setShowChallenge] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const gameMode = route.params?.gameMode || 'partner';
+  const [questionType, setQuestionType] = useState('questions');
+  const [burstKey, setBurstKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -168,7 +171,7 @@ const GameScreen = ({ route, navigation }) => {
   // The active deck for this mode+language, flattened for the shuffle bag.
   const deckInfo = useMemo(() => {
     let key, data;
-    if (gameMode === 'brnoPrague' && language === 'cs') {
+    if (gameMode === 'brnoPrague') {
       key = 'brno';
       data = brnoDataset;
     } else if (gameMode === 'homePack') {
@@ -190,6 +193,9 @@ const GameScreen = ({ route, navigation }) => {
 
       // Store the full question object for favorites
       setCurrentQuestionObject(questionObject);
+      setQuestionType(ref.type);
+      setShowHints(false);
+      setBurstKey((k) => k + 1);
 
       const cleanedText = getLocalizedText(questionObject, language);
       logAction('QUESTION_GENERATED', {
@@ -407,6 +413,7 @@ const GameScreen = ({ route, navigation }) => {
         </View>
 
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 70 }]}>
+          <ConfettiBurst burstKey={burstKey} />
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -456,6 +463,24 @@ const GameScreen = ({ route, navigation }) => {
               </Text>
             </ModernCard>
           </Animated.View>
+
+          {showHints && (
+            <ModernCard variant="surface" size="sm" style={styles.hintCard}>
+              <Text style={styles.hintTitle}>
+                {translations[language]?.hint || 'Hint'}
+              </Text>
+              <Text style={styles.hintBody}>
+                {questionType === 'challenges'
+                  ? translations[language]?.hintChallenge ||
+                    'Do it together — laugh first, perfect later.'
+                  : questionType === 'crazy_questions'
+                    ? translations[language]?.hintCrazy ||
+                      'There is no wrong answer. Go weird.'
+                    : translations[language]?.hintQuestion ||
+                      'Share a story, not just a one-word answer. Ask “why?” once.'}
+              </Text>
+            </ModernCard>
+          )}
 
           {/* Action Buttons */}
           <View style={[styles.actionButtons, { flexDirection: isRTL(language) ? 'row-reverse' : 'row' }]}>
@@ -830,6 +855,24 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     padding: tokens.spacing['2xl'],
    // ...tokens.shadows.lg,
+  },
+  hintCard: {
+    width: '100%',
+    marginTop: -tokens.spacing['2xl'],
+    marginBottom: tokens.spacing.xl,
+  },
+  hintTitle: {
+    color: tokens.colors.text.primary,
+    fontWeight: tokens.typography.weights.bold,
+    fontSize: tokens.typography.sizes.sm,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  hintBody: {
+    color: tokens.colors.text.secondary,
+    fontSize: tokens.typography.sizes.sm,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
