@@ -12,6 +12,7 @@ import {
   Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -29,8 +30,14 @@ import { getCardTypeMeta } from '../utils/cardTypes';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
 import ConfettiBurst from '../components/ConfettiBurst';
+import RulesSheet from '../components/RulesSheet';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
+import { useSettings } from '../contexts/SettingsContext';
+import { useResponsive } from '../utils/responsive';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { isDeckLocked, FREE_SAMPLE_CARDS, favoritesLimit } from '../utils/entitlements';
+import { shareCard } from '../utils/share';
 
 const glassImage = require('../assets/glass.png');
 
@@ -45,6 +52,12 @@ const buzz = () => {
 const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
+  const { settings } = useSettings();
+  const isFocused = useIsFocused();
+  const { fs, cardMaxWidth, isWide, height: winHeight } = useResponsive();
+  const t = (key, fallback) => translations[language]?.[key] || fallback;
+  const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
+  const [currentRef, setCurrentRef] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [currentQuestionObject, setCurrentQuestionObject] = useState(null); // Store the full question object
   const [showHints, setShowHints] = useState(false);
@@ -52,6 +65,9 @@ const GameScreen = ({ route, navigation }) => {
   const [favorites, setFavorites] = useState([]);
   const gameMode = route.params?.gameMode || 'partner';
   const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
+  const startCard = route.params?.startCard;
+  const deckLocked = isDeckLocked(gameMode, variant, settings);
+  const modeTitle = t(`${gameMode}Mode`, `${gameMode} Mode`);
   const [questionType, setQuestionType] = useState('questions');
   const [burstKey, setBurstKey] = useState(0);
   const [cardCount, setCardCount] = useState(0);
@@ -182,14 +198,21 @@ const GameScreen = ({ route, navigation }) => {
   }, [gameMode, variant]);
 
   // Draw the next question from the shuffle bag (no repeats until the deck is exhausted).
-  const getRandomQuestion = () => {
+  // `forcedRef` shows a specific card (deep link) instead.
+  const getRandomQuestion = (forcedRef) => {
     try {
       const { data, key, refs } = deckInfo;
-      const ref = refs[nextIndex(key, refs.length)];
+      if (deckLocked && cardCount >= FREE_SAMPLE_CARDS) {
+        track('paywall_sample_end', { gameMode, variant });
+        navigation.navigate('Upgrade', { upgradeReason: 'pack', gameMode, variant });
+        return currentQuestion;
+      }
+      const ref = forcedRef || refs[nextIndex(key, refs.length)];
       const questionObject = data[ref.topicIndex][ref.type][ref.questionIndex];
 
       // Store the full question object for favorites
       setCurrentQuestionObject(questionObject);
+      setCurrentRef(ref);
       setQuestionType(ref.type);
       setShowHints(false);
       setBurstKey((k) => k + 1);
@@ -264,8 +287,7 @@ const GameScreen = ({ route, navigation }) => {
       newFavorites.splice(index, 1);
       logAction('FAVORITE_REMOVED', { index });
     } else {
-      // Check if user has reached the free limit of 5 favorites
-      if (favorites.length >= 5) {
+      if (favorites.length >= favoritesLimit(settings)) {
         logAction('FAVORITES_LIMIT_REACHED', { currentCount: favorites.length });
         navigation.navigate('Upgrade', { upgradeReason: 'favorites' });
         return;
@@ -353,7 +375,9 @@ const GameScreen = ({ route, navigation }) => {
       if (!cancelled) {
         logAction('GAME_MODE_INITIALIZED', { mode: gameMode, deck: deckInfo.key });
         setShowHints(false);
-        setCurrentQuestion(getRandomQuestion());
+        const valid =
+          startCard && deckInfo.data[startCard.topicIndex]?.[startCard.type]?.[startCard.questionIndex];
+        setCurrentQuestion(getRandomQuestion(valid ? startCard : undefined));
       }
     })();
     return () => {
@@ -379,6 +403,40 @@ const GameScreen = ({ route, navigation }) => {
     return false;
   });
 
+  const [shareNote, setShareNote] = useState('');
+  const handleShare = async () => {
+    if (!currentQuestion) return;
+    const result = await shareCard({
+      text: currentQuestion,
+      label: `${cardMeta.emoji} ${cardMeta.label}`,
+      colors: cardMeta.colors,
+      mode: gameMode === 'custom' ? null : gameMode,
+      variant,
+      card: gameMode === 'custom' ? null : currentRef,
+      teaser:
+        gameMode === 'adult'
+          ? t('shareAdultTeaser', 'We’re playing Adult Fun on Paper Jar 🔥 Spicy truths & dares, 18+ only.')
+          : null,
+    });
+    if (result === 'downloaded') setShareNote(t('shareDownloaded', 'Image saved, link copied 📋'));
+    else if (result === 'copied') setShareNote(t('shareCopied', 'Link copied 📋'));
+    else setShareNote('');
+    if (result === 'downloaded' || result === 'copied') setTimeout(() => setShareNote(''), 2500);
+  };
+
+  useKeyboardShortcuts(
+    {
+      ' ': triggerShake,
+      Enter: triggerShake,
+      ArrowRight: triggerShake,
+      h: () => setShowHints((v) => !v),
+      f: toggleFavorite,
+      s: handleShare,
+      '?': () => setRulesOpen(true),
+      Escape: () => navigation.goBack(),
+    },
+    !rulesOpen && isFocused
+  );
 
   return (
     <View style={styles.container}>
@@ -406,9 +464,7 @@ const GameScreen = ({ route, navigation }) => {
           {gameMode && (
             <View style={styles.headerPills}>
               <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
-                <Text style={styles.modernGameModeText}>
-                  {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
-                </Text>
+                <Text style={styles.modernGameModeText}>{modeTitle}</Text>
               </ModernCard>
               {variant === 'drinks' && (
                 <ModernCard variant="surface" size="sm" style={styles.drinksPill}>
@@ -417,12 +473,34 @@ const GameScreen = ({ route, navigation }) => {
                   </Text>
                 </ModernCard>
               )}
+              <Pressable
+                onPress={() => setRulesOpen(true)}
+                style={styles.rulesBtn}
+                accessibilityRole="button"
+                accessibilityLabel={t('howToPlay', 'How to play')}
+              >
+                <Text style={styles.rulesBtnText}>?</Text>
+              </Pressable>
             </View>
           )}
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 70 }]}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 70 },
+            isWide && { justifyContent: 'center', minHeight: winHeight - 80 },
+          ]}
+        >
+          <View style={[styles.column, { maxWidth: cardMaxWidth }]}>
           <ConfettiBurst burstKey={burstKey} />
+          {deckLocked && (
+            <View style={styles.sampleChip}>
+              <Text style={styles.sampleChipText}>
+                👑 {t('sampleLabel', 'Free sample')} · {Math.min(cardCount, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
+              </Text>
+            </View>
+          )}
           {variant === 'drinks' && (
             <View style={styles.drinksRule}>
               <Text style={styles.drinksRuleText}>
@@ -435,6 +513,7 @@ const GameScreen = ({ route, navigation }) => {
             source={glassImage}
             style={[
               styles.glassImage,
+              { width: fs(130), height: fs(130) },
               {
                 transform: [
                   {
@@ -477,6 +556,7 @@ const GameScreen = ({ route, navigation }) => {
               </LinearGradient>
               <Text style={[
                 styles.questionText,
+                { fontSize: fs(22), lineHeight: fs(31) },
                 {
                   writingDirection: isRTL(language) ? 'rtl' : 'ltr',
                   fontFamily: isRTL(language) ? 'NotoNaskhArabic_400Regular' : undefined,
@@ -549,6 +629,16 @@ const GameScreen = ({ route, navigation }) => {
             </ModernButton>
           </View>
 
+          <Pressable onPress={handleShare} accessibilityRole="button" style={styles.shareBtn}>
+            <Text style={styles.shareBtnText}>📤 {shareNote || t('shareCard', 'Share this card')}</Text>
+          </Pressable>
+          {isWide && Platform.OS === 'web' && (
+            <Text style={styles.keysHint}>
+              {t('keysHint', 'Space = next card · H = hint · F = favorite · S = share · Esc = back')}
+            </Text>
+          )}
+          </View>
+
           {/* Toast Notification */}
           {showToast && (
             <Animated.View
@@ -573,6 +663,23 @@ const GameScreen = ({ route, navigation }) => {
 
         
       </SafeAreaView>
+
+      <RulesSheet
+        visible={rulesOpen}
+        mode={gameMode}
+        variant={variant}
+        title={modeTitle}
+        language={language}
+        t={t}
+        onStart={() => {
+          track('rules_start', { gameMode, variant });
+          setRulesOpen(false);
+        }}
+        onClose={() => {
+          setRulesOpen(false);
+          if (cardCount <= 1) navigation.goBack();
+        }}
+      />
     </View>
   );
 };
@@ -703,6 +810,41 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0A800',
   },
   drinksRuleText: { color: '#5C3B00', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  column: { width: '100%', alignItems: 'center', alignSelf: 'center' },
+  rulesBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFD43B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: '#E0A800',
+  },
+  rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
+  sampleChip: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginBottom: 6,
+  },
+  sampleChipText: { color: '#FFE08A', fontWeight: '900', fontSize: 12 },
+  shareBtn: {
+    marginTop: -tokens.spacing.md,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  shareBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  keysHint: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 18,
+    textAlign: 'center',
+  },
   nextCardBtn: {
     marginHorizontal: 14,
     backgroundColor: '#FFFFFF',

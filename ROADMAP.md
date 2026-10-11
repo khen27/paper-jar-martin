@@ -5,19 +5,19 @@
 
 ## 🧪 Ready for you to test
 
-**Checkpoint 5 (2026-10-11): Game-style UI + Classic/Drinks in every section**
+**Checkpoint 6 (2026-10-11): How-to-play rules, every screen size, Premium preview, sharing, your own cards**
 
 🔗 **https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**  
-*(Hard-refresh or reinstall PWA — cache `v5`.)*
+*(Hard-refresh or reinstall PWA — cache `v6`.)*
 
-1. **Home** — colorful game tiles grouped into For two / Group games / Packs; “Card of the day” looks like a playing card; buttons squish when tapped.
-2. **Style picker** — Partner, Friends, Party, Adult Fun, Workout, Brno vs. Praha and Office each open a sheet: 🎤 Classic or 🍻 Drinks.
-3. **Adult Fun** — 18+ gate once, then the picker. Classic has no drink prompts any more; Drinks is truth-or-drink + votes.
-4. **Workout** — Classic = moves and gym talk; Drinks = answer-or-drink with a squat/burpee alternative on every forfeit.
-5. **Card screen** — white playing card with a colored type band (Question / Wild card / Dare, or Answer or drink / Vote / Do it or drink), card counter, big 🎲 Next card button, yellow drinks rule in Drinks mode.
-6. **Party** — chunky Start / Next player buttons, player name chip, same card style.
-7. **Golden Jar** (renamed from Home Screen Pack) — still unlocks by installing to the home screen.
-8. **Know Me** and **Golden Jar** — open directly, no picker.
+1. **How to play** — every game (Partner, Friends, Party, Adult, Workout, Brno vs. Praha, Office, Golden Jar, Know Me, Your cards) opens with its rules + extra Drinks rules + the yellow **Fun pact** (bickering = high-five + next card; whoever starts an argument owes a compliment). “Back” returns home. Yellow **?** in the header re-opens it. Settings → turn off “How to play before each game”.
+2. **Screen sizes** — phone looks the same as before. iPad / tablet: 3-column tiles. Laptop / desktop: hero on the left, tiles on the right. TV / big monitor (≥1700 px): bigger text and cards. Rotate iPad: layout adapts. Sheets are centered pop-ups on big screens.
+3. **Keyboard / TV remote (web)** — on a card: Space / Enter / → = next card, H = hint, F = favorite, S = share, ? = rules, Esc = back. Party: Space = next player.
+4. **Share a card** — “📤 Share this card” makes a story-size image (phone share sheet; on desktop it downloads + copies the link). Adult cards share only a teaser, never the card text.
+5. **Links** — opening a shared link starts that game on that exact card; `?ref=CODE` remembers who invited you. Party setup + Home tile + Settings have **Invite friends**. Know Me results have “Share our result” (X% in sync).
+6. **Your cards** — Home → ✍️ Your cards: pick Question / Wild card / Dare, write, add, delete, “Play my cards”.
+7. **Premium (preview only)** — Settings → Testing → “Preview paywall”. Then Adult/Workout/Office and every Drinks edition show 👑 and give 3 free sample cards, then the paywall (monthly 99 Kč · yearly 499 Kč with 3-day trial · lifetime 899 Kč). The button is a **test unlock** — no money moves. Settings → Premium → “Turn off test Premium” resets it. Leave the preview **off** for real players until payments are wired.
+8. **Terms & Privacy** — link on Home, Settings and the paywall. Draft text, needs a lawyer.
 
 **Rollback:** cite checklist # and I’ll adjust that piece.
 
@@ -52,5 +52,30 @@
 - ⏸️ Web push notifications — needs permission UX + service later
 - ⏸️ Weekly pack drop automation — later
 
-## Milestone B5+ 
-- ⬜ Freemium payments, virality, soft launch, remote play, native
+## Rules + responsive (Checkpoint 6)
+- ✅ How-to-play sheet + Fun pact for every game, Settings toggle (default on)
+- ✅ Responsive phone / tablet / desktop / TV, landscape allowed, keyboard + remote shortcuts
+
+## Milestone B5 — Freemium
+- ✅ Entitlements (`utils/entitlements.js`): premium = Adult, Workout, Office, all Drinks, unlimited favorites/custom cards; 3-card free sample
+- ✅ New paywall: monthly / yearly + 3-day trial / lifetime, restore, legal links
+- ✅ Draft Terms + Privacy (GDPR) screen
+- ⏸️ Real payments — RevenueCat (iOS/Android) + Paddle or Stripe (web); needs accounts from you
+- ⏸️ Turn gating on for everyone — after payments work
+
+## Milestone B6 — Virality
+- ✅ Share-card story image (web) / native share text; adult = teaser only
+- ✅ Deep links `?m=&v=&c=` + referral `?ref=` capture; invite buttons; Know Me result share
+- ✅ Open Graph / Twitter preview tags
+- ⏸️ Referral rewards + live group voting — need Supabase backend
+- ⏸️ Own domain + custom OG image
+
+## Milestone B10 (pulled forward) — Your own cards
+- ✅ Write / delete / play custom cards (local only)
+- ⏸️ Sync + share custom decks — needs Supabase
+
+## Still to do
+- ⬜ B7 Remote play (rooms across phones) — Supabase Realtime
+- ⬜ B8 Soft launch (CZ): domain, landing page, store listing, TikTok/IG clips
+- ⬜ B9 Native apps — Xcode license, EAS build, App Store / Play review
+- ⬜ Native-speaker review of other languages; lawyer review of legal text

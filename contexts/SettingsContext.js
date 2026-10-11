@@ -7,6 +7,10 @@ const DEFAULTS = {
   partyTimerEnabled: false, // off by default per product feedback
   adultConfirmed: false,
   notificationsOptIn: false,
+  showRules: true, // "How to play" sheet before every game
+  paywallPreview: false, // test-only: turn on premium gating before real payments exist
+  premiumUnlocked: false, // simulated purchase until RevenueCat/Paddle is wired
+  premiumPlan: null,
 };
 
 const SettingsContext = createContext(null);

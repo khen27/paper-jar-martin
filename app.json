@@ -3,7 +3,7 @@
     "name": "Paper Jar",
     "slug": "snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,

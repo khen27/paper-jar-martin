@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import React from 'react';
-import { View, Image, StyleSheet, Platform, Animated, Easing } from 'react-native';
+import { View, Image, StyleSheet, Platform, Animated, Easing, Dimensions } from 'react-native';
 import { appWidth, appHeight } from './utils/layout';
 import { useFonts } from 'expo-font';
 import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
@@ -20,8 +20,21 @@ import InstallScreen from './screens/InstallScreen';
 import PartyScreen from './screens/PartyScreen';
 import KnowMeScreen from './screens/KnowMeScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import CustomCardsScreen from './screens/CustomCardsScreen';
+import LegalScreen from './screens/LegalScreen';
+import { withScreenFrame } from './components/ScreenFrame';
 
 const Stack = createStackNavigator();
+
+// Phone-designed screens get a centered column on tablets, desktops and TVs.
+const FramedLanguage = withScreenFrame(LanguageScreen);
+const FramedColor = withScreenFrame(ColorScreen);
+const FramedSettings = withScreenFrame(SettingsScreen);
+const FramedUpgrade = withScreenFrame(UpgradeScreen, 760);
+const FramedFavorites = withScreenFrame(FavoritesScreen, 760);
+const FramedInstall = withScreenFrame(InstallScreen);
+const FramedCustomCards = withScreenFrame(CustomCardsScreen, 760);
+const FramedLegal = withScreenFrame(LegalScreen, 760);
 
 // Native splash will auto-hide when JS is ready; we overlay our own animation.
 
@@ -38,11 +51,11 @@ export default function App() {
   const glassOpacity = React.useRef(new Animated.Value(0)).current;
 
   // Confetti setup
-  const screenWidth = appWidth;
+  const screenWidth = Dimensions.get('window').width;
   const screenHeight = appHeight;
   const confettiCount = 24;
   const confettiColors = ['#8B5CF6', '#A78BFA', '#F472B6', '#60A5FA', '#34D399', '#FBBF24'];
-  const glassSize = screenWidth * 0.5;
+  const glassSize = Math.min(appWidth * 0.5, 280);
   const centerX = screenWidth / 2;
   const centerY = screenHeight / 2;
   const confetti = React.useMemo(() =>
@@ -194,7 +207,7 @@ export default function App() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen
               name="Language"
-              component={LanguageScreen}
+              component={FramedLanguage}
               options={{
                 presentation: 'modal',
                 headerShown: false,
@@ -202,7 +215,7 @@ export default function App() {
             />
             <Stack.Screen
               name="Color"
-              component={ColorScreen}
+              component={FramedColor}
               options={{
                 presentation: 'modal',
                 headerShown: false,
@@ -210,7 +223,7 @@ export default function App() {
             />
             <Stack.Screen
               name="Settings"
-              component={SettingsScreen}
+              component={FramedSettings}
               options={{
                 presentation: 'modal',
                 headerShown: false,
@@ -218,7 +231,7 @@ export default function App() {
             />
             <Stack.Screen
               name="Upgrade"
-              component={UpgradeScreen}
+              component={FramedUpgrade}
               options={{
                 presentation: 'modal',
                 headerShown: false,
@@ -227,10 +240,16 @@ export default function App() {
             <Stack.Screen name="Game" component={GameScreen} />
             <Stack.Screen name="Party" component={PartyScreen} />
             <Stack.Screen name="KnowMe" component={KnowMeScreen} />
-            <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            <Stack.Screen name="Favorites" component={FramedFavorites} />
+            <Stack.Screen name="CustomCards" component={FramedCustomCards} />
+            <Stack.Screen
+              name="Legal"
+              component={FramedLegal}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
             <Stack.Screen
               name="Install"
-              component={InstallScreen}
+              component={FramedInstall}
               options={{ presentation: 'modal', headerShown: false }}
             />
             </Stack.Navigator>
@@ -246,8 +265,8 @@ export default function App() {
               <Animated.Image
                 source={require('./assets/glass.png')}
                 style={{
-                  width: screenWidth * 0.5,
-                  height: screenWidth * 0.5,
+                  width: glassSize,
+                  height: glassSize,
                   opacity: glassOpacity,
                   transform: [{ scale: glassScale }],
                   resizeMode: 'contain',
@@ -303,7 +322,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     width: '100%',
-    ...(Platform.OS === 'web' ? { maxWidth: 480 } : null),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

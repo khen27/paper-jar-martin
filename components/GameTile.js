@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View, Vibration } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -22,11 +22,17 @@ const GameTile = ({
   corner,
   locked = false,
   wide = false,
+  width,
+  textScale = 1,
   onPress,
   accessibilityLabel,
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
   const press = useRef(new Animated.Value(0)).current;
+  const [focused, setFocused] = useState(false);
+
+  const hover = (on) =>
+    Animated.spring(scale, { toValue: on ? 1.03 : 1, friction: 6, tension: 200, useNativeDriver: true }).start();
 
   const pressIn = () => {
     Animated.parallel([
@@ -52,11 +58,21 @@ const GameTile = ({
         tap();
         onPress && onPress();
       }}
+      onHoverIn={() => hover(true)}
+      onHoverOut={() => hover(false)}
+      onFocus={() => {
+        setFocused(true);
+        hover(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+        hover(false);
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || title}
-      style={[styles.wrap, wide ? styles.wide : styles.half]}
+      style={[styles.wrap, width ? { width } : wide ? styles.wide : styles.half]}
     >
-      <Animated.View style={[styles.fill, { transform: [{ scale }] }]}>
+      <Animated.View style={[styles.fill, focused && styles.focused, { transform: [{ scale }] }]}>
         <View style={[styles.base, { backgroundColor: colors[1] }]} />
         <Animated.View style={[styles.fill, { transform: [{ translateY }] }]}>
           <LinearGradient
@@ -72,13 +88,21 @@ const GameTile = ({
               </View>
             )}
             <View style={wide ? styles.wideRow : null}>
-              <Text style={[styles.emoji, wide && styles.emojiWide]}>{locked ? '🔒' : emoji}</Text>
+              <Text style={[styles.emoji, wide && styles.emojiWide, textScale !== 1 && { fontSize: (wide ? 52 : 40) * textScale }]}>
+                {locked ? '🔒' : emoji}
+              </Text>
               <View style={wide ? styles.wideText : null}>
-                <Text style={[styles.title, wide && styles.titleWide]} numberOfLines={2}>
+                <Text
+                  style={[styles.title, wide && styles.titleWide, textScale !== 1 && { fontSize: (wide ? 24 : 19) * textScale }]}
+                  numberOfLines={2}
+                >
                   {title}
                 </Text>
                 {!!subtitle && (
-                  <Text style={styles.subtitle} numberOfLines={wide ? 2 : 3}>
+                  <Text
+                    style={[styles.subtitle, textScale !== 1 && { fontSize: 13 * textScale, lineHeight: 18 * textScale }]}
+                    numberOfLines={wide ? 2 : 3}
+                  >
                     {subtitle}
                   </Text>
                 )}
@@ -101,6 +125,7 @@ const RADIUS = 24;
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
   fill: { flex: 1 },
+  focused: { borderRadius: RADIUS + 4, borderWidth: 4, borderColor: '#FFD43B', margin: -4 },
   half: { width: '48%' },
   wide: { width: '100%' },
   base: {

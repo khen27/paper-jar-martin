@@ -12,6 +12,7 @@ import { adultDrinksDataset } from '../adult_drinks_dataset';
 import { workoutDrinksDataset } from '../workout_drinks_dataset';
 import { brnoDrinksDataset } from '../brno_drinks_dataset';
 import { officeDrinksDataset } from '../office_drinks_dataset';
+import { getCustomDataset } from './customCards';
 
 // Every game mode with a Classic and a Drinks deck. Shuffle-bag keys must stay stable
 // so saved no-repeat progress survives app updates.
@@ -47,11 +48,22 @@ const DECKS = {
   homePack: {
     classic: { key: 'homePack', data: bonusDataset },
   },
+  custom: {
+    classic: {
+      key: 'custom',
+      get data() {
+        return getCustomDataset();
+      },
+    },
+  },
 };
 
 export const hasDrinksVariant = (mode) => !!DECKS[mode]?.drinks;
 
 export const getDeck = (mode, variant = 'classic') => {
   const entry = DECKS[mode] || DECKS.partner;
-  return (variant === 'drinks' && entry.drinks) || entry.classic;
+  const deck = (variant === 'drinks' && entry.drinks) || entry.classic;
+  return { key: deck.key, data: deck.data };
 };
+
+export const isKnownMode = (mode) => !!DECKS[mode];

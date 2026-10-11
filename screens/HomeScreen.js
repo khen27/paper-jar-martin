@@ -18,7 +18,10 @@ import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } fr
 import { ModernButton, AppDialog } from '../components/ui';
 import GameTile from '../components/GameTile';
 import StylePickerSheet from '../components/StylePickerSheet';
-import { hasDrinksVariant } from '../utils/decks';
+import { hasDrinksVariant, isKnownMode } from '../utils/decks';
+import { useResponsive } from '../utils/responsive';
+import { lockedVariants, isModeBadgedPremium } from '../utils/entitlements';
+import { consumeDeepLink, shareText } from '../utils/share';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -41,18 +44,40 @@ const MODE_TILES = {
   brnoPrague: { emoji: '🍺', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
   office: { emoji: '💼', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
   homePack: { emoji: '⭐', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
+  custom: { emoji: '✍️', colors: ['#22D3EE', '#0E7490'], titleKey: 'customMode', title: 'Your cards', subKey: 'customTileSub', sub: 'Write your own questions & dares' },
+  invite: { emoji: '💌', colors: ['#F472B6', '#BE185D'], titleKey: 'inviteTile', title: 'Invite friends', subKey: 'inviteTileSub', sub: 'Send a link and play together' },
 };
 
 const MODE_SECTIONS = [
   { key: 'duo', titleKey: 'sectionDuo', fallback: '💘 For two', modes: ['partner', 'knowMe'] },
   { key: 'group', titleKey: 'sectionGroup', fallback: '🥳 Group games', modes: ['party', 'friend', 'brnoPrague'] },
   { key: 'packs', titleKey: 'packsSection', fallback: '🎁 Packs', modes: ['adult', 'workout', 'office', 'homePack'] },
+  { key: 'yours', titleKey: 'sectionYours', fallback: '✨ Make it yours', modes: ['custom', 'invite'] },
+];
+
+// 3-column layouts (tablet/desktop/TV): every row full, no lonely tiles.
+const MODE_SECTIONS_WIDE = [
+  { key: 'duo', titleKey: 'sectionDuo', fallback: '💘 For two', modes: ['partner', 'knowMe', 'custom'] },
+  { key: 'group', titleKey: 'sectionGroup', fallback: '🥳 Group games', modes: ['party', 'friend', 'brnoPrague'] },
+  { key: 'packs', titleKey: 'packsSection', fallback: '🎁 Packs', modes: ['adult', 'workout', 'office'] },
+  { key: 'yours', titleKey: 'sectionYours', fallback: '✨ Make it yours', modes: ['homePack', 'invite'] },
 ];
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
   const { settings, updateSettings } = useSettings();
+  const { isWide, isPhone, device, maxWidth: columnMax, fs } = useResponsive();
+  const splitLayout = device === 'desktop' || device === 'tv';
+  const gridColumns = isPhone ? 2 : 3;
+  const [gridWidth, setGridWidth] = useState(0);
+  const GRID_GAP = isPhone ? 0 : 16;
+  const tileWidth = gridWidth
+    ? isPhone
+      ? undefined
+      : Math.floor((gridWidth - GRID_GAP * (gridColumns - 1)) / gridColumns)
+    : undefined;
+  const t = (key, fallback) => translations[language]?.[key] || fallback;
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -157,7 +182,16 @@ const HomeScreen = ({ navigation }) => {
   }, [logAction, launchGameMode]);
 
   const onTilePress = useCallback((mode) => {
-    if (mode === 'homePack' && !homePackUnlocked) {
+    if (mode === 'custom') {
+      navigation.navigate('CustomCards');
+    } else if (mode === 'invite') {
+      shareText({
+        message:
+          translations[language]?.inviteMessage ||
+          'Come play Paper Jar with us 🎉 Party cards, dares and laughs, free in your browser.',
+        event: 'invite_shared',
+      });
+    } else if (mode === 'homePack' && !homePackUnlocked) {
       logAction('INSTALL_GUIDE_OPENED');
       navigation.navigate('Install');
     } else if (mode === 'adult' && !settings.adultConfirmed) {
@@ -165,7 +199,31 @@ const HomeScreen = ({ navigation }) => {
     } else {
       handleGameModeSelect(mode);
     }
-  }, [homePackUnlocked, settings.adultConfirmed, handleGameModeSelect, logAction, navigation]);
+  }, [homePackUnlocked, settings.adultConfirmed, handleGameModeSelect, logAction, navigation, language]);
+
+  // Shared links: ?m=mode&v=variant&c=card open that game (adult still goes through the 18+ gate).
+  useEffect(() => {
+    let alive = true;
+    consumeDeepLink().then((link) => {
+      if (!alive || !link) return;
+      if (link.mode === 'knowMe') {
+        navigation.navigate('KnowMe');
+      } else if (!isKnownMode(link.mode)) {
+        return;
+      } else if (link.mode === 'adult' && !settings.adultConfirmed) {
+        setShowAdultDialog(true);
+      } else if (link.mode === 'party') {
+        navigation.navigate('Party', { variant: link.variant });
+      } else if (link.mode === 'homePack' && !homePackUnlocked) {
+        navigation.navigate('Install');
+      } else if (link.mode !== 'custom') {
+        navigation.navigate('Game', { gameMode: link.mode, variant: link.variant, startCard: link.card });
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Cursor blink animation
   useEffect(() => {
@@ -385,6 +443,71 @@ const HomeScreen = ({ navigation }) => {
     }).start();
   };
 
+  const languageButton = (
+    <ModernButton
+      variant="secondary"
+      size="sm"
+      onPress={() => {
+        logAction('LANGUAGE_NAVIGATION');
+        navigation.navigate('Language');
+      }}
+      style={styles.topButton}
+      accessibilityRole="button"
+      accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
+    >
+      <LanguageIcon size={tokens.components.icon.md} color="#fff" />
+    </ModernButton>
+  );
+
+  const colorButton = (
+    <ModernButton
+      variant="secondary"
+      size="sm"
+      onPress={() => {
+        logAction('COLOR_NAVIGATION');
+        navigation.navigate('Color');
+      }}
+      style={styles.topButton}
+      accessibilityRole="button"
+      accessibilityHint="Choose app color theme"
+    >
+      <ColorIcon size={tokens.components.icon.md} color="#fff" />
+    </ModernButton>
+  );
+
+  const settingsButton = (
+    <ModernButton
+      variant="secondary"
+      size="sm"
+      onPress={() => navigation.navigate('Settings')}
+      style={styles.topButton}
+      accessibilityRole="button"
+      accessibilityHint="Open settings"
+    >
+      <Text style={styles.settingsGlyph}>⚙</Text>
+    </ModernButton>
+  );
+
+  const favoritesButton = (
+    <View>
+      <ModernButton
+        variant="secondary"
+        size="sm"
+        onPress={handleFavoritesPress}
+        style={styles.topButton}
+        accessibilityRole="button"
+        accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
+      >
+        <HeartIcon size={tokens.components.icon.md} color="#fff" />
+      </ModernButton>
+      {favoritesCount > 0 && (
+        <View style={styles.favoritesBadge}>
+          <Text style={styles.favoritesBadgeText}>{favoritesCount > 99 ? '99+' : favoritesCount}</Text>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {/* Premium Background Gradient */}
@@ -396,99 +519,53 @@ const HomeScreen = ({ navigation }) => {
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           bounces={true}
           overScrollMode="always"
         >
-        <Animated.View 
-          style={[
-            styles.topButtonContainer,
-            styles.languageButton,
-            { transform: [{ scale: buttonScale }] }
-          ]}
-        >
-          <ModernButton
-            variant="secondary"
-            size="sm"
-            onPress={() => {
-              logAction('LANGUAGE_NAVIGATION');
-              navigation.navigate('Language');
-            }}
-            style={styles.topButton}
-            accessibilityRole="button"
-            accessibilityHint={`${translations[language]?.languageHint || 'Change language'}`}
-          >
-            <LanguageIcon size={tokens.components.icon.md} color="#fff" />
-          </ModernButton>
-        </Animated.View>
-
-        {/* Color Theme Button */}
-        <Animated.View 
-          style={[
-            styles.topButtonContainer,
-            styles.languageButtonDuplicate,
-            { transform: [{ scale: buttonScale }] }
-          ]}
-        >
-          <ModernButton
-            variant="secondary"
-            size="sm"
-            onPress={() => {
-              logAction('COLOR_NAVIGATION');
-              navigation.navigate('Color');
-            }}
-            style={styles.topButton}
-            accessibilityRole="button"
-            accessibilityHint="Choose app color theme"
-          >
-            <ColorIcon size={tokens.components.icon.md} color="#fff" />
-          </ModernButton>
-        </Animated.View>
-
-        {/* Settings */}
-        <View style={[styles.topButtonContainer, styles.settingsButton]}>
-          <ModernButton
-            variant="secondary"
-            size="sm"
-            onPress={() => navigation.navigate('Settings')}
-            style={styles.topButton}
-            accessibilityRole="button"
-            accessibilityHint="Open settings"
-          >
-            <Text style={styles.settingsGlyph}>⚙</Text>
-          </ModernButton>
-        </View>
-
-        {/* Favorites Button */}
-        <View style={[styles.topButtonContainer, styles.favoritesButton]}>
-          <ModernButton
-            variant="secondary"
-            size="sm"
-            onPress={handleFavoritesPress}
-            style={styles.topButton}
-            accessibilityRole="button"
-            accessibilityHint={`${translations[language]?.favoritesHint || 'View favorite questions'}`}
-          >
-            <HeartIcon size={tokens.components.icon.md} color="#fff" />
-          </ModernButton>
-          {favoritesCount > 0 && (
-            <View style={styles.favoritesBadge}>
-              <Text style={styles.favoritesBadgeText}>
-                {favoritesCount > 99 ? '99+' : favoritesCount}
-              </Text>
+        <View style={[styles.pageColumn, { maxWidth: columnMax }]}>
+        {isWide ? (
+          <View style={styles.topBar}>
+            <View style={styles.topBarGroup}>{favoritesButton}</View>
+            <View style={styles.topBarGroup}>
+              {languageButton}
+              {colorButton}
+              {settingsButton}
             </View>
-          )}
-        </View>
+          </View>
+        ) : (
+          <>
+            <Animated.View
+              style={[styles.topButtonContainer, styles.languageButton, { transform: [{ scale: buttonScale }] }]}
+            >
+              {languageButton}
+            </Animated.View>
+            <Animated.View
+              style={[styles.topButtonContainer, styles.languageButtonDuplicate, { transform: [{ scale: buttonScale }] }]}
+            >
+              {colorButton}
+            </Animated.View>
+            <View style={[styles.topButtonContainer, styles.settingsButton]}>{settingsButton}</View>
+            <View style={[styles.topButtonContainer, styles.favoritesButton]}>{favoritesButton}</View>
+          </>
+        )}
 
-          <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.contentRefresh : styles.content}>
-            {/* Jar Icon - Scaled 1.5x and centered above title */}
+          <View
+            style={[
+              OTAZO_JAR_REFRESH_ENABLED ? styles.contentRefresh : styles.content,
+              splitLayout && styles.splitRow,
+              isWide && styles.contentWide,
+            ]}
+          >
+          <View style={splitLayout ? styles.heroColumn : styles.heroStack}>
             <Animated.Image
             source={require('../assets/glass.png')}
             style={[
               OTAZO_JAR_REFRESH_ENABLED ? styles.jarIconRefresh : styles.glassImage,
+              isWide && { width: fs(150), height: fs(150) },
               {
                 opacity: fadeAnim,
                 transform: [
@@ -512,9 +589,8 @@ const HomeScreen = ({ navigation }) => {
             resizeMode="contain"
           />
 
-          {/* Title Container */}
           <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.titleContainerRefresh : styles.titleContainer}>
-            <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.titleRefresh : styles.title}>
+            <Text style={[OTAZO_JAR_REFRESH_ENABLED ? styles.titleRefresh : styles.title, isWide && { fontSize: fs(44) }]}>
               {displayText}
               <Animated.Text style={[styles.cursor, { opacity: cursorOpacity }]}>
                 |
@@ -522,8 +598,7 @@ const HomeScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Tagline - New positioning */}
-          <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.taglineRefresh : styles.tagline}>
+          <Text style={[OTAZO_JAR_REFRESH_ENABLED ? styles.taglineRefresh : styles.tagline, isWide && styles.taglineWide]}>
             {translations[language]?.tagline || 'Spark meaningful conversations'}
           </Text>
 
@@ -541,7 +616,7 @@ const HomeScreen = ({ navigation }) => {
               track('qotd_tapped');
               navigation.navigate('Game', { gameMode: 'partner' });
             }}
-            style={styles.dailyWrap}
+            style={[styles.dailyWrap, isWide && !splitLayout && styles.dailyWrapCentered]}
             accessibilityRole="button"
           >
             <View style={styles.dailyCardBack} />
@@ -554,30 +629,37 @@ const HomeScreen = ({ navigation }) => {
                   {translations[language]?.tapToPlay || 'Tap to play →'}
                 </Text>
               </View>
-              <Text style={styles.dailyText} numberOfLines={3}>
+              <Text style={[styles.dailyText, isWide && { fontSize: fs(18), lineHeight: fs(25) }]} numberOfLines={3}>
                 {dailyQuestion}
               </Text>
             </View>
           </Pressable>
+          </View>
 
-          <View style={styles.gameMenu}>
-            {MODE_SECTIONS.map((section) => (
+          <View
+            style={[styles.gameMenu, splitLayout && styles.menuColumn]}
+            onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}
+          >
+            {(isPhone ? MODE_SECTIONS : MODE_SECTIONS_WIDE).map((section) => (
               <View key={section.key} style={styles.menuSection}>
-                <Text style={styles.menuTitle}>
+                <Text style={[styles.menuTitle, isWide && { fontSize: fs(20) }]}>
                   {translations[language]?.[section.titleKey] || section.fallback}
                 </Text>
-                <View style={styles.tileGrid}>
+                <View style={[styles.tileGrid, !isPhone && { justifyContent: 'flex-start', gap: GRID_GAP }]}>
                   {section.modes.map((mode) => {
                     const tile = MODE_TILES[mode];
                     const locked = mode === 'homePack' && !homePackUnlocked;
+                    const premium = isModeBadgedPremium(mode, settings);
                     return (
                       <GameTile
                         key={mode}
                         emoji={tile.emoji}
                         colors={tile.colors}
-                        wide={tile.wide}
+                        wide={tile.wide && isPhone}
+                        width={tileWidth}
+                        textScale={device === 'tv' ? 1.3 : 1}
                         locked={locked}
-                        corner={tile.corner}
+                        corner={premium ? `👑${tile.corner ? ` ${tile.corner}` : ''}` : tile.corner}
                         title={translations[language]?.[tile.titleKey] || tile.title}
                         subtitle={
                           locked
@@ -597,10 +679,13 @@ const HomeScreen = ({ navigation }) => {
                 </View>
               </View>
             ))}
+            <Pressable onPress={() => navigation.navigate('Legal')} style={styles.legalLink} accessibilityRole="link">
+              <Text style={styles.legalLinkText}>{t('legalLink', 'Terms & Privacy')}</Text>
+            </Pressable>
           </View>
 
-
           </View>
+        </View>
         </ScrollView>
       </SafeAreaView>
 
@@ -656,6 +741,7 @@ const HomeScreen = ({ navigation }) => {
             : ''
         }
         t={(key, fallback) => translations[language]?.[key] || fallback}
+        lockedVariants={pendingStyleMode ? lockedVariants(pendingStyleMode, settings) : []}
         onPick={(variant) => {
           const mode = pendingStyleMode;
           setPendingStyleMode(null);
@@ -1373,6 +1459,24 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   gameMenu: { width: '100%' },
+  pageColumn: { width: '100%', alignSelf: 'center', flexGrow: 1 },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 24,
+  },
+  topBarGroup: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  contentWide: { paddingHorizontal: 32, paddingTop: 16 },
+  splitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 48 },
+  heroStack: { width: '100%', alignItems: 'center' },
+  heroColumn: { width: '36%', alignItems: 'center', paddingTop: 24 },
+  menuColumn: { flex: 1, width: undefined },
+  taglineWide: { paddingHorizontal: 0, fontSize: 18 },
+  dailyWrapCentered: { maxWidth: 560, alignSelf: 'center' },
+  legalLink: { alignSelf: 'center', padding: 12, marginTop: 4 },
+  legalLinkText: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' },
   menuSection: { width: '100%', marginBottom: 10 },
   menuTitle: {
     color: '#fff',

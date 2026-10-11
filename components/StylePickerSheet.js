@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useResponsive } from '../utils/responsive';
 
 const StyleOption = ({ emoji, title, desc, chips, colors, onPress }) => {
   const scale = useRef(new Animated.Value(1)).current;
@@ -40,8 +41,10 @@ const StyleOption = ({ emoji, title, desc, chips, colors, onPress }) => {
 /**
  * Bottom sheet that asks how to play a mode: Classic (talk & challenges) or Drinks.
  */
-const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose }) => {
+const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose, lockedVariants = [] }) => {
   const slide = useRef(new Animated.Value(0)).current;
+  const { isWide } = useResponsive();
+  const lockMark = (v) => (lockedVariants.includes(v) ? ' 👑' : '');
 
   useEffect(() => {
     if (visible) {
@@ -50,21 +53,31 @@ const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose })
     }
   }, [visible]);
 
-  const translateY = slide.interpolate({ inputRange: [0, 1], outputRange: [500, 0] });
+  const translateY = slide.interpolate({ inputRange: [0, 1], outputRange: [isWide ? 40 : 500, 0] });
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t('back', 'Back')}>
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+      <Pressable
+        style={[styles.backdrop, isWide && styles.backdropCenter]}
+        onPress={onClose}
+        accessibilityLabel={t('back', 'Back')}
+      >
+        <Animated.View
+          style={[
+            styles.sheet,
+            isWide && styles.sheetWide,
+            { opacity: isWide ? slide : 1, transform: [{ translateY }] },
+          ]}
+        >
           <Pressable>
-            <View style={styles.handle} />
+            {!isWide && <View style={styles.handle} />}
             <Text style={styles.modeEmoji}>{modeEmoji}</Text>
             <Text style={styles.title}>{modeTitle}</Text>
             <Text style={styles.subtitle}>{t('stylePickerTitle', 'How do you want to play?')}</Text>
 
             <StyleOption
               emoji="🎤"
-              title={t('classicTitle', 'Classic')}
+              title={t('classicTitle', 'Classic') + lockMark('classic')}
               desc={t('classicDesc', 'Talk, laugh and do funny challenges.')}
               chips={[
                 `💬 ${t('typeQuestion', 'Question')}`,
@@ -77,7 +90,7 @@ const StylePickerSheet = ({ visible, modeEmoji, modeTitle, t, onPick, onClose })
 
             <StyleOption
               emoji="🍻"
-              title={t('drinksTitle', 'Drinks')}
+              title={t('drinksTitle', 'Drinks') + lockMark('drinks')}
               desc={t('drinksDesc', 'Answer or drink. Vote together — the winner drinks.')}
               chips={[
                 `🍻 ${t('typeAnswerOrDrink', 'Answer or drink')}`,
@@ -115,6 +128,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 32,
   },
+  backdropCenter: { justifyContent: 'center', padding: 24 },
+  sheetWide: { maxWidth: 560, borderRadius: 32, paddingTop: 24 },
   handle: {
     alignSelf: 'center',
     width: 44,
