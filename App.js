@@ -203,7 +203,13 @@ export default function App() {
         <View style={styles.webFrame}>
         <View style={styles.root} onLayout={onLayoutRootView}>
           <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
+                // 'screen' mode on web hands scrolling to document.body, which is overflow:hidden.
+                ...(Platform.OS === 'web' && { headerMode: 'float' }),
+              }}
+            >
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen
               name="Language"
