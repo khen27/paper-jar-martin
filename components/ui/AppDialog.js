@@ -102,7 +102,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonStacked: {
-    flex: 0,
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto',
     width: '100%',
   },
   cancelButton: {

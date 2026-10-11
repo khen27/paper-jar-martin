@@ -12,6 +12,11 @@ import { adultDrinksDataset } from '../adult_drinks_dataset';
 import { workoutDrinksDataset } from '../workout_drinks_dataset';
 import { brnoDrinksDataset } from '../brno_drinks_dataset';
 import { officeDrinksDataset } from '../office_drinks_dataset';
+import { halloweenDataset } from '../halloween_dataset';
+import { halloweenDrinksDataset } from '../halloween_drinks_dataset';
+import { autumnDataset } from '../autumn_dataset';
+import { christmasDataset } from '../christmas_dataset';
+import { christmasDrinksDataset } from '../christmas_drinks_dataset';
 import { getCustomDataset } from './customCards';
 
 // Every game mode with a Classic and a Drinks deck. Shuffle-bag keys must stay stable
@@ -47,6 +52,17 @@ const DECKS = {
   },
   homePack: {
     classic: { key: 'homePack', data: bonusDataset },
+  },
+  halloween: {
+    classic: { key: 'halloween', data: halloweenDataset },
+    drinks: { key: 'halloween_drinks', data: halloweenDrinksDataset },
+  },
+  autumn: {
+    classic: { key: 'autumn', data: autumnDataset },
+  },
+  christmas: {
+    classic: { key: 'christmas', data: christmasDataset },
+    drinks: { key: 'christmas_drinks', data: christmasDrinksDataset },
   },
   custom: {
     classic: {

@@ -12,19 +12,19 @@ const DOCS = {
   terms: {
     cs: [
       ['Koncept', 'Tento text je návrh a před spuštěním plateb projde právní kontrolou.'],
-      ['Služba', 'Paper Jar je konverzační party hra. Obsah slouží pro zábavu; hrajete dobrovolně a na vlastní zodpovědnost.'],
-      ['Věk a alkohol', 'Režim Adult a varianty Drinks jsou jen pro osoby starší 18 let. Alkohol nikdy není povinný, nealko se počítá stejně. Pijte zodpovědně a nikdy neřiďte po pití.'],
+      ['Služba', 'Talk Trap je konverzační party hra. Obsah slouží pro zábavu; hrajete dobrovolně a na vlastní zodpovědnost.'],
+      ['Věk a alkohol', 'Režim Adult a varianty Drinks jsou jen pro osoby starší 18 let. Alkohol smí pít pouze ten, kdo dosáhl zákonného věku pro pití alkoholu v místě, kde hraje (v některých zemích je to 19, 20 nebo 21 let). Alkohol nikdy není povinný, nealko se počítá stejně. Počítadlo loků je jen pro zábavu, ne soutěž v pití. Pijte zodpovědně a nikdy neřiďte po pití.'],
       ['Premium', 'Předplatné se obnovuje automaticky, dokud ho nezrušíte v obchodě (App Store / Google Play) nebo u platební brány na webu. Zkušební verzi můžete zrušit kdykoli před jejím koncem bez platby. Spotřebitelé v EU mají zákonná práva na odstoupení podle platných předpisů.'],
       ['Vlastní karty', 'Za obsah vlastních karet odpovídáte vy. Ukládají se jen ve vašem zařízení.'],
-      ['Kontakt', 'Dotazy a žádosti: hello@paperjar.app (doplnit finální adresu).'],
+      ['Kontakt', 'Dotazy a žádosti: hello@talktrap.app (doplnit finální adresu).'],
     ],
     en: [
       ['Draft', 'This text is a draft and will be reviewed by a lawyer before payments go live.'],
-      ['The service', 'Paper Jar is a conversation party game. Content is for entertainment; you play voluntarily and at your own risk.'],
-      ['Age & alcohol', 'Adult mode and Drinks editions are for people aged 18+. Alcohol is never required; soft drinks count the same. Drink responsibly and never drive after drinking.'],
+      ['The service', 'Talk Trap is a conversation party game. Content is for entertainment; you play voluntarily and at your own risk.'],
+      ['Age & alcohol', 'Adult mode and Drinks editions are for people aged 18+. Only people who have reached the legal drinking age where they are playing may drink alcohol (in some places that is 19, 20 or 21). Alcohol is never required; soft drinks count the same. The sip tally is just for fun, not a drinking contest. Drink responsibly and never drive after drinking.'],
       ['Premium', 'Subscriptions renew automatically until cancelled in the store (App Store / Google Play) or with the web payment provider. You can cancel a free trial anytime before it ends without being charged. EU consumers keep their statutory withdrawal rights.'],
       ['Your cards', 'You are responsible for the content of cards you write. They are stored only on your device.'],
-      ['Contact', 'Questions and requests: hello@paperjar.app (replace with final address).'],
+      ['Contact', 'Questions and requests: hello@talktrap.app (replace with final address).'],
     ],
   },
   privacy: {

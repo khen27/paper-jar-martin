@@ -27,9 +27,12 @@ import { getLocalizedText } from '../utils/i18n';
 import ConfettiBurst from '../components/ConfettiBurst';
 import ChunkyButton from '../components/ChunkyButton';
 import RulesSheet from '../components/RulesSheet';
+import DrinkTally from '../components/DrinkTally';
+import AdModal from '../components/AdModal';
+import SeasonalDecor from '../components/SeasonalDecor';
 import { useResponsive } from '../utils/responsive';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { isDeckLocked, FREE_SAMPLE_CARDS } from '../utils/entitlements';
+import { isDeckLocked, FREE_SAMPLE_CARDS, hasPremium } from '../utils/entitlements';
 import { shareText } from '../utils/share';
 
 const TIMER_SECONDS = 30;
@@ -45,6 +48,8 @@ const PartyScreen = ({ navigation, route }) => {
   const deckLocked = isDeckLocked('party', variant, settings);
   const { fs, cardMaxWidth, isWide } = useResponsive();
   const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
+  const [adBreak, setAdBreak] = useState(false);
+  const adsOn = !!settings.paywallPreview && !hasPremium(settings);
 
   const [phase, setPhase] = useState('setup'); // setup | play
   const [nameDraft, setNameDraft] = useState('');
@@ -129,6 +134,10 @@ const PartyScreen = ({ navigation, route }) => {
     if (await drawPrompt()) setTurnIndex((i) => (i + 1) % players.length);
   };
 
+  useEffect(() => {
+    if (adsOn && round > 0 && round % 12 === 0) setAdBreak(true);
+  }, [round]);
+
   useKeyboardShortcuts(
     {
       ' ': nextTurn,
@@ -137,12 +146,12 @@ const PartyScreen = ({ navigation, route }) => {
       '?': () => setRulesOpen(true),
       Escape: () => navigation.goBack(),
     },
-    phase === 'play' && !rulesOpen && isFocused
+    phase === 'play' && !rulesOpen && !adBreak && isFocused
   );
 
   const inviteFriends = () =>
     shareText({
-      message: t('inviteMessage', 'Come play Paper Jar with us 🎉 Party cards, dares and laughs, free in your browser.'),
+      message: t('inviteMessage', 'Come play Talk Trap with us 🎉 Party cards, dares and laughs, free in your browser.'),
       mode: 'party',
       event: 'invite_shared',
     });
@@ -155,6 +164,7 @@ const PartyScreen = ({ navigation, route }) => {
         start={getCurrentGradient().start}
         end={getCurrentGradient().end}
       />
+      <SeasonalDecor />
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
@@ -244,6 +254,10 @@ const PartyScreen = ({ navigation, route }) => {
               </Text>
             </TouchableOpacity>
 
+            <Text style={styles.muteHint}>
+              📵 {t('muteHintShort', 'Passing the phone around? Turn on Do Not Disturb first.')}
+            </Text>
+
             <ChunkyButton
               title={`🎉  ${t('startParty', 'Start party')}`}
               disabled={players.length < 2}
@@ -298,6 +312,8 @@ const PartyScreen = ({ navigation, route }) => {
               <Text style={[styles.promptText, { fontSize: fs(22), lineHeight: fs(31) }]}>{prompt}</Text>
             </Animated.View>
 
+            {variant === 'drinks' && <DrinkTally fixedPlayers={players} highlight={currentPlayer} t={t} />}
+
             {timerOn && (
               <Text style={[styles.timer, secondsLeft === 0 && styles.timerDone]}>
                 {secondsLeft === 0 ? t('timesUp', "Time's up!") : `${secondsLeft}s`}
@@ -319,6 +335,8 @@ const PartyScreen = ({ navigation, route }) => {
           </ScrollView>
         )}
       </SafeAreaView>
+
+      <AdModal visible={adBreak} kind="break" t={t} onClose={() => setAdBreak(false)} />
 
       <RulesSheet
         visible={rulesOpen}
@@ -382,6 +400,7 @@ const styles = StyleSheet.create({
   },
   rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
   inviteBtn: { marginTop: 18, padding: 10 },
+  muteHint: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
   inviteText: { color: '#fff', fontWeight: '800', fontSize: 15, textDecorationLine: 'underline' },
   sampleText: { color: '#FFE08A', fontWeight: '900', fontSize: 12, marginBottom: 10 },
   title: {

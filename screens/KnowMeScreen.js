@@ -20,6 +20,7 @@ import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
 import { useSettings } from '../contexts/SettingsContext';
 import RulesSheet from '../components/RulesSheet';
+import SeasonalDecor from '../components/SeasonalDecor';
 import { useResponsive } from '../utils/responsive';
 import { shareText } from '../utils/share';
 
@@ -111,6 +112,7 @@ const KnowMeScreen = ({ navigation }) => {
         start={getCurrentGradient().start}
         end={getCurrentGradient().end}
       />
+      <SeasonalDecor />
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
@@ -307,7 +309,7 @@ const KnowMeScreen = ({ navigation }) => {
                   shareText({
                     message: `${nameA.trim()} & ${nameB.trim()}: ${Math.round((score / ROUNDS) * 100)}% ${t(
                       'knowMeShareSync',
-                      'in sync on Paper Jar 🧠💞 Can you beat us?'
+                      'in sync on Talk Trap 🧠💞 Can you beat us?'
                     )}`,
                     mode: 'knowMe',
                     event: 'knowme_result_shared',

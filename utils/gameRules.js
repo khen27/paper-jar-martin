@@ -5,7 +5,7 @@ const RULES = {
   partner: {
     emoji: '💞',
     steps: [
-      { cs: 'Sedněte si naproti sobě a odložte ostatní notifikace.', en: 'Sit facing each other and silence other notifications.' },
+      { cs: 'Sedněte si naproti sobě a odložte ostatní obrazovky.', en: 'Sit facing each other and put other screens away.' },
       { cs: 'Střídejte se: jeden čte kartu nahlas, druhý odpovídá.', en: 'Take turns: one reads the card out loud, the other answers.' },
       { cs: 'Ptejte se „a proč?“ — nejlepší historky přijdou až po první odpovědi.', en: 'Ask “and why?” — the best stories come after the first answer.' },
       { cs: 'Karta nesedí? Klidně ji přeskočte, žádný stres.', en: 'Card doesn’t fit? Skip it, no stress.' },
@@ -44,6 +44,7 @@ const RULES = {
       { cs: 'Udělejte si místo a vezměte si vodu.', en: 'Make some space and grab water.' },
       { cs: 'Kdo drží telefon, čte kartu — výzvy můžete dělat všichni spolu.', en: 'Whoever holds the phone reads — you can all do the moves together.' },
       { cs: 'Tempo i počet opakování si upravte podle sebe. Bolest = stop.', en: 'Adjust pace and reps to your level. Pain = stop.' },
+      { cs: 'Nechceš nebo nemůžeš cvik udělat? Slož někomu kompliment, nebo splň výzvu, kterou skupina vymyslí — tohle pravidlo si domluvte před začátkem hry.', en: 'Can’t or don’t want to do a move? Give someone a compliment or do a challenge set by the group — agree on that rule before you start.' },
       { cs: 'Každý splněný cvik si zaslouží potlesk.', en: 'Every finished move earns a round of applause.' },
     ],
   },
@@ -82,6 +83,32 @@ const RULES = {
       { cs: 'Po 6 kolech uvidíte, jak moc jste sladění.', en: 'After 6 rounds you’ll see how in sync you are.' },
     ],
   },
+  halloween: {
+    emoji: '🎃',
+    steps: [
+      { cs: 'Ztlumte světla, zapněte strašidelnou playlistu a klidně si vezměte kostýmy.', en: 'Dim the lights, put on a spooky playlist, costumes welcome.' },
+      { cs: 'Telefon koluje dokola — kdo ho drží, čte kartu nahlas (strašidelným hlasem bonus).', en: 'Pass the phone around — whoever holds it reads out loud (spooky voice is a bonus).' },
+      { cs: 'Lekačky jen slovní: žádné skutečné strašení, které by někoho vyděsilo doopravdy.', en: 'Scares are words only: no real pranks that would actually frighten someone.' },
+      { cs: 'Karta nesedí? „Bú!“ a jedete dál.', en: 'Card doesn’t fit? Say “Boo!” and move on.' },
+    ],
+  },
+  autumn: {
+    emoji: '🍂',
+    steps: [
+      { cs: 'Uvařte si něco teplého a udělejte si pohodlí.', en: 'Make something warm to drink and get comfy.' },
+      { cs: 'Střídejte se ve čtení karet, odpovídat můžete všichni.', en: 'Take turns reading cards — everyone can answer.' },
+      { cs: 'Tady se nespěchá: jedna dobrá historka je víc než deset rychlých odpovědí.', en: 'No rush: one good story beats ten quick answers.' },
+    ],
+  },
+  christmas: {
+    emoji: '🎄',
+    steps: [
+      { cs: 'Ideální po večeři nebo při zdobení stromku.', en: 'Perfect after dinner or while decorating the tree.' },
+      { cs: 'Telefon koluje dokola, kdo ho drží, čte kartu nahlas.', en: 'Pass the phone around — whoever holds it reads out loud.' },
+      { cs: 'Hrajte i s babičkou a dětmi — Klasika je pro všechny generace.', en: 'Play with grandma and the kids too — Classic works for every generation.' },
+      { cs: 'Kdo zkazí vánoční náladu, zazpívá koledu. 🎶', en: 'Whoever ruins the festive mood sings a carol. 🎶' },
+    ],
+  },
   custom: {
     emoji: '✍️',
     steps: [
@@ -93,10 +120,16 @@ const RULES = {
 };
 
 const DRINKS_STEPS = [
+  { cs: '🔞 Alkohol pijí jen lidé, kteří dosáhli zákonného věku pro pití alkoholu v zemi, kde právě hrajete. Všichni ostatní hrají s nealkem.', en: '🔞 Only people who are of legal drinking age where you are playing may drink alcohol. Everyone else plays with soft drinks.' },
   { cs: '🍻 Nechceš odpovídat nebo plnit? Napij se — a jede se dál.', en: '🍻 Don’t want to answer or do it? Take a sip — and move on.' },
   { cs: '🗳️ Hlasování: na „tři“ všichni ukážou na jednoho hráče. Karta řekne, kdo pije.', en: '🗳️ Votes: on “three” everyone points at one player. The card says who drinks.' },
-  { cs: '🥤 Nealko se počítá stejně. Nikdo nemusí pít alkohol a pije se po malých locích.', en: '🥤 Soft drinks count just the same. No one has to drink alcohol, and it’s small sips only.' },
+  { cs: '🥤 Nealko se počítá stejně. Nikdo nemusí pít alkohol, pije se po malých locích a appka vám počítá loky.', en: '🥤 Soft drinks count just the same. No one has to drink alcohol, it’s small sips only, and the app keeps the sip tally.' },
 ];
+
+const MUTE_TIP = {
+  cs: 'Než začnete telefon půjčovat, zapněte režim Nerušit nebo ztlumte oznámení, ať nikomu nevyskočí soukromé zprávy.',
+  en: 'Before you pass the phone around, turn on Do Not Disturb or mute notifications so no private messages pop up.',
+};
 
 const FUN_PACT = {
   cs: 'Hrajeme pro smích, ne pro výhru. Když se začnete dohadovat, dejte si high-five a vytáhněte další kartu. Kdo začne hádku, musí složit kompliment. 😄',
@@ -112,5 +145,6 @@ export const getGameRules = (mode, variant, language) => {
     steps,
     drinkSteps,
     funPact: getLocalizedText(FUN_PACT, language),
+    muteTip: getLocalizedText(MUTE_TIP, language),
   };
 };

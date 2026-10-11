@@ -25,12 +25,12 @@ const InstallScreen = ({ navigation }) => {
   const platform = getWebPlatform();
 
   const iosSteps = [
-    t('installIos1', 'Open Paper Jar in Safari'),
+    t('installIos1', 'Open Talk Trap in Safari'),
     t('installIos2', 'Tap the Share button (square with an arrow)'),
     t('installIos3', "Scroll down and tap 'Add to Home Screen'"),
   ];
   const androidSteps = [
-    t('installAndroid1', 'Open Paper Jar in Chrome'),
+    t('installAndroid1', 'Open Talk Trap in Chrome'),
     t('installAndroid2', 'Tap the ⋮ menu (top right)'),
     t('installAndroid3', "Tap 'Add to Home screen' or 'Install app'"),
   ];
@@ -53,7 +53,7 @@ const InstallScreen = ({ navigation }) => {
           <Text style={styles.subtitle}>
             {t(
               'installSubtitle',
-              'Add Paper Jar to your home screen and get a free bonus pack of 20 questions — plus one-tap access anytime.'
+              'Add Talk Trap to your home screen and get a free bonus pack of 20 questions — plus one-tap access anytime.'
             )}
           </Text>
 
@@ -76,7 +76,7 @@ const InstallScreen = ({ navigation }) => {
           )}
 
           <Text style={styles.footer}>
-            {t('installFooter', 'Once added, open Paper Jar from the new icon — the pack unlocks automatically. 🎉')}
+            {t('installFooter', 'Once added, open Talk Trap from the new icon — the pack unlocks automatically. 🎉')}
           </Text>
         </ScrollView>
       </SafeAreaView>

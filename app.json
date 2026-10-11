@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Paper Jar",
+    "name": "Talk Trap",
     "slug": "snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea",
     "version": "1.0.0",
     "orientation": "default",
@@ -31,8 +31,8 @@
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/favicon.png",
-      "name": "Paper Jar",
-      "shortName": "Paper Jar",
+      "name": "Talk Trap",
+      "shortName": "Talk Trap",
       "themeColor": "#FF6B6B",
       "backgroundColor": "#ffffff"
     },

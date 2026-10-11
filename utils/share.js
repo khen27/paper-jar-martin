@@ -111,7 +111,7 @@ const renderStoryImage = ({ text, label, colors, footer }) =>
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.font = '900 84px -apple-system, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Paper Jar 🫙', W / 2, 260);
+      ctx.fillText('Talk Trap 🪤', W / 2, 260);
 
       const font = '800 64px -apple-system, "Segoe UI", Roboto, sans-serif';
       ctx.font = font;

@@ -25,16 +25,16 @@ const headTags = `
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Paper Jar" />
+    <meta name="apple-mobile-web-app-title" content="Talk Trap" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
     <meta name="description" content="Pull a card. The rest is up to you. Party, couple and friends card games — free in your browser." />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Paper Jar" />
-    <meta property="og:title" content="Paper Jar · Pull a card. The rest is up to you." />
+    <meta property="og:site_name" content="Talk Trap" />
+    <meta property="og:title" content="Talk Trap · Pull a card. The rest is up to you." />
     <meta property="og:description" content="Questions, dares and drinking games for couples, friends and parties. Free, no sign-up." />
     <meta property="og:image" content="/icons/icon-512.png" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Paper Jar" />
+    <meta name="twitter:title" content="Talk Trap" />
     <meta name="twitter:description" content="Pull a card. The rest is up to you." />
     <meta name="twitter:image" content="/icons/icon-512.png" />
 `;
@@ -55,7 +55,7 @@ if (!html.includes('rel="manifest"')) {
 if (!html.includes('serviceWorker')) {
   html = html.replace('</body>', swScript + '</body>');
 }
-html = html.replace(/<title>[^<]*<\/title>/, '<title>Paper Jar</title>');
+html = html.replace(/<title>[^<]*<\/title>/, '<title>Talk Trap</title>');
 
 fs.writeFileSync(indexPath, html);
 console.log('✅ PWA build ready in dist/. Serve with: npm run serve:web');

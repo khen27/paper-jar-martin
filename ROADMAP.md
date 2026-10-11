@@ -1,23 +1,25 @@
-# Paper Jar — Roadmap & Progress
+# Talk Trap (formerly Paper Jar) — Roadmap & Progress
 
 > ✅ done · 🔨 in progress · ⬜ not started · ⏸️ deferred  
 > Last updated: 2026-10-11
 
 ## 🧪 Ready for you to test
 
-**Checkpoint 6 (2026-10-11): How-to-play rules, every screen size, Premium preview, sharing, your own cards**
+**Checkpoint 7 (2026-10-11): Talk Trap rename, seasonal packs + skins, ads, sip tally, cheaper Premium**
 
 🔗 **https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**  
-*(Hard-refresh or reinstall PWA — cache `v6`.)*
+*(Hard-refresh or reinstall PWA — cache `v7`.)*
 
-1. **How to play** — every game (Partner, Friends, Party, Adult, Workout, Brno vs. Praha, Office, Golden Jar, Know Me, Your cards) opens with its rules + extra Drinks rules + the yellow **Fun pact** (bickering = high-five + next card; whoever starts an argument owes a compliment). “Back” returns home. Yellow **?** in the header re-opens it. Settings → turn off “How to play before each game”.
-2. **Screen sizes** — phone looks the same as before. iPad / tablet: 3-column tiles. Laptop / desktop: hero on the left, tiles on the right. TV / big monitor (≥1700 px): bigger text and cards. Rotate iPad: layout adapts. Sheets are centered pop-ups on big screens.
-3. **Keyboard / TV remote (web)** — on a card: Space / Enter / → = next card, H = hint, F = favorite, S = share, ? = rules, Esc = back. Party: Space = next player.
-4. **Share a card** — “📤 Share this card” makes a story-size image (phone share sheet; on desktop it downloads + copies the link). Adult cards share only a teaser, never the card text.
-5. **Links** — opening a shared link starts that game on that exact card; `?ref=CODE` remembers who invited you. Party setup + Home tile + Settings have **Invite friends**. Know Me results have “Share our result” (X% in sync).
-6. **Your cards** — Home → ✍️ Your cards: pick Question / Wild card / Dare, write, add, delete, “Play my cards”.
-7. **Premium (preview only)** — Settings → Testing → “Preview paywall”. Then Adult/Workout/Office and every Drinks edition show 👑 and give 3 free sample cards, then the paywall (monthly 99 Kč · yearly 499 Kč with 3-day trial · lifetime 899 Kč). The button is a **test unlock** — no money moves. Settings → Premium → “Turn off test Premium” resets it. Leave the preview **off** for real players until payments are wired.
-8. **Terms & Privacy** — link on Home, Settings and the paywall. Draft text, needs a lawyer.
+1. **Name** — the app is now **Talk Trap** everywhere (title, splash, share images, install name).
+2. **3D icons** — home tiles, style picker, rules and paywall use colorful 3D icons (Microsoft Fluent, MIT) instead of plain emoji.
+3. **Seasonal packs** — Home → “🍂 Seasonal”: **Halloween** (Classic + Drinks, Oct 1–Nov 5) and **Cozy Fall** (Sep 15–Nov 30) are open now with a “⏳ Limited” corner. **Christmas** (Classic + Drinks) shows as “Opens 20. 11.” Settings → Testing → “Open all seasonal packs” to try it today.
+4. **Premium skins** — Color screen → “Premium skins”: Halloween, Fall, Winter backgrounds with floating icons (bats, leaves, snowflakes) on Home, games and paywall. Locked → start free trial, or watch an ad for 24 h.
+5. **Drinks** — first time you pick Drinks: 🔞 legal-drinking-age-where-you-are notice (or “Play Classic instead”). In game: **Sip tally** bar — tap a name +1, hold −1, add players, 🏆 results (Sip champion / Hydration hero + water/no-driving note), reset.
+6. **Mute tip** — every rules sheet + Party setup tells people to turn on Do Not Disturb before passing the phone around. Partner rules: put other screens away.
+7. **Workout rule** — can’t do a move? Give a compliment or do a group challenge — agreed before you start.
+8. **Premium (preview)** — Settings → Testing → “Preview paywall & ads”. Paywall now uses your current background. Lower prices: **49 Kč / month · 249 Kč / year · 449 Kč lifetime**. Every plan says **Start free trial** (beta, no card). Locked pack → “Watch a short ad: play this pack free for 1 hour”.
+9. **Ads (preview)** — with the preview on and no Premium: a short skippable ad break every 15 cards (12 rounds in Party). These are our own “house ads” (placeholders) until an ad network is connected.
+10. **Terms** — legal drinking age by location + sip tally is not a drinking contest.
 
 **Rollback:** cite checklist # and I’ll adjust that piece.
 
@@ -73,6 +75,13 @@
 ## Milestone B10 (pulled forward) — Your own cards
 - ✅ Write / delete / play custom cards (local only)
 - ⏸️ Sync + share custom decks — needs Supabase
+
+## Checkpoint 7 — Talk Trap
+- ✅ Rename, 3D icons, seasonal packs (Halloween, Fall, Christmas) with dates
+- ✅ Premium skins + ad unlocks (deck 1 h, skin 24 h), house-ad breaks
+- ✅ Sip tally, drinking-age gate, mute tip, workout fallback rule
+- ✅ Lower prices, beta free trial on every plan, paywall matches theme
+- ⏸️ Real ads (AdMob / AdSense) + real payments (RevenueCat / Paddle) — needs accounts
 
 ## Still to do
 - ⬜ B7 Remote play (rooms across phones) — Supabase Realtime
