@@ -49,7 +49,7 @@ const InstallScreen = ({ navigation }) => {
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.emoji}>⭐</Text>
-          <Text style={styles.title}>{t('installTitle', 'Unlock the Home Screen Pack')}</Text>
+          <Text style={styles.title}>{t('installTitle', 'Unlock the Golden Jar')}</Text>
           <Text style={styles.subtitle}>
             {t(
               'installSubtitle',

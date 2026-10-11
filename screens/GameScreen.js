@@ -8,6 +8,7 @@ import {
   ScrollView,
   PanResponder,
   Platform,
+  Pressable,
   Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,10 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import { dataset } from '../full_dataset';
-import { play_dataset } from '../play_dataset';
-import { brnoDataset } from '../brno_dataset';
-import { HintIcon, RefreshIcon } from '../components/GameIcons';
+import { HintIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
@@ -26,12 +24,8 @@ import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { getLocalizedText } from '../utils/i18n';
 import { isRTL } from '../utils/rtl';
-import { bonusDataset } from '../bonus_dataset';
-import { adultDataset } from '../adult_dataset';
-import { workoutDataset } from '../workout_dataset';
-import { workoutDrinksDataset } from '../workout_drinks_dataset';
-import { partnerDrinksDataset } from '../partner_drinks_dataset';
-import { officeDataset } from '../office_dataset';
+import { getDeck } from '../utils/decks';
+import { getCardTypeMeta } from '../utils/cardTypes';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
 import ConfettiBurst from '../components/ConfettiBurst';
@@ -39,9 +33,6 @@ import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
 
 const glassImage = require('../assets/glass.png');
-
-const USE_POC = false; // Toggle POC off; use full dataset with safe fallback until validator passes
-const ACTIVE_DATASET = USE_POC ? play_dataset : dataset;
 
 const buzz = () => {
   try {
@@ -63,6 +54,9 @@ const GameScreen = ({ route, navigation }) => {
   const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
   const [questionType, setQuestionType] = useState('questions');
   const [burstKey, setBurstKey] = useState(0);
+  const [cardCount, setCardCount] = useState(0);
+  const cardPop = useRef(new Animated.Value(1)).current;
+  const cardMeta = getCardTypeMeta(questionType, variant, language);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -178,31 +172,9 @@ const GameScreen = ({ route, navigation }) => {
 
   // The active deck for this mode+variant, flattened for the shuffle bag.
   const deckInfo = useMemo(() => {
-    let key, data;
-    if (gameMode === 'brnoPrague') {
-      key = 'brno';
-      data = brnoDataset;
-    } else if (gameMode === 'homePack') {
-      key = 'homePack';
-      data = bonusDataset;
-    } else if (gameMode === 'adult') {
-      key = 'adult';
-      data = adultDataset;
-    } else if (gameMode === 'workout') {
-      key = variant === 'drinks' ? 'workout_drinks' : 'workout';
-      data = variant === 'drinks' ? workoutDrinksDataset : workoutDataset;
-    } else if (gameMode === 'office') {
-      key = 'office';
-      data = officeDataset;
-    } else if ((gameMode === 'partner' || gameMode === 'friend') && variant === 'drinks') {
-      key = `${gameMode}_drinks`;
-      data = partnerDrinksDataset;
-    } else {
-      key = 'main';
-      data = ACTIVE_DATASET;
-    }
+    const { key, data } = getDeck(gameMode, variant);
     return { key, data, refs: flattenDataset(data) };
-  }, [gameMode, variant, language]);
+  }, [gameMode, variant]);
 
   useEffect(() => {
     track('game_opened', { gameMode, variant });
@@ -221,6 +193,9 @@ const GameScreen = ({ route, navigation }) => {
       setQuestionType(ref.type);
       setShowHints(false);
       setBurstKey((k) => k + 1);
+      setCardCount((n) => n + 1);
+      cardPop.setValue(0.85);
+      Animated.spring(cardPop, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
 
       const cleanedText = getLocalizedText(questionObject, language);
       logAction('QUESTION_GENERATED', {
@@ -448,6 +423,13 @@ const GameScreen = ({ route, navigation }) => {
 
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 70 }]}>
           <ConfettiBurst burstKey={burstKey} />
+          {variant === 'drinks' && (
+            <View style={styles.drinksRule}>
+              <Text style={styles.drinksRuleText}>
+                🍻 {translations[language]?.drinksRule || 'Don’t want to answer? Take a sip. Soft drinks count.'}
+              </Text>
+            </View>
+          )}
           {/* Glass Image */}
           <Animated.Image
             source={glassImage}
@@ -479,23 +461,32 @@ const GameScreen = ({ route, navigation }) => {
             ]}
             {...panResponder.panHandlers}
           >
-            <ModernCard
-              variant="surface"
-              size="lg"
-              style={styles.questionCard}
-            >
+            <Animated.View style={[styles.playingCard, { transform: [{ scale: cardPop }] }]}>
+              <LinearGradient
+                colors={cardMeta.colors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.cardBand}
+              >
+                <Text style={styles.cardBandText}>
+                  {cardMeta.emoji}  {cardMeta.label}
+                </Text>
+                <Text style={styles.cardNumber}>
+                  {translations[language]?.cardLabel || 'Card'} #{cardCount}
+                </Text>
+              </LinearGradient>
               <Text style={[
                 styles.questionText,
                 {
                   writingDirection: isRTL(language) ? 'rtl' : 'ltr',
-                  textAlign: 'auto',
                   fontFamily: isRTL(language) ? 'NotoNaskhArabic_400Regular' : undefined,
                   letterSpacing: isRTL(language) ? 0 : styles.questionText.letterSpacing,
                 }
               ]}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
-            </ModernCard>
+              <Text style={[styles.cardCornerEmoji, { color: cardMeta.colors[1] }]}>{cardMeta.emoji}</Text>
+            </Animated.View>
           </Animated.View>
 
           {showHints && (
@@ -531,18 +522,18 @@ const GameScreen = ({ route, navigation }) => {
               <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
             </ModernButton>
 
-            <ModernButton
-              shape="circle"
-              variant="secondary"
-              size="lg"
+            <Pressable
               onPress={() => {
-                logAction('REFRESH_BUTTON_PRESSED');
+                logAction('NEXT_CARD_PRESSED');
                 triggerShake();
               }}
-              style={styles.modernMainButton}
+              accessibilityRole="button"
+              style={({ pressed }) => [styles.nextCardBtn, pressed && styles.nextCardBtnPressed]}
             >
-              <RefreshIcon color="#fff" />
-            </ModernButton>
+              <Text style={styles.nextCardText}>
+                🎲  {translations[language]?.nextCard || 'Next card'}
+              </Text>
+            </Pressable>
 
             <ModernButton
               shape="circle"
@@ -556,19 +547,6 @@ const GameScreen = ({ route, navigation }) => {
             >
               <HeartIcon color={isFavorite ? '#ff4757' : 'rgba(255,255,255,0.6)'} />
             </ModernButton>
-          </View>
-
-          {/* Swipe Indicator */}
-          <View style={styles.swipeIndicatorContainer}>
-            <ModernCard variant="surface" size="sm">
-              <View style={styles.carouselDots}>
-                <View style={[styles.dot, styles.dotSmall]} />
-                <View style={[styles.dot, styles.dotMedium]} />
-                <View style={[styles.dot, styles.dotLarge]} />
-                <View style={[styles.dot, styles.dotMedium]} />
-                <View style={[styles.dot, styles.dotSmall]} />
-              </View>
-            </ModernCard>
           </View>
 
           {/* Toast Notification */}
@@ -666,9 +644,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   glassImage: {
-    width: 180,
-    height: 180,
-    marginVertical: 15,
+    width: 130,
+    height: 130,
+    marginVertical: 10,
   },
 
   questionBoxGradient: {
@@ -685,13 +663,70 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  playingCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 26,
+    overflow: 'hidden',
+    minHeight: 220,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 10,
+    borderBottomWidth: 6,
+    borderBottomColor: 'rgba(0,0,0,0.08)',
+  },
+  cardBand: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  cardBandText: { color: '#fff', fontSize: 15, fontWeight: '900', letterSpacing: 0.3 },
+  cardNumber: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '800' },
+  cardCornerEmoji: {
+    position: 'absolute',
+    right: 14,
+    bottom: 8,
+    fontSize: 22,
+    opacity: 0.35,
+  },
+  drinksRule: {
+    backgroundColor: '#FFD43B',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginBottom: 6,
+    borderBottomWidth: 3,
+    borderBottomColor: '#E0A800',
+  },
+  drinksRuleText: { color: '#5C3B00', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  nextCardBtn: {
+    marginHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 26,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderBottomWidth: 5,
+    borderBottomColor: 'rgba(0,0,0,0.18)',
+  },
+  nextCardBtnPressed: {
+    transform: [{ translateY: 3 }],
+    borderBottomWidth: 2,
+  },
+  nextCardText: { color: '#22163F', fontSize: 19, fontWeight: '900', letterSpacing: 0.3 },
   questionText: {
-    fontSize: tokens.typography.sizes.xl,
+    fontSize: 22,
     textAlign: 'center',
-    color: tokens.colors.text.primary,
-    lineHeight: tokens.typography.sizes.xl * tokens.typography.lineHeights.relaxed,
-    fontWeight: tokens.typography.weights.semibold,
-    letterSpacing: 0.3,
+    color: '#22163F',
+    lineHeight: 31,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    paddingHorizontal: 22,
+    paddingTop: 26,
+    paddingBottom: 36,
     ...(Platform.OS === 'android'
       ? {}
       : {
@@ -705,8 +740,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    marginBottom: tokens.spacing['4xl'],
-    gap: tokens.spacing.xl,
+    marginBottom: tokens.spacing['2xl'],
   },
   actionButton: {
     shadowColor: '#000',
@@ -847,11 +881,13 @@ const styles = StyleSheet.create({
 
   // Modern action button styles
   modernActionButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     borderWidth: 0,
-    //...tokens.shadows.md,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+    borderBottomWidth: 4,
+    borderBottomColor: 'rgba(0,0,0,0.12)',
   },
   modernMainButton: {
     width: 80,
