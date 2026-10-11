@@ -18,12 +18,13 @@ const AppDialog = ({ visible, title, message, buttons = [], onRequestClose }) =>
       <View style={styles.card}>
         {!!title && <Text style={styles.title}>{title}</Text>}
         {!!message && <Text style={styles.message}>{message}</Text>}
-        <View style={styles.buttonRow}>
+        <View style={[styles.buttonRow, buttons.length > 2 && styles.buttonColumn]}>
           {buttons.map((btn, i) => (
             <TouchableOpacity
               key={i}
               style={[
                 styles.button,
+                buttons.length > 2 && styles.buttonStacked,
                 btn.style === 'cancel' && styles.cancelButton,
                 btn.style === 'destructive' && styles.destructiveButton,
               ]}
@@ -89,6 +90,9 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'center',
   },
+  buttonColumn: {
+    flexDirection: 'column',
+  },
   button: {
     flex: 1,
     paddingVertical: 12,
@@ -96,6 +100,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FF6B6B',
     alignItems: 'center',
+  },
+  buttonStacked: {
+    flex: 0,
+    width: '100%',
   },
   cancelButton: {
     backgroundColor: '#f0f0f5',
