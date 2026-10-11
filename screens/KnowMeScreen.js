@@ -16,6 +16,8 @@ import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { knowMeDataset } from '../knowme_dataset';
 import ConfettiBurst from '../components/ConfettiBurst';
+import { track } from '../utils/analytics';
+import { recordPlay } from '../utils/streaks';
 
 const ROUNDS = 6;
 
@@ -55,6 +57,8 @@ const KnowMeScreen = ({ navigation }) => {
     setScore(0);
     setSecretIndex(null);
     setGuessIndex(null);
+    track('knowme_started');
+    recordPlay();
   };
 
   const confirmAnswer = () => {
