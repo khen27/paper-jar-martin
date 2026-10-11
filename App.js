@@ -16,6 +16,8 @@ import LanguageScreen from './screens/LanguageScreen';
 import ColorScreen from './screens/ColorScreen';
 import UpgradeScreen from './screens/UpgradeScreen';
 import InstallScreen from './screens/InstallScreen';
+import PartyScreen from './screens/PartyScreen';
+import KnowMeScreen from './screens/KnowMeScreen';
 
 const Stack = createStackNavigator();
 
@@ -124,18 +126,22 @@ export default function App() {
     glassScale.setValue(0.6);
     glassOpacity.setValue(0);
 
+    // Failsafe: never leave the splash stuck (springs + native driver can hang on web)
+    const failsafe = setTimeout(() => setOverlayVisible(false), 4500);
+    const useNative = Platform.OS !== 'web';
+
     Animated.sequence([
       Animated.parallel([
         Animated.timing(glassOpacity, {
           toValue: 1,
           duration: 360,
           easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
+          useNativeDriver: useNative,
         }),
         Animated.spring(glassScale, {
           toValue: 1.06,
           overshootClamping: false,
-          useNativeDriver: true,
+          useNativeDriver: useNative,
           speed: 10,
           bounciness: 7,
         }),
@@ -144,7 +150,7 @@ export default function App() {
         toValue: 1,
         duration: 280,
         easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.delay(280),
     ]).start(() => {
@@ -154,11 +160,13 @@ export default function App() {
         toValue: 0,
         duration: 320,
         easing: Easing.in(Easing.quad),
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }).start();
       const maxMs = Math.max(...confetti.map((c) => c.delay + c.duration));
-      const hideTimer = setTimeout(() => setOverlayVisible(false), maxMs + 150);
-      return () => clearTimeout(hideTimer);
+      setTimeout(() => {
+        clearTimeout(failsafe);
+        setOverlayVisible(false);
+      }, maxMs + 150);
     });
   }, [glassOpacity, glassScale, runConfetti, confetti]);
 
@@ -206,6 +214,8 @@ export default function App() {
               }}
             />
             <Stack.Screen name="Game" component={GameScreen} />
+            <Stack.Screen name="Party" component={PartyScreen} />
+            <Stack.Screen name="KnowMe" component={KnowMeScreen} />
             <Stack.Screen name="Favorites" component={FavoritesScreen} />
             <Stack.Screen
               name="Install"
