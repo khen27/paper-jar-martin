@@ -29,6 +29,8 @@ import { isRTL } from '../utils/rtl';
 import { bonusDataset } from '../bonus_dataset';
 import { adultDataset } from '../adult_dataset';
 import { workoutDataset } from '../workout_dataset';
+import { workoutDrinksDataset } from '../workout_drinks_dataset';
+import { partnerDrinksDataset } from '../partner_drinks_dataset';
 import { officeDataset } from '../office_dataset';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
@@ -58,6 +60,7 @@ const GameScreen = ({ route, navigation }) => {
   const [showChallenge, setShowChallenge] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const gameMode = route.params?.gameMode || 'partner';
+  const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
   const [questionType, setQuestionType] = useState('questions');
   const [burstKey, setBurstKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -173,7 +176,7 @@ const GameScreen = ({ route, navigation }) => {
     }
   };
 
-  // The active deck for this mode+language, flattened for the shuffle bag.
+  // The active deck for this mode+variant, flattened for the shuffle bag.
   const deckInfo = useMemo(() => {
     let key, data;
     if (gameMode === 'brnoPrague') {
@@ -186,22 +189,25 @@ const GameScreen = ({ route, navigation }) => {
       key = 'adult';
       data = adultDataset;
     } else if (gameMode === 'workout') {
-      key = 'workout';
-      data = workoutDataset;
+      key = variant === 'drinks' ? 'workout_drinks' : 'workout';
+      data = variant === 'drinks' ? workoutDrinksDataset : workoutDataset;
     } else if (gameMode === 'office') {
       key = 'office';
       data = officeDataset;
+    } else if ((gameMode === 'partner' || gameMode === 'friend') && variant === 'drinks') {
+      key = `${gameMode}_drinks`;
+      data = partnerDrinksDataset;
     } else {
       key = 'main';
       data = ACTIVE_DATASET;
     }
     return { key, data, refs: flattenDataset(data) };
-  }, [gameMode, language]);
+  }, [gameMode, variant, language]);
 
   useEffect(() => {
-    track('game_opened', { gameMode });
+    track('game_opened', { gameMode, variant });
     recordPlay();
-  }, [gameMode]);
+  }, [gameMode, variant]);
 
   // Draw the next question from the shuffle bag (no repeats until the deck is exhausted).
   const getRandomQuestion = () => {
@@ -423,11 +429,20 @@ const GameScreen = ({ route, navigation }) => {
           
           {/* Game Mode Display - Top Right */}
           {gameMode && (
-            <ModernCard variant="surface" size="sm" style={[styles.modernGameModePill, { alignSelf: 'flex-start' }]}>
-              <Text style={styles.modernGameModeText}>
-                {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
-              </Text>
-            </ModernCard>
+            <View style={styles.headerPills}>
+              <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
+                <Text style={styles.modernGameModeText}>
+                  {translations[language]?.[`${gameMode}Mode`] || `${gameMode} Mode`}
+                </Text>
+              </ModernCard>
+              {variant === 'drinks' && (
+                <ModernCard variant="surface" size="sm" style={styles.drinksPill}>
+                  <Text style={styles.modernGameModeText}>
+                    {translations[language]?.drinksEdition || 'Drinks 🍻'}
+                  </Text>
+                </ModernCard>
+              )}
+            </View>
           )}
         </View>
 
@@ -857,12 +872,28 @@ const styles = StyleSheet.create({
   },
 
   // Modern game mode pill styles
+  headerPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'flex-end',
+    maxWidth: '70%',
+  },
   modernGameModePill: {
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.radius.full,
     minHeight: 32,
     alignSelf: 'flex-start',
+  },
+  drinksPill: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.radius.full,
+    minHeight: 32,
+    backgroundColor: 'rgba(251, 191, 36, 0.25)',
+    borderColor: 'rgba(251, 191, 36, 0.7)',
+    borderWidth: 1,
   },
   modernGameModeText: {
     fontSize: tokens.typography.sizes.sm,

@@ -19,18 +19,21 @@ import { recordPlay } from '../utils/streaks';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { partyDataset } from '../party_dataset';
+import { partyDrinksDataset } from '../party_drinks_dataset';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { getLocalizedText } from '../utils/i18n';
 import ConfettiBurst from '../components/ConfettiBurst';
 
 const TIMER_SECONDS = 30;
-const DECK_KEY = 'party';
 
-const PartyScreen = ({ navigation }) => {
+const PartyScreen = ({ navigation, route }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
   const { settings, updateSettings } = useSettings();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
+  const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
+  const activeDataset = variant === 'drinks' ? partyDrinksDataset : partyDataset;
+  const deckKey = variant === 'drinks' ? 'party_drinks' : 'party';
 
   const [phase, setPhase] = useState('setup'); // setup | play
   const [nameDraft, setNameDraft] = useState('');
@@ -43,14 +46,14 @@ const PartyScreen = ({ navigation }) => {
   const [burstKey, setBurstKey] = useState(0);
   const timerRef = useRef(null);
 
-  const refs = useMemo(() => flattenDataset(partyDataset), []);
+  const refs = useMemo(() => flattenDataset(activeDataset), [activeDataset]);
 
   const currentPlayer = players[turnIndex] || '';
 
   const drawPrompt = useCallback(async () => {
-    await initBag(DECK_KEY, refs.length);
-    const ref = refs[nextIndex(DECK_KEY, refs.length)];
-    const obj = partyDataset[ref.topicIndex][ref.type][ref.questionIndex];
+    await initBag(deckKey, refs.length);
+    const ref = refs[nextIndex(deckKey, refs.length)];
+    const obj = activeDataset[ref.topicIndex][ref.type][ref.questionIndex];
     setPrompt(getLocalizedText(obj, language));
     setPromptType(ref.type);
     setBurstKey((k) => k + 1);
@@ -60,7 +63,7 @@ const PartyScreen = ({ navigation }) => {
     } catch (e) {
       // ignore
     }
-  }, [language, refs]);
+  }, [language, refs, activeDataset, deckKey]);
 
   useEffect(() => {
     if (phase !== 'play' || !timerOn) {
@@ -94,7 +97,7 @@ const PartyScreen = ({ navigation }) => {
     if (players.length < 2) return;
     setPhase('play');
     setTurnIndex(0);
-    track('party_started', { players: players.length, timer: timerOn });
+    track('party_started', { players: players.length, timer: timerOn, variant });
     recordPlay();
     await drawPrompt();
   };
@@ -122,19 +125,31 @@ const PartyScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
-          <ModernCard variant="surface" size="sm" style={styles.pill}>
-            <Text style={styles.pillText}>{t('partyMode', 'Party')}</Text>
-          </ModernCard>
+          <View style={styles.headerPills}>
+            <ModernCard variant="surface" size="sm" style={styles.pill}>
+              <Text style={styles.pillText}>{t('partyMode', 'Party')}</Text>
+            </ModernCard>
+            {variant === 'drinks' && (
+              <ModernCard variant="surface" size="sm" style={[styles.pill, styles.drinksPill]}>
+                <Text style={styles.pillText}>{t('drinksEdition', 'Drinks 🍻')}</Text>
+              </ModernCard>
+            )}
+          </View>
         </View>
 
         {phase === 'setup' ? (
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>{t('partySetupTitle', 'Pass the phone')}</Text>
             <Text style={styles.subtitle}>
-              {t(
-                'partySetupSubtitle',
-                'Add 2–8 players. Each turn, pass the phone, answer a question or do a dare.'
-              )}
+              {variant === 'drinks'
+                ? t(
+                    'partySetupSubtitleDrinks',
+                    'Add 2–8 players. Answer-or-drink, vote challenges — winner sips.'
+                  )
+                : t(
+                    'partySetupSubtitle',
+                    'Add 2–8 players. Each turn, pass the phone, answer a question or do a dare.'
+                  )}
             </Text>
 
             <ModernCard variant="surface" size="lg" style={styles.card}>
@@ -245,7 +260,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  headerPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'flex-end',
+    maxWidth: '70%',
+  },
   pill: { paddingHorizontal: 14, paddingVertical: 6, minHeight: 32 },
+  drinksPill: {
+    backgroundColor: 'rgba(251, 191, 36, 0.25)',
+    borderColor: 'rgba(251, 191, 36, 0.7)',
+    borderWidth: 1,
+  },
   pillText: {
     color: tokens.colors.text.primary,
     fontWeight: tokens.typography.weights.semibold,

@@ -27,6 +27,7 @@ import { track } from '../utils/analytics';
 
 // Feature Flag for OtázoJar Refresh
 const OTAZO_JAR_REFRESH_ENABLED = true;
+const STYLE_PICKER_MODES = ['partner', 'party', 'workout'];
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
@@ -37,6 +38,8 @@ const HomeScreen = ({ navigation }) => {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [showUnlockDialog, setShowUnlockDialog] = useState(false);
   const [showAdultDialog, setShowAdultDialog] = useState(false);
+  const [showStyleDialog, setShowStyleDialog] = useState(false);
+  const [pendingStyleMode, setPendingStyleMode] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
   const [dailyQuestion, setDailyQuestion] = useState('');
   const homePackUnlocked = isInstalledApp();
@@ -117,40 +120,49 @@ const HomeScreen = ({ navigation }) => {
     typeText();
   }, [logAction, jarScale]);
 
+  const launchGameMode = useCallback((mode, variant = 'classic') => {
+    logAction('NAVIGATING_TO_GAME', { gameMode: mode, variant });
+    track('style_selected', { gameMode: mode, variant });
+    if (mode === 'party') {
+      navigation.navigate('Party', { variant });
+    } else if (mode === 'knowMe') {
+      navigation.navigate('KnowMe');
+    } else {
+      navigation.navigate('Game', { gameMode: mode, variant });
+    }
+  }, [logAction, navigation]);
+
   // Handle game mode selection
   const handleGameModeSelect = useCallback((mode) => {
     logAction('GAME_MODE_SELECTED', { selectedMode: mode });
     setSelectedMode(mode);
-    
+
+    if (STYLE_PICKER_MODES.includes(mode)) {
+      setPendingStyleMode(mode);
+      setShowStyleDialog(true);
+      return;
+    }
+
     // Scale animation for button press
-    const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                     mode === 'friend' ? friendButtonScale : 
+    const scaleAnim = mode === 'partner' ? partnerButtonScale :
+                     mode === 'friend' ? friendButtonScale :
                      mode === 'party' ? partyButtonScale : brnoButtonScale;
-    
+
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 0.95,
         duration: 100,
-        // easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: 100,
-        // easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
     ]).start(() => {
-      logAction('NAVIGATING_TO_GAME', { gameMode: mode });
-      if (mode === 'party') {
-        navigation.navigate('Party');
-      } else if (mode === 'knowMe') {
-        navigation.navigate('KnowMe');
-      } else {
-        navigation.navigate('Game', { gameMode: mode });
-      }
+      launchGameMode(mode, 'classic');
     });
-  }, [logAction, navigation, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
+  }, [logAction, launchGameMode, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
 
   // Cursor blink animation
   useEffect(() => {
@@ -605,7 +617,8 @@ const HomeScreen = ({ navigation }) => {
                           {translations[language]?.partnerMode || 'Partner'}
                         </Text>
                         <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.partnerModeSubtext || 'Perfect for couples'}
+                          {translations[language]?.partnerModeSubtext ||
+                            'Classic talk & challenges — or drinks'}
                         </Text>
                       </View>
                     </View>
@@ -731,7 +744,8 @@ const HomeScreen = ({ navigation }) => {
                           {translations[language]?.partyMode || 'Party'}
                         </Text>
                         <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.partyModeSubtext || 'Pass the phone — questions & dares'}
+                          {translations[language]?.partyModeSubtext ||
+                            'Pass the phone — classic or drinks'}
                         </Text>
                       </View>
                     </View>
@@ -812,7 +826,7 @@ const HomeScreen = ({ navigation }) => {
                       </Text>
                       <Text style={styles.modernGameModeSubtext}>
                         {translations[language]?.workoutModeSubtext ||
-                          'Moves, motivation & sweat-friendly prompts'}
+                          'Sweat prompts — or gym drinks edition'}
                       </Text>
                     </View>
                   </View>
@@ -887,6 +901,39 @@ const HomeScreen = ({ navigation }) => {
           },
         ]}
         onRequestClose={() => setShowAdultDialog(false)}
+      />
+
+      <AppDialog
+        visible={showStyleDialog}
+        title={translations[language]?.stylePickerTitle || 'Pick a style'}
+        message={
+          translations[language]?.stylePickerMsg ||
+          'Classic: talk & funny challenges. Drinks: answer-or-drink and vote — winner sips.'
+        }
+        buttons={[
+          {
+            text: translations[language]?.classicStyle || 'Classic — talk & challenges',
+            onPress: () => {
+              const mode = pendingStyleMode;
+              setPendingStyleMode(null);
+              if (mode) launchGameMode(mode, 'classic');
+            },
+          },
+          {
+            text: translations[language]?.drinksStyle || 'Drinks — answer or sip 🍻',
+            onPress: () => {
+              const mode = pendingStyleMode;
+              setPendingStyleMode(null);
+              if (mode) launchGameMode(mode, 'drinks');
+            },
+          },
+          {
+            text: translations[language]?.cancel || 'Cancel',
+            style: 'cancel',
+            onPress: () => setPendingStyleMode(null),
+          },
+        ]}
+        onRequestClose={() => setShowStyleDialog(false)}
       />
     </View>
   );

@@ -1,5 +1,5 @@
 /* Paper Jar service worker: cache-first for same-origin requests, so the app works offline. */
-const CACHE_NAME = 'paper-jar-v3';
+const CACHE_NAME = 'paper-jar-v4';
 const PRECACHE = ['/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {

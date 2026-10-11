@@ -5,20 +5,16 @@
 
 ## 🧪 Ready for you to test
 
-**Checkpoint 3 (2026-10-11): Packs + Settings + Habit slice + polish**
+**Checkpoint 4 (2026-10-11): Classic vs Drinks for Partner / Party / Workout**
 
 🔗 **https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**  
-*(Hard-refresh or reinstall PWA — cache `v3`.)*
+*(Hard-refresh or reinstall PWA — cache `v4`.)*
 
-1. **Settings (⚙)** — Party timer is **off by default**; toggle it on, then open Party and confirm timer appears. Toggle off and confirm it stays off.
-2. **Party setup** — timer row says off by default; changing it syncs with Settings.
-3. **Packs:** Adult Fun (18+ gate once), Workout, Office — each draws pack-specific prompts.
-4. **Adult Fun** — confirm dialog; truths / dares / drink-or-cringe; not explicit.
-5. **Workout** — movement challenges + fitness questions (inclusive tone).
-6. **Office** — work-safe; no romance/alcohol/politics.
-7. **Home polish** — Question of the day card, streak chip after you play, clearer Packs section.
-8. **Streak** — play any mode, reopen home/settings — streak increments for today.
-9. **Language CS/EN** — pack titles and gate copy look natural.
+1. **Partner** — tap → style picker → **Classic** shows normal talk/challenge deck; **Drinks** shows answer-or-drink + vote-and-sip prompts; Drinks pill on game header.
+2. **Party** — same picker; Drinks setup copy mentions answer-or-drink / votes; play a few rounds and confirm vote prompts (e.g. best date energy → winner drinks).
+3. **Workout** — Classic = sweat prompts; Drinks = answer-or-drink / vote with sip-or-squats forfeits.
+4. **Other modes** (Friends, Brno, Office, Adult, Know Me) — still open directly, no style picker.
+5. **CS/EN** — picker titles and drink prompts read naturally in both languages.
 
 **Rollback:** cite checklist # and I’ll adjust that piece.
 
@@ -33,11 +29,12 @@
 ## Milestone B1 / B1.5 / B2
 - ✅ Complete (PRs #22, #23)
 
-## Milestone B2.5 — Packs, settings, UX (this checkpoint)
+## Milestone B2.5 — Packs, settings, UX
 - ✅ Party timer in Settings, **off by default**
 - ✅ Adult Fun (18+), Workout, Office packs
 - ✅ UX polish: QOTD, streaks chip, packs section, card lift, denser mode cards
 - ✅ CS+EN content pass on new packs + Brno rivalry already bilingual
+- ✅ Classic vs Drinks style picker for Partner, Party, Workout (answer-or-drink + vote decks)
 
 ## Milestone B3 — Accounts & analytics
 - ✅ Local analytics event queue (`utils/analytics.js`) ready for PostHog
