@@ -19,7 +19,7 @@ npx eas-cli deploy  # deploys dist/ to EAS Hosting (HTTPS link for phone testing
 ```
 
 The web build is a full PWA: installable to the home screen, works offline, and unlocks
-the "Home Screen Pack" bonus deck when launched from the home-screen icon.
+the "Golden Jar" bonus deck when launched from the home-screen icon.
 
 ## Run on emulators / simulators
 

@@ -11,7 +11,7 @@ export const workoutDataset = [
       { cs: 'Jaká písnička patří do tvé top 3 playlistu na trénink?', en: 'Which song is in your workout playlist top 3?' },
       { cs: 'Jaký je tvůj nejoblíbenější rituál ve volném dni?', en: 'What’s your favorite rest-day ritual?' },
       { cs: 'Kdybys měl/a trénovat jen 20 minut denně, co bys dělal/a?', en: 'If you could train only 20 minutes a day, what would you do?' },
-      { cs: 'Jakou dovednost ve fitku nebo ve sportu bys se chtěl/a naučit?', en: 'What gym or sport skill do you want to learn?' },
+      { cs: 'Jakou dovednost ve fitku nebo ve sportu by ses chtěl/a naučit?', en: 'What gym or sport skill do you want to learn?' },
       { cs: 'Snídaně před tréninkem: ano, nebo radši nalačno?', en: 'Pre-workout breakfast: yes, or prefer training fasted?' },
       { cs: 'Jaký je tvůj signál, že potřebuješ den volna?', en: 'What’s your signal that you need a rest day?' },
       { cs: 'Venku, nebo v hale — kde máš víc energie?', en: 'Outdoors or indoors — where’s your drive higher?' },

@@ -3,7 +3,7 @@ import {
   StyleSheet,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Animated,
   Platform,
   ScrollView,
@@ -15,7 +15,10 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import LanguageIcon from '../components/LanguageIcon';
 import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } from '../components/GameModeIcons';
-import { ModernCard, ModernButton, AppDialog } from '../components/ui';
+import { ModernButton, AppDialog } from '../components/ui';
+import GameTile from '../components/GameTile';
+import StylePickerSheet from '../components/StylePickerSheet';
+import { hasDrinksVariant } from '../utils/decks';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -27,7 +30,24 @@ import { track } from '../utils/analytics';
 
 // Feature Flag for OtázoJar Refresh
 const OTAZO_JAR_REFRESH_ENABLED = true;
-const STYLE_PICKER_MODES = ['partner', 'party', 'workout'];
+
+const MODE_TILES = {
+  partner: { emoji: '💞', colors: ['#FF5E8A', '#E0245E'], titleKey: 'partnerMode', title: 'Partner', subKey: 'partnerTileSub', sub: 'Date night for two' },
+  friend: { emoji: '🍕', colors: ['#8F6BFF', '#5B3FD9'], titleKey: 'friendMode', title: 'Friends', subKey: 'friendTileSub', sub: 'Small crew, big laughs' },
+  party: { emoji: '🎉', colors: ['#FF9F1C', '#FF4E50'], titleKey: 'partyMode', title: 'Party', subKey: 'partyTileSub', sub: 'Pass the phone · 2–8 players', wide: true },
+  adult: { emoji: '🔥', colors: ['#FF3D6E', '#8E2DE2'], titleKey: 'adultMode', title: 'Adult Fun', subKey: 'adultTileSub', sub: 'Flirty truths & dares', corner: '18+' },
+  workout: { emoji: '💪', colors: ['#2ED47A', '#0C9F8C'], titleKey: 'workoutMode', title: 'Workout', subKey: 'workoutTileSub', sub: 'Sweat, reps & gym talk' },
+  knowMe: { emoji: '🧠', colors: ['#3DA9FC', '#1F6FEB'], titleKey: 'knowMeMode', title: 'How well do you know me?', subKey: 'knowMeTileSub', sub: 'Guess answers, score points' },
+  brnoPrague: { emoji: '🍺', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
+  office: { emoji: '💼', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
+  homePack: { emoji: '⭐', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
+};
+
+const MODE_SECTIONS = [
+  { key: 'duo', titleKey: 'sectionDuo', fallback: '💘 For two', modes: ['partner', 'knowMe'] },
+  { key: 'group', titleKey: 'sectionGroup', fallback: '🥳 Group games', modes: ['party', 'friend', 'brnoPrague'] },
+  { key: 'packs', titleKey: 'packsSection', fallback: '🎁 Packs', modes: ['adult', 'workout', 'office', 'homePack'] },
+];
 
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
@@ -38,7 +58,6 @@ const HomeScreen = ({ navigation }) => {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [showUnlockDialog, setShowUnlockDialog] = useState(false);
   const [showAdultDialog, setShowAdultDialog] = useState(false);
-  const [showStyleDialog, setShowStyleDialog] = useState(false);
   const [pendingStyleMode, setPendingStyleMode] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
   const [dailyQuestion, setDailyQuestion] = useState('');
@@ -50,12 +69,6 @@ const HomeScreen = ({ navigation }) => {
   const glassRotation = useRef(new Animated.Value(0)).current;
   const jarScale = useRef(new Animated.Value(0.9)).current; // New jar entrance animation
   const cursorOpacity = useRef(new Animated.Value(1)).current;
-  
-  // Animation refs for game mode buttons
-  const partnerButtonScale = useRef(new Animated.Value(1)).current;
-  const friendButtonScale = useRef(new Animated.Value(1)).current;
-  const partyButtonScale = useRef(new Animated.Value(1)).current;
-  const brnoButtonScale = useRef(new Animated.Value(1)).current;
   
   // Refs for animation control
   const typingTimeoutRef = useRef(null);
@@ -132,37 +145,27 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [logAction, navigation]);
 
-  // Handle game mode selection
+  // Modes with a Drinks deck ask Classic vs Drinks first; the rest start straight away.
   const handleGameModeSelect = useCallback((mode) => {
     logAction('GAME_MODE_SELECTED', { selectedMode: mode });
     setSelectedMode(mode);
-
-    if (STYLE_PICKER_MODES.includes(mode)) {
+    if (hasDrinksVariant(mode)) {
       setPendingStyleMode(mode);
-      setShowStyleDialog(true);
       return;
     }
+    launchGameMode(mode, 'classic');
+  }, [logAction, launchGameMode]);
 
-    // Scale animation for button press
-    const scaleAnim = mode === 'partner' ? partnerButtonScale :
-                     mode === 'friend' ? friendButtonScale :
-                     mode === 'party' ? partyButtonScale : brnoButtonScale;
-
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      launchGameMode(mode, 'classic');
-    });
-  }, [logAction, launchGameMode, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
+  const onTilePress = useCallback((mode) => {
+    if (mode === 'homePack' && !homePackUnlocked) {
+      logAction('INSTALL_GUIDE_OPENED');
+      navigation.navigate('Install');
+    } else if (mode === 'adult' && !settings.adultConfirmed) {
+      setShowAdultDialog(true);
+    } else {
+      handleGameModeSelect(mode);
+    }
+  }, [homePackUnlocked, settings.adultConfirmed, handleGameModeSelect, logAction, navigation]);
 
   // Cursor blink animation
   useEffect(() => {
@@ -382,40 +385,6 @@ const HomeScreen = ({ navigation }) => {
     }).start();
   };
 
-  // Game mode button press handlers
-  const onGameModePressIn = useCallback((mode) => {
-    logAction('GAME_MODE_BUTTON_PRESSED', { mode });
-    
-    if (OTAZO_JAR_REFRESH_ENABLED) {
-      // New feedback: 1.02x scale + elevated shadow
-      const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : 
-                       mode === 'party' ? partyButtonScale : brnoButtonScale;
-      
-      Animated.spring(scaleAnim, {
-        toValue: 1.02, // Spec: 1.02x scale
-        tension: 300,
-        friction: 20,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [logAction, partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
-
-  const onGameModePressOut = useCallback((mode) => {
-    if (OTAZO_JAR_REFRESH_ENABLED) {
-      const scaleAnim = mode === 'partner' ? partnerButtonScale : 
-                       mode === 'friend' ? friendButtonScale : 
-                       mode === 'party' ? partyButtonScale : brnoButtonScale;
-      
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 20,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [partnerButtonScale, friendButtonScale, partyButtonScale, brnoButtonScale]);
-
   return (
     <View style={styles.container}>
       {/* Premium Background Gradient */}
@@ -427,6 +396,13 @@ const HomeScreen = ({ navigation }) => {
       />
       
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          overScrollMode="always"
+        >
         <Animated.View 
           style={[
             styles.topButtonContainer,
@@ -507,13 +483,6 @@ const HomeScreen = ({ navigation }) => {
           )}
         </View>
 
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-          overScrollMode="always"
-        >
           <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.contentRefresh : styles.content}>
             {/* Jar Icon - Scaled 1.5x and centered above title */}
             <Animated.Image
@@ -566,295 +535,68 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
 
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <Pressable
             onPress={() => {
               recordPlay().then((s) => setStreakCount(s.streak || 0));
               track('qotd_tapped');
               navigation.navigate('Game', { gameMode: 'partner' });
             }}
-            style={{ width: '100%' }}
+            style={styles.dailyWrap}
+            accessibilityRole="button"
           >
-            <ModernCard variant="surface" size="md" style={styles.dailyCard}>
-              <Text style={styles.dailyEyebrow}>
-                {translations[language]?.questionOfDay || 'Question of the day'}
-              </Text>
+            <View style={styles.dailyCardBack} />
+            <View style={styles.dailyCard}>
+              <View style={styles.dailyHeader}>
+                <Text style={styles.dailyEyebrow}>
+                  🃏 {translations[language]?.questionOfDay || 'Card of the day'}
+                </Text>
+                <Text style={styles.dailyCta}>
+                  {translations[language]?.tapToPlay || 'Tap to play →'}
+                </Text>
+              </View>
               <Text style={styles.dailyText} numberOfLines={3}>
                 {dailyQuestion}
               </Text>
-              <Text style={styles.dailyCta}>
-                {translations[language]?.tapToPlay || 'Tap to play →'}
-              </Text>
-            </ModernCard>
-          </TouchableOpacity>
-
-          {/* Game Mode Selection */}
-          <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeContainerRefresh : styles.gameModeContainer}>
-            <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTitleRefresh : styles.gameModeTitle}>
-              {translations[language]?.selectGameMode || 'How do you want to play?'}
-            </Text>
-            
-            <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonsRefresh : styles.gameModeButtons}>
-              {/* Partner Mode */}
-              <TouchableOpacity
-                onPressIn={() => onGameModePressIn('partner')}
-                onPress={() => handleGameModeSelect('partner')}
-                onPressOut={() => onGameModePressOut('partner')}
-                activeOpacity={0.8}
-              >
-                <Animated.View style={{ transform: [{ scale: partnerButtonScale }] }}>
-                  <ModernCard
-                    variant="surface"
-                    size="lg"
-                    style={styles.modernGameModeCard}
-                  >
-                    <View style={styles.modernButtonInner}>
-                      <View style={[styles.modernIconContainer, styles.partnerIconBg]}>
-                        <PartnerIcon size={tokens.components.icon.lg} />
-                      </View>
-                      <View style={styles.modernTextContainer}>
-                        <Text style={styles.modernGameModeText}>
-                          {translations[language]?.partnerMode || 'Partner'}
-                        </Text>
-                        <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.partnerModeSubtext ||
-                            'Classic talk & challenges — or drinks'}
-                        </Text>
-                      </View>
-                    </View>
-                  </ModernCard>
-                </Animated.View>
-              </TouchableOpacity>
-
-              {/* Friend Mode */}
-              <TouchableOpacity
-                onPressIn={() => onGameModePressIn('friend')}
-                onPress={() => handleGameModeSelect('friend')}
-                onPressOut={() => onGameModePressOut('friend')}
-                activeOpacity={0.8}
-              >
-                <Animated.View style={{ transform: [{ scale: friendButtonScale }] }}>
-                  <ModernCard
-                    variant="surface"
-                    size="lg"
-                    style={styles.modernGameModeCard}
-                  >
-                    <View style={styles.modernButtonInner}>
-                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
-                        <FriendIcon size={tokens.components.icon.lg} />
-                      </View>
-                      <View style={styles.modernTextContainer}>
-                        <Text style={styles.modernGameModeText}>
-                          {translations[language]?.friendMode || 'Friends'}
-                        </Text>
-                        <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.friendModeSubtext || 'Great for small groups'}
-                        </Text>
-                      </View>
-                    </View>
-                  </ModernCard>
-                </Animated.View>
-              </TouchableOpacity>
-
-              {/* Brno vs. Prague rivalry */}
-              <TouchableOpacity
-                onPressIn={() => onGameModePressIn('brnoPrague')}
-                onPress={() => handleGameModeSelect('brnoPrague')}
-                onPressOut={() => onGameModePressOut('brnoPrague')}
-                activeOpacity={0.8}
-              >
-                <Animated.View style={{ transform: [{ scale: brnoButtonScale }] }}>
-                  <ModernCard
-                    variant="surface"
-                    size="lg"
-                    style={styles.modernGameModeCard}
-                  >
-                    <View style={styles.modernButtonInner}>
-                      <View style={[styles.modernIconContainer, styles.friendIconBg]}>
-                        <BrnoIcon size={tokens.components.icon.lg} />
-                      </View>
-                      <View style={styles.modernTextContainer}>
-                        <Text style={styles.modernGameModeText}>
-                          {translations[language]?.brnoPragueMode || 'Brno vs. Prague'}
-                        </Text>
-                        <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.brnoPragueModeSubtext || 'Which city is best?'}
-                        </Text>
-                      </View>
-                    </View>
-                  </ModernCard>
-                </Animated.View>
-              </TouchableOpacity>
-
-              {/* Home Screen Pack — install reward */}
-              <TouchableOpacity
-                onPress={() => {
-                  if (homePackUnlocked) {
-                    handleGameModeSelect('homePack');
-                  } else {
-                    logAction('INSTALL_GUIDE_OPENED');
-                    navigation.navigate('Install');
-                  }
-                }}
-                activeOpacity={0.8}
-              >
-                <ModernCard
-                  variant="surface"
-                  size="lg"
-                  style={[styles.modernGameModeCard, !homePackUnlocked && styles.lockedCard]}
-                >
-                  <View style={styles.modernButtonInner}>
-                    <View style={[styles.modernIconContainer, styles.homePackIconBg]}>
-                      <Text style={styles.homePackEmoji}>{homePackUnlocked ? '⭐' : '🔒'}</Text>
-                    </View>
-                    <View style={styles.modernTextContainer}>
-                      <Text style={styles.modernGameModeText}>
-                        {translations[language]?.homePackMode || 'Home Screen Pack'}
-                      </Text>
-                      <Text style={styles.modernGameModeSubtext}>
-                        {homePackUnlocked
-                          ? translations[language]?.homePackSubtext || 'Bonus questions — your install reward'
-                          : translations[language]?.homePackLockedSubtext ||
-                            'Add Paper Jar to your home screen to unlock'}
-                      </Text>
-                    </View>
-                  </View>
-                </ModernCard>
-              </TouchableOpacity>
-
-              {/* Party Mode — pass-the-phone */}
-              <TouchableOpacity
-                onPressIn={() => onGameModePressIn('party')}
-                onPress={() => handleGameModeSelect('party')}
-                onPressOut={() => onGameModePressOut('party')}
-                activeOpacity={0.8}
-              >
-                <Animated.View style={{ transform: [{ scale: partyButtonScale }] }}>
-                  <ModernCard
-                    variant="surface"
-                    size="lg"
-                    style={styles.modernGameModeCard}
-                  >
-                    <View style={styles.modernButtonInner}>
-                      <View style={[styles.modernIconContainer, styles.partyIconBg]}>
-                        <PartyIcon size={tokens.components.icon.lg} />
-                      </View>
-                      <View style={styles.modernTextContainer}>
-                        <Text style={styles.modernGameModeText}>
-                          {translations[language]?.partyMode || 'Party'}
-                        </Text>
-                        <Text style={styles.modernGameModeSubtext}>
-                          {translations[language]?.partyModeSubtext ||
-                            'Pass the phone — classic or drinks'}
-                        </Text>
-                      </View>
-                    </View>
-                  </ModernCard>
-                </Animated.View>
-              </TouchableOpacity>
-
-              {/* How well do you know me? */}
-              <TouchableOpacity
-                onPress={() => handleGameModeSelect('knowMe')}
-                activeOpacity={0.8}
-              >
-                <ModernCard
-                  variant="surface"
-                  size="lg"
-                  style={styles.modernGameModeCard}
-                >
-                  <View style={styles.modernButtonInner}>
-                    <View style={[styles.modernIconContainer, styles.knowMeIconBg]}>
-                      <Text style={styles.homePackEmoji}>🧠</Text>
-                    </View>
-                    <View style={styles.modernTextContainer}>
-                      <Text style={styles.modernGameModeText}>
-                        {translations[language]?.knowMeMode || 'How well do you know me?'}
-                      </Text>
-                      <Text style={styles.modernGameModeSubtext}>
-                        {translations[language]?.knowMeModeSubtext || 'Guess their answers — get a score'}
-                      </Text>
-                    </View>
-                  </View>
-                </ModernCard>
-              </TouchableOpacity>
-
-              <Text style={styles.packsSectionTitle}>
-                {translations[language]?.packsSection || 'Packs'}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => {
-                  if (settings.adultConfirmed) {
-                    handleGameModeSelect('adult');
-                  } else {
-                    setShowAdultDialog(true);
-                  }
-                }}
-                activeOpacity={0.8}
-              >
-                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
-                  <View style={styles.modernButtonInner}>
-                    <View style={[styles.modernIconContainer, styles.adultIconBg]}>
-                      <Text style={styles.homePackEmoji}>🔥</Text>
-                    </View>
-                    <View style={styles.modernTextContainer}>
-                      <Text style={styles.modernGameModeText}>
-                        {translations[language]?.adultMode || 'Adult Fun'}
-                      </Text>
-                      <Text style={styles.modernGameModeSubtext}>
-                        {translations[language]?.adultModeSubtext ||
-                          '18+ · Truth, dare, drink or cringe'}
-                      </Text>
-                    </View>
-                  </View>
-                </ModernCard>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleGameModeSelect('workout')}
-                activeOpacity={0.8}
-              >
-                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
-                  <View style={styles.modernButtonInner}>
-                    <View style={[styles.modernIconContainer, styles.workoutIconBg]}>
-                      <Text style={styles.homePackEmoji}>💪</Text>
-                    </View>
-                    <View style={styles.modernTextContainer}>
-                      <Text style={styles.modernGameModeText}>
-                        {translations[language]?.workoutMode || 'Workout'}
-                      </Text>
-                      <Text style={styles.modernGameModeSubtext}>
-                        {translations[language]?.workoutModeSubtext ||
-                          'Sweat prompts — or gym drinks edition'}
-                      </Text>
-                    </View>
-                  </View>
-                </ModernCard>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleGameModeSelect('office')}
-                activeOpacity={0.8}
-              >
-                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
-                  <View style={styles.modernButtonInner}>
-                    <View style={[styles.modernIconContainer, styles.officeIconBg]}>
-                      <Text style={styles.homePackEmoji}>💼</Text>
-                    </View>
-                    <View style={styles.modernTextContainer}>
-                      <Text style={styles.modernGameModeText}>
-                        {translations[language]?.officeMode || 'Office'}
-                      </Text>
-                      <Text style={styles.modernGameModeSubtext}>
-                        {translations[language]?.officeModeSubtext ||
-                          'Work-safe icebreakers for teams'}
-                      </Text>
-                    </View>
-                  </View>
-                </ModernCard>
-              </TouchableOpacity>
             </View>
+          </Pressable>
+
+          <View style={styles.gameMenu}>
+            {MODE_SECTIONS.map((section) => (
+              <View key={section.key} style={styles.menuSection}>
+                <Text style={styles.menuTitle}>
+                  {translations[language]?.[section.titleKey] || section.fallback}
+                </Text>
+                <View style={styles.tileGrid}>
+                  {section.modes.map((mode) => {
+                    const tile = MODE_TILES[mode];
+                    const locked = mode === 'homePack' && !homePackUnlocked;
+                    return (
+                      <GameTile
+                        key={mode}
+                        emoji={tile.emoji}
+                        colors={tile.colors}
+                        wide={tile.wide}
+                        locked={locked}
+                        corner={tile.corner}
+                        title={translations[language]?.[tile.titleKey] || tile.title}
+                        subtitle={
+                          locked
+                            ? translations[language]?.homePackLockedSubtext ||
+                              'Add Paper Jar to your home screen to unlock'
+                            : translations[language]?.[tile.subKey] || tile.sub
+                        }
+                        badge={
+                          hasDrinksVariant(mode)
+                            ? translations[language]?.twoStylesBadge || '🎤 Classic · 🍻 Drinks'
+                            : null
+                        }
+                        onPress={() => onTilePress(mode)}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
           </View>
 
 
@@ -864,10 +606,10 @@ const HomeScreen = ({ navigation }) => {
 
       <AppDialog
         visible={showUnlockDialog}
-        title={translations[language]?.homePackUnlockedTitle || '🎉 Home Screen Pack unlocked!'}
+        title={translations[language]?.homePackUnlockedTitle || '⭐ Golden Jar unlocked!'}
         message={
           translations[language]?.homePackUnlockedMsg ||
-          'Thanks for adding Paper Jar to your home screen. A bonus question pack is yours.'
+          'Thanks for adding Paper Jar to your home screen. The bonus cards are yours.'
         }
         buttons={[
           {
@@ -892,7 +634,8 @@ const HomeScreen = ({ navigation }) => {
             onPress: () => {
               updateSettings({ adultConfirmed: true });
               track('adult_confirmed');
-              handleGameModeSelect('adult');
+              // Let the gate modal finish closing before the style sheet opens (iOS drops stacked modals).
+              setTimeout(() => handleGameModeSelect('adult'), 300);
             },
           },
           {
@@ -903,37 +646,22 @@ const HomeScreen = ({ navigation }) => {
         onRequestClose={() => setShowAdultDialog(false)}
       />
 
-      <AppDialog
-        visible={showStyleDialog}
-        title={translations[language]?.stylePickerTitle || 'Pick a style'}
-        message={
-          translations[language]?.stylePickerMsg ||
-          'Classic: talk & funny challenges. Drinks: answer-or-drink and vote — winner sips.'
+      <StylePickerSheet
+        visible={!!pendingStyleMode}
+        modeEmoji={MODE_TILES[pendingStyleMode]?.emoji}
+        modeTitle={
+          pendingStyleMode
+            ? translations[language]?.[MODE_TILES[pendingStyleMode].titleKey] ||
+              MODE_TILES[pendingStyleMode].title
+            : ''
         }
-        buttons={[
-          {
-            text: translations[language]?.classicStyle || 'Classic — talk & challenges',
-            onPress: () => {
-              const mode = pendingStyleMode;
-              setPendingStyleMode(null);
-              if (mode) launchGameMode(mode, 'classic');
-            },
-          },
-          {
-            text: translations[language]?.drinksStyle || 'Drinks — answer or sip 🍻',
-            onPress: () => {
-              const mode = pendingStyleMode;
-              setPendingStyleMode(null);
-              if (mode) launchGameMode(mode, 'drinks');
-            },
-          },
-          {
-            text: translations[language]?.cancel || 'Cancel',
-            style: 'cancel',
-            onPress: () => setPendingStyleMode(null),
-          },
-        ]}
-        onRequestClose={() => setShowStyleDialog(false)}
+        t={(key, fallback) => translations[language]?.[key] || fallback}
+        onPick={(variant) => {
+          const mode = pendingStyleMode;
+          setPendingStyleMode(null);
+          if (mode) launchGameMode(mode, variant);
+        }}
+        onClose={() => setPendingStyleMode(null)}
       />
     </View>
   );
@@ -1207,21 +935,21 @@ const styles = StyleSheet.create({
     marginBottom: 8, // Reduced margin below title
   },
   titleRefresh: {
-    fontSize: Math.min(32, width * 0.08), // 2rem = 32px responsive
-    fontWeight: '800', // Enhanced: Extra Bold for main title impact
+    fontSize: Math.min(40, width * 0.1),
+    fontWeight: '900',
     color: '#fff',
     textAlign: 'center',
-    letterSpacing: 1.8, // Increased letter spacing for premium feel
-    textShadowColor: 'rgba(0, 0, 0, 0.4)', // Stronger shadow for depth
-    textShadowOffset: { width: 0, height: 3 },
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 4 },
     textShadowOpacity: 1,
-    textShadowRadius: 6,
+    textShadowRadius: 0,
   },
   taglineRefresh: {
-    fontSize: 16, // Slightly larger for better readability
-    fontWeight: '300', // Light weight for elegant contrast
-    color: 'rgba(255, 255, 255, 0.85)', // Slightly more transparent
-    marginBottom: 32, // 32px below tagline (spec compliance)
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.92)',
+    marginBottom: 16,
     textAlign: 'center',
     letterSpacing: 0.8, // More open letter spacing for readability
     lineHeight: 24, // Increased line height for breathing room
@@ -1584,43 +1312,82 @@ const styles = StyleSheet.create({
   },
   settingsGlyph: { color: '#fff', fontSize: 22, fontWeight: '600' },
   streakChip: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#FFD43B',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
+    marginBottom: 16,
+    borderBottomWidth: 3,
+    borderBottomColor: '#E0A800',
   },
-  streakChipText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  streakChipText: { color: '#5C3B00', fontWeight: '900', fontSize: 13 },
+  dailyWrap: {
+    width: '100%',
+    marginBottom: 28,
+    marginTop: 4,
+  },
+  dailyCardBack: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    top: 8,
+    bottom: -8,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    transform: [{ rotate: '-2deg' }],
+  },
   dailyCard: {
     width: '100%',
-    marginBottom: 20,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 18,
+    transform: [{ rotate: '1deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  dailyEyebrow: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  dailyText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
-    textAlign: 'center',
-    lineHeight: 24,
+  dailyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
+  dailyEyebrow: {
+    color: '#E0245E',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  dailyText: {
+    color: '#22163F',
+    fontSize: 18,
+    fontWeight: '800',
+    lineHeight: 25,
+  },
   dailyCta: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
+    color: '#7C5CFF',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  gameMenu: { width: '100%' },
+  menuSection: { width: '100%', marginBottom: 10 },
+  menuTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 12,
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 0,
+  },
+  tileGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   packsSectionTitle: {
     width: '100%',

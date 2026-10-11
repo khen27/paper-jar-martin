@@ -1,10 +1,10 @@
-// Adult Fun — Truth / Dare / Drink-or-embarrassing consequence.
+// Adult Fun — Classic: truth, dare, or cringe forfeit. No alcohol (see adult_drinks_dataset).
 // Flirty & bold, not explicit. Requires 18+ confirmation in the app.
 export const adultDataset = [
   {
     topic: {
-      cs: 'Adult Fun — pravda, výzva, drink',
-      en: 'Adult Fun — truth, dare, drink',
+      cs: 'Adult Fun — pravda, výzva, trapas',
+      en: 'Adult Fun — truth, dare, cringe',
     },
     questions: [
       { cs: 'Jaká je tvoje nejroztomilejší romantická trapnost?', en: 'What’s your cutest romantic fail?' },
@@ -21,14 +21,14 @@ export const adultDataset = [
       { cs: 'Jak by vypadal tvůj ideální večer ve dvou — bez klišé?', en: 'What would your ideal night for two look like — no clichés?' },
     ],
     crazy_questions: [
-      { cs: 'Pravda nebo drink: řekni, kdo v místnosti by byl nejhorší na rande — nebo si dej panáka / udělej 10 dřepů.', en: 'Truth or drink: say who’d be the worst date in the room — or take a sip / do 10 squats.' },
-      { cs: 'Pravda nebo trapas: přiznej svou nejhorší „viděl/a jsem tě“ historku — nebo ukaž poslední vhodnou fotku z galerie sousedovi nalevo.', en: 'Truth or cringe: confess your worst “I saw you” story — or show your last camera-roll photo (safe ones) to the person on your left.' },
-      { cs: 'Pravda nebo drink: kolik lidí jsi políbil/a za poslední rok? Odpověz — nebo připij / udělej trapas podle pravidel stolu.', en: 'Truth or drink: how many people have you kissed in the last year? Answer, or sip / take the table’s cringe forfeit.' },
-      { cs: 'Pravda nebo výzva: koho tady bys pozval/a na „kávu“, která není káva?', en: 'Truth or dare: who here would you invite for “coffee” that isn’t coffee?' },
-      { cs: 'Drink nebo přiznání: řekni svůj nejtrapnější úvod na rande — nebo připij.', en: 'Drink or confess: share your cringiest dating opener — or take a sip.' },
-      { cs: 'Pravda nebo trapas: jaká je tvoje „červená vlajka“, kterou ignoruješ? Přiznej, nebo zazpívej refrén nahlas.', en: 'Truth or cringe: what’s a red flag you ignore? Confess, or sing a chorus out loud.' },
-      { cs: 'Výzva k připití: každý, kdo teď myslí na někoho „jen jako na kamaráda“, připije.', en: 'Sip challenge: everyone currently thinking about someone “just as a friend” takes a sip.' },
-      { cs: 'Pravda nebo drink: jaké je tvoje nejméně romantické místo, kde jsi měl/a jiskru?', en: 'Truth or drink: what’s the least romantic place you’ve ever felt a spark?' },
+      { cs: 'Pravda, nebo trapas: kdo tady by byl nejhorší rande? Přiznej — nebo 10 sekund tancuj bez hudby.', en: 'Truth or cringe: who here would be the worst date? Confess — or dance with no music for 10 seconds.' },
+      { cs: 'Pravda, nebo trapas: přiznej svou nejhorší „viděl/a jsem tě“ historku — nebo ukaž sousedovi poslední fotku v galerii (kterou ukázat můžeš).', en: 'Truth or cringe: confess your worst “I saw you” story — or show your neighbor your last camera-roll photo (one you’re OK sharing).' },
+      { cs: 'Pravda, nebo trapas: kolik lidí jsi za poslední rok políbil/a? Odpověz — nebo zazpívej refrén nahlas.', en: 'Truth or cringe: how many people have you kissed in the last year? Answer — or sing a chorus out loud.' },
+      { cs: 'Pravda, nebo výzva: koho tady bys pozval/a na „kávu“, která není káva?', en: 'Truth or dare: who here would you invite for “coffee” that isn’t coffee?' },
+      { cs: 'Pravda, nebo trapas: řekni svou nejtrapnější úvodní hlášku — nebo ji teď použij na souseda.', en: 'Truth or cringe: share your cringiest opening line — or use it on your neighbor right now.' },
+      { cs: 'Pravda, nebo trapas: jakou „red flag“ ignoruješ? Přiznej — nebo mluv 20 sekund jako moderátor seznamky.', en: 'Truth or cringe: what red flag do you ignore? Confess — or talk like a dating-show host for 20 seconds.' },
+      { cs: 'Všichni, kdo teď myslí na někoho „jen jako na kamaráda“, zvedněte ruku. Upřímně.', en: 'Everyone currently thinking about someone “just as a friend” — raise your hand. Honestly.' },
+      { cs: 'Pravda, nebo trapas: kde je nejméně romantické místo, kde jsi cítil/a jiskru?', en: 'Truth or cringe: what’s the least romantic place you’ve ever felt a spark?' },
     ],
     challenges: [
       { cs: 'Pošli srdíčko (nebo emoji) někomu v kontaktech — a ukaž, komu.', en: 'Send a heart (or emoji) to someone in your contacts — and show who.' },
@@ -40,8 +40,8 @@ export const adultDataset = [
       { cs: 'Řekni toast na „špatná rozhodnutí“ — 10 sekund.', en: 'Make a 10-second toast to “bad decisions”.' },
       { cs: 'Předveď své nejhorší taneční pohyby na rande.', en: 'Show your worst date-night dance moves.' },
       { cs: 'Napiš na čelo (nebo papír) slovo, které tě vystihuje v noci venku.', en: 'Write on your forehead (or paper) a word that describes you on a night out.' },
-      { cs: 'Zavolej / nahlas řekni kompliment poslednímu člověku ve zprávách (bez odeslání, pokud nechceš).', en: 'Say a compliment out loud meant for the last person in your messages (sending optional).' },
-      { cs: 'Sedni si na klín někomu (se souhlasem) na jedno kolo — nebo si dej drink / 15 dřepů.', en: 'Sit on someone’s lap for one round (with consent) — or take a drink / 15 squats.' },
+      { cs: 'Řekni nahlas kompliment pro posledního člověka ve zprávách (odeslat ho nemusíš).', en: 'Say a compliment out loud meant for the last person in your messages (sending optional).' },
+      { cs: 'Sedni si někomu na klín na jedno kolo (se souhlasem) — nebo udělej 15 dřepů.', en: 'Sit on someone’s lap for one round (with consent) — or do 15 squats.' },
       { cs: 'Pravda nahlas: řekni, kdo tady má nejlepší „rande energii“.', en: 'Truth out loud: who here has the best “date energy”?' },
     ],
   },
