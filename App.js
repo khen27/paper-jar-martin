@@ -9,6 +9,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import HomeScreen from './screens/HomeScreen';
 import GameScreen from './screens/GameScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
@@ -18,6 +19,7 @@ import UpgradeScreen from './screens/UpgradeScreen';
 import InstallScreen from './screens/InstallScreen';
 import PartyScreen from './screens/PartyScreen';
 import KnowMeScreen from './screens/KnowMeScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -183,6 +185,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
+        <SettingsProvider>
         {/* On desktop browsers the app renders in a centered phone-width column */}
         <View style={styles.webFrame}>
         <View style={styles.root} onLayout={onLayoutRootView}>
@@ -200,6 +203,14 @@ export default function App() {
             <Stack.Screen
               name="Color"
               component={ColorScreen}
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
               options={{
                 presentation: 'modal',
                 headerShown: false,
@@ -276,6 +287,7 @@ export default function App() {
           )}
         </View>
         </View>
+        </SettingsProvider>
       </LanguageProvider>
     </ThemeProvider>
   );

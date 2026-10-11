@@ -12,7 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../translations';
+import { track } from '../utils/analytics';
+import { recordPlay } from '../utils/streaks';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { partyDataset } from '../party_dataset';
@@ -26,6 +29,7 @@ const DECK_KEY = 'party';
 const PartyScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
+  const { settings, updateSettings } = useSettings();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
 
   const [phase, setPhase] = useState('setup'); // setup | play
@@ -35,7 +39,7 @@ const PartyScreen = ({ navigation }) => {
   const [prompt, setPrompt] = useState(null);
   const [promptType, setPromptType] = useState('questions');
   const [secondsLeft, setSecondsLeft] = useState(TIMER_SECONDS);
-  const [timerOn, setTimerOn] = useState(true);
+  const timerOn = !!settings.partyTimerEnabled;
   const [burstKey, setBurstKey] = useState(0);
   const timerRef = useRef(null);
 
@@ -90,6 +94,8 @@ const PartyScreen = ({ navigation }) => {
     if (players.length < 2) return;
     setPhase('play');
     setTurnIndex(0);
+    track('party_started', { players: players.length, timer: timerOn });
+    recordPlay();
     await drawPrompt();
   };
 
@@ -165,13 +171,16 @@ const PartyScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.toggleRow}
-              onPress={() => setTimerOn((v) => !v)}
+              onPress={() => updateSettings({ partyTimerEnabled: !timerOn })}
               activeOpacity={0.8}
             >
               <Text style={styles.toggleText}>
                 {timerOn
                   ? t('timerOn', `⏱ ${TIMER_SECONDS}s timer on`)
-                  : t('timerOff', '⏱ Timer off')}
+                  : t('timerOff', '⏱ Timer off (default)')}
+              </Text>
+              <Text style={styles.toggleHint}>
+                {t('timerSettingsHint', 'Also in Settings — stays off unless you turn it on.')}
               </Text>
             </TouchableOpacity>
 
@@ -279,8 +288,14 @@ const styles = StyleSheet.create({
   },
   chipText: { color: '#fff', fontWeight: '600' },
   hint: { color: 'rgba(255,255,255,0.7)', marginTop: 12, fontSize: 13 },
-  toggleRow: { marginBottom: 16 },
-  toggleText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  toggleRow: { marginBottom: 16, alignItems: 'center' },
+  toggleText: { color: '#fff', fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  toggleHint: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   startBtn: { width: '100%', marginTop: 8 },
   skipBtn: { width: '100%', marginTop: 12 },
   passLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 16, marginTop: 8 },

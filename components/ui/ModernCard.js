@@ -34,6 +34,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: tokens.colors.surface.light,
     borderColor: tokens.colors.border.light,
+    // Slight lift so cards feel tappable without heavy shadows
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
   },
   
   // Variants

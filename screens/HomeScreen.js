@@ -18,8 +18,12 @@ import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } fr
 import { ModernCard, ModernButton, AppDialog } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { isInstalledApp } from '../utils/install';
 import { appWidth as width, appHeight as height } from '../utils/layout';
+import { getQuestionOfTheDay } from '../utils/dailyQuestion';
+import { getStreak, recordPlay } from '../utils/streaks';
+import { track } from '../utils/analytics';
 
 // Feature Flag for OtázoJar Refresh
 const OTAZO_JAR_REFRESH_ENABLED = true;
@@ -27,10 +31,14 @@ const OTAZO_JAR_REFRESH_ENABLED = true;
 const HomeScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
+  const { settings, updateSettings } = useSettings();
   const [displayText, setDisplayText] = useState('');
   const [selectedMode, setSelectedMode] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+  const [showAdultDialog, setShowAdultDialog] = useState(false);
+  const [streakCount, setStreakCount] = useState(0);
+  const [dailyQuestion, setDailyQuestion] = useState('');
   const homePackUnlocked = isInstalledApp();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const titleOpacity = useRef(new Animated.Value(0)).current;
@@ -196,10 +204,17 @@ const HomeScreen = ({ navigation }) => {
     
     const unsubscribe = navigation.addListener('focus', () => {
       loadFavorites();
+      getStreak().then((s) => setStreakCount(s.streak || 0));
     });
 
     return unsubscribe;
   }, [navigation, loadFavorites]);
+
+  useEffect(() => {
+    setDailyQuestion(getQuestionOfTheDay(language).text);
+    getStreak().then((s) => setStreakCount(s.streak || 0));
+    track('home_viewed', { language });
+  }, [language]);
 
   // One-time celebration the first time the app launches from a home-screen icon (web PWA)
   useEffect(() => {
@@ -445,6 +460,20 @@ const HomeScreen = ({ navigation }) => {
           </ModernButton>
         </Animated.View>
 
+        {/* Settings */}
+        <View style={[styles.topButtonContainer, styles.settingsButton]}>
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            onPress={() => navigation.navigate('Settings')}
+            style={styles.topButton}
+            accessibilityRole="button"
+            accessibilityHint="Open settings"
+          >
+            <Text style={styles.settingsGlyph}>⚙</Text>
+          </ModernButton>
+        </View>
+
         {/* Favorites Button */}
         <View style={[styles.topButtonContainer, styles.favoritesButton]}>
           <ModernButton
@@ -517,10 +546,40 @@ const HomeScreen = ({ navigation }) => {
             {translations[language]?.tagline || 'Spark meaningful conversations'}
           </Text>
 
+          {streakCount > 0 && (
+            <View style={styles.streakChip}>
+              <Text style={styles.streakChipText}>
+                🔥 {streakCount} {(translations[language]?.streakShort || 'day streak')}
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => {
+              recordPlay().then((s) => setStreakCount(s.streak || 0));
+              track('qotd_tapped');
+              navigation.navigate('Game', { gameMode: 'partner' });
+            }}
+            style={{ width: '100%' }}
+          >
+            <ModernCard variant="surface" size="md" style={styles.dailyCard}>
+              <Text style={styles.dailyEyebrow}>
+                {translations[language]?.questionOfDay || 'Question of the day'}
+              </Text>
+              <Text style={styles.dailyText} numberOfLines={3}>
+                {dailyQuestion}
+              </Text>
+              <Text style={styles.dailyCta}>
+                {translations[language]?.tapToPlay || 'Tap to play →'}
+              </Text>
+            </ModernCard>
+          </TouchableOpacity>
+
           {/* Game Mode Selection */}
           <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeContainerRefresh : styles.gameModeContainer}>
             <Text style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeTitleRefresh : styles.gameModeTitle}>
-              {translations[language]?.selectGameMode || 'Select Game Mode'}
+              {translations[language]?.selectGameMode || 'How do you want to play?'}
             </Text>
             
             <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.gameModeButtonsRefresh : styles.gameModeButtons}>
@@ -705,6 +764,82 @@ const HomeScreen = ({ navigation }) => {
                   </View>
                 </ModernCard>
               </TouchableOpacity>
+
+              <Text style={styles.packsSectionTitle}>
+                {translations[language]?.packsSection || 'Packs'}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  if (settings.adultConfirmed) {
+                    handleGameModeSelect('adult');
+                  } else {
+                    setShowAdultDialog(true);
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
+                  <View style={styles.modernButtonInner}>
+                    <View style={[styles.modernIconContainer, styles.adultIconBg]}>
+                      <Text style={styles.homePackEmoji}>🔥</Text>
+                    </View>
+                    <View style={styles.modernTextContainer}>
+                      <Text style={styles.modernGameModeText}>
+                        {translations[language]?.adultMode || 'Adult Fun'}
+                      </Text>
+                      <Text style={styles.modernGameModeSubtext}>
+                        {translations[language]?.adultModeSubtext ||
+                          '18+ · Truth, dare, drink or cringe'}
+                      </Text>
+                    </View>
+                  </View>
+                </ModernCard>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleGameModeSelect('workout')}
+                activeOpacity={0.8}
+              >
+                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
+                  <View style={styles.modernButtonInner}>
+                    <View style={[styles.modernIconContainer, styles.workoutIconBg]}>
+                      <Text style={styles.homePackEmoji}>💪</Text>
+                    </View>
+                    <View style={styles.modernTextContainer}>
+                      <Text style={styles.modernGameModeText}>
+                        {translations[language]?.workoutMode || 'Workout'}
+                      </Text>
+                      <Text style={styles.modernGameModeSubtext}>
+                        {translations[language]?.workoutModeSubtext ||
+                          'Moves, motivation & sweat-friendly prompts'}
+                      </Text>
+                    </View>
+                  </View>
+                </ModernCard>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleGameModeSelect('office')}
+                activeOpacity={0.8}
+              >
+                <ModernCard variant="surface" size="lg" style={styles.modernGameModeCard}>
+                  <View style={styles.modernButtonInner}>
+                    <View style={[styles.modernIconContainer, styles.officeIconBg]}>
+                      <Text style={styles.homePackEmoji}>💼</Text>
+                    </View>
+                    <View style={styles.modernTextContainer}>
+                      <Text style={styles.modernGameModeText}>
+                        {translations[language]?.officeMode || 'Office'}
+                      </Text>
+                      <Text style={styles.modernGameModeSubtext}>
+                        {translations[language]?.officeModeSubtext ||
+                          'Work-safe icebreakers for teams'}
+                      </Text>
+                    </View>
+                  </View>
+                </ModernCard>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -728,6 +863,30 @@ const HomeScreen = ({ navigation }) => {
           { text: translations[language]?.later || 'Later', style: 'cancel' },
         ]}
         onRequestClose={() => setShowUnlockDialog(false)}
+      />
+
+      <AppDialog
+        visible={showAdultDialog}
+        title={translations[language]?.adultGateTitle || 'Adult Fun · 18+'}
+        message={
+          translations[language]?.adultGateMsg ||
+          'Flirty truths, dares, and drink-or-cringe forfeits. Confirm you are 18 or older. Play with consent — skip anything you’re not into.'
+        }
+        buttons={[
+          {
+            text: translations[language]?.adultConfirm || "I'm 18+",
+            onPress: () => {
+              updateSettings({ adultConfirmed: true });
+              track('adult_confirmed');
+              handleGameModeSelect('adult');
+            },
+          },
+          {
+            text: translations[language]?.cancel || 'Cancel',
+            style: 'cancel',
+          },
+        ]}
+        onRequestClose={() => setShowAdultDialog(false)}
       />
     </View>
   );
@@ -1312,8 +1471,8 @@ const styles = StyleSheet.create({
 
   // Modern game mode card styles
   modernGameModeCard: {
-    minHeight: 80, // Reduced height
-    marginBottom: tokens.spacing.md, // Reduced margin
+    minHeight: 76,
+    marginBottom: tokens.spacing.sm,
   },
   modernButtonInner: {
     flexDirection: 'row',
@@ -1356,6 +1515,78 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(244, 114, 182, 0.55)',
     borderWidth: 2,
     borderColor: 'rgba(244, 114, 182, 1)',
+  },
+  adultIconBg: {
+    backgroundColor: 'rgba(248, 113, 113, 0.55)',
+    borderWidth: 2,
+    borderColor: 'rgba(248, 113, 113, 1)',
+  },
+  workoutIconBg: {
+    backgroundColor: 'rgba(52, 211, 153, 0.55)',
+    borderWidth: 2,
+    borderColor: 'rgba(52, 211, 153, 1)',
+  },
+  officeIconBg: {
+    backgroundColor: 'rgba(96, 165, 250, 0.55)',
+    borderWidth: 2,
+    borderColor: 'rgba(96, 165, 250, 1)',
+  },
+  settingsButton: {
+    right: Math.max(20, width * 0.05),
+    top: Math.max(170, height * 0.2),
+  },
+  settingsGlyph: { color: '#fff', fontSize: 22, fontWeight: '600' },
+  streakChip: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+  },
+  streakChipText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  dailyCard: {
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  dailyEyebrow: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  dailyText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  dailyCta: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  packsSectionTitle: {
+    width: '100%',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 8,
+    marginBottom: 12,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   modernGameModeText: {
     fontSize: tokens.typography.sizes.lg,

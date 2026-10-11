@@ -10,7 +10,7 @@ export const brnoDataset = [
       { cs: 'Kde bys vzal/a návštěvu z ciziny nejdřív: Brno, nebo Praha?', en: 'Where would you take a visitor first: Brno or Prague?' },
       { cs: 'Káva: kde dostaneš lepší flat white?', en: 'Coffee: where do you get the better flat white?' },
       { cs: 'Které město má lepší „lokální vibe“, který turisti nechápou?', en: 'Which city has the better local vibe that tourists miss?' },
-      { cs: 'Brněnský špekáček vs. pražská klobása — co vyhrává?', en: 'Brno sausage culture vs Prague sausage culture — who wins?' },
+      { cs: 'Brněnský špekáček vs. pražský párek — co vyhrává?', en: 'Brno sausage culture vs Prague sausage culture — who wins?' },
       { cs: 'Kde je lepší architektura na procházku?', en: 'Better architecture for a walk: Brno or Prague?' },
       { cs: 'Které město je přívětivější pro studenty?', en: 'Which city is kinder to students?' },
       { cs: 'Hokej / sport: které město má lepší fanoušky?', en: 'Sports fans: Brno or Prague — who is louder?' },

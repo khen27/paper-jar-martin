@@ -1,77 +1,55 @@
 # Paper Jar — Roadmap & Progress
 
-> This file is the single source of truth for progress. ✅ done · 🔨 in progress · ⬜ not started · ⏸️ deferred (with reason)
+> ✅ done · 🔨 in progress · ⬜ not started · ⏸️ deferred  
 > Last updated: 2026-10-11
 
 ## 🧪 Ready for you to test
 
-**Checkpoint 2 (2026-10-11): Fun modes (B2)** — test on both phones:
+**Checkpoint 3 (2026-10-11): Packs + Settings + Habit slice + polish**
 
-🔗 **Test link: https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**
-*(After deploy; hard-refresh or reinstall PWA if you still see the old home without Party.)*
+🔗 **https://snack-f1451e12-d578-45f1-80ba-3277e2f9f4ea.expo.app**  
+*(Hard-refresh or reinstall PWA — cache `v3`.)*
 
-1. **Home** shows **Party** and **How well do you know me?** (plus Brno for all languages).
-2. **Party:** add 2+ names → Start → see “Pass phone to [name]”, a question/dare, optional 30s timer → Next player rotates.
-3. **How well do you know me?:** enter two names → Player A locks a secret answer → pass to B → B guesses → reveal + score after 6 rounds.
-4. **Brno vs. Prague:** questions should be about the city rivalry (not generic icebreakers).
-5. **Partner/Friends:** tap the lightbulb — a real hint tip appears under the question.
-6. **Partner/Friends:** each new question should show a short confetti burst.
-7. **Splash:** after ~4s the splash should disappear and taps should work (web fix).
+1. **Settings (⚙)** — Party timer is **off by default**; toggle it on, then open Party and confirm timer appears. Toggle off and confirm it stays off.
+2. **Party setup** — timer row says off by default; changing it syncs with Settings.
+3. **Packs:** Adult Fun (18+ gate once), Workout, Office — each draws pack-specific prompts.
+4. **Adult Fun** — confirm dialog; truths / dares / drink-or-cringe; not explicit.
+5. **Workout** — movement challenges + fitness questions (inclusive tone).
+6. **Office** — work-safe; no romance/alcohol/politics.
+7. **Home polish** — Question of the day card, streak chip after you play, clearer Packs section.
+8. **Streak** — play any mode, reopen home/settings — streak increments for today.
+9. **Language CS/EN** — pack titles and gate copy look natural.
 
-**Rollback:** tell me the checklist item number and I’ll adjust or revert that piece.
+**Rollback:** cite checklist # and I’ll adjust that piece.
 
 ## 🙋 Needs you
 
-- ⬜ **Accept the Xcode license:** `sudo xcodebuild -license accept`
-- ⬜ **Native-speaker review** of Czech + English question content (before public launch)
-- ⬜ **Fun test:** 10–20 couples/friends play ≥15 min unprompted (gate before B3)
-- ⬜ **Sign-ups** (from B3): Supabase, RevenueCat/Paddle, PostHog, domain
+- ⬜ Xcode license: `sudo xcodebuild -license accept`
+- ⬜ Supabase + PostHog + RevenueCat/Paddle + domain (for full cloud B3/B5)
+- ⬜ Fun test with real groups (B2 gate)
 
 ---
 
-## Milestone 0 — Decisions & foundations
-- ✅ App name: **Paper Jar**
-- ✅ Markets: Czech + English
-- ✅ Pricing / install reward / Spicy decisions locked
-- ⬜ Domain + social handles
-- ⬜ ToS / privacy (GDPR)
+## Milestone B1 / B1.5 / B2
+- ✅ Complete (PRs #22, #23)
 
-## Milestone B1 — Installable web app + core polish
-- ✅ Complete (see Checkpoint 1 history / PR #22)
-
-## Milestone B1.5 — Install-to-unlock
-- ✅ Complete
-
-## Milestone B2 — Fun & game modes
-- ✅ Party mode (pass-the-phone: turns, dares, timer)
-- ✅ "How well do you know me?" with score card
-- ✅ Brno vs. Prague: real rivalry questions (CS + EN)
-- ✅ Hint button shows real conversation tips
-- ✅ Confetti on question reveal
-- ✅ Splash overlay failsafe on web
-- ⬜ **FUN TEST GATE:** 10–20 couples play ≥15 min unprompted
+## Milestone B2.5 — Packs, settings, UX (this checkpoint)
+- ✅ Party timer in Settings, **off by default**
+- ✅ Adult Fun (18+), Workout, Office packs
+- ✅ UX polish: QOTD, streaks chip, packs section, card lift, denser mode cards
+- ✅ CS+EN content pass on new packs + Brno rivalry already bilingual
 
 ## Milestone B3 — Accounts & analytics
-- ⬜ Anonymous Supabase accounts, email magic-link upgrade
-- ⬜ Favorites/progress/rewards sync
-- ⬜ PostHog events
+- ✅ Local analytics event queue (`utils/analytics.js`) ready for PostHog
+- ✅ Play events tracked (home, game, party, know-me, adult confirm)
+- ⏸️ Cloud anonymous accounts — needs Supabase keys from you
+- ⏸️ PostHog flush — needs project key from you
 
 ## Milestone B4 — Habit
-- ⬜ Question of the day (web push)
-- ⬜ Streaks + weekly freeze
-- ⬜ Weekly pack drop
+- ✅ Question of the day (stable daily pick from main deck)
+- ✅ Local streaks + weekly freeze (`utils/streaks.js`)
+- ⏸️ Web push notifications — needs permission UX + service later
+- ⏸️ Weekly pack drop automation — later
 
-## Milestone B5 — Freemium & payments
-- ⬜ Pack system + paywall + Spicy 18+ + legal
-
-## Milestone B6 — Virality
-- ⬜ Share cards, question links, voting, referrals
-
-## Milestone B8 — Soft launch (CZ + EN)
-- ⬜ Creators + experiments + retention targets
-
-## Milestone B7 — Remote play (post-launch if justified)
-- ⬜ Supabase Realtime rooms
-
-## Milestone B9 — Native apps
-- ⬜ EAS builds, IAP, widgets, New Architecture
+## Milestone B5+ 
+- ⬜ Freemium payments, virality, soft launch, remote play, native

@@ -27,9 +27,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { getLocalizedText } from '../utils/i18n';
 import { isRTL } from '../utils/rtl';
 import { bonusDataset } from '../bonus_dataset';
+import { adultDataset } from '../adult_dataset';
+import { workoutDataset } from '../workout_dataset';
+import { officeDataset } from '../office_dataset';
 import { flattenDataset, initBag, nextIndex } from '../utils/questionBag';
 import { appWidth as width } from '../utils/layout';
 import ConfettiBurst from '../components/ConfettiBurst';
+import { track } from '../utils/analytics';
+import { recordPlay } from '../utils/streaks';
 
 const glassImage = require('../assets/glass.png');
 
@@ -177,12 +182,26 @@ const GameScreen = ({ route, navigation }) => {
     } else if (gameMode === 'homePack') {
       key = 'homePack';
       data = bonusDataset;
+    } else if (gameMode === 'adult') {
+      key = 'adult';
+      data = adultDataset;
+    } else if (gameMode === 'workout') {
+      key = 'workout';
+      data = workoutDataset;
+    } else if (gameMode === 'office') {
+      key = 'office';
+      data = officeDataset;
     } else {
       key = 'main';
       data = ACTIVE_DATASET;
     }
     return { key, data, refs: flattenDataset(data) };
   }, [gameMode, language]);
+
+  useEffect(() => {
+    track('game_opened', { gameMode });
+    recordPlay();
+  }, [gameMode]);
 
   // Draw the next question from the shuffle bag (no repeats until the deck is exhausted).
   const getRandomQuestion = () => {
@@ -604,7 +623,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 28,
     alignItems: 'center',
   },
   gameModeDisplay: {
