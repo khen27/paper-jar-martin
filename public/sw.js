@@ -1,5 +1,5 @@
 /* Talk Trap service worker: cache-first for same-origin requests, so the app works offline. */
-const CACHE_NAME = 'paper-jar-v7';
+const CACHE_NAME = 'paper-jar-v8';
 const PRECACHE = ['/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
