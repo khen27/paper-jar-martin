@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
 import FunIcon from '../components/FunIcon';
+import StarJar from '../components/StarJar';
 import { translations } from '../translations';
 import { applyPath } from '../utils/experiment';
 import {
@@ -57,7 +58,7 @@ const JobSelect = ({ navigation }) => {
     <View style={[styles.hero, heroSplit ? styles.left : styles.center]}>
       {!heroSplit && <Text style={styles.wordmark}>Talk Trap</Text>}
       <View style={styles.iconWrap}>
-        <FunIcon name="jar" size={heroSplit ? 88 : 56} />
+        <StarJar size={heroSplit ? 88 : 64} interactive={false} />
       </View>
       <Eyebrow>{t('jobEyebrow', 'Preview for Martin')}</Eyebrow>
       <Text

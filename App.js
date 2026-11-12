@@ -24,6 +24,7 @@ import CustomCardsScreen from './screens/CustomCardsScreen';
 import LegalScreen from './screens/LegalScreen';
 import JourneyIntroScreen from './journey/IntroScreen';
 import { withScreenFrame } from './components/ScreenFrame';
+import StarJar from './components/StarJar';
 
 const Stack = createStackNavigator();
 
@@ -274,16 +275,17 @@ export default function App() {
                 style={styles.overlayBg}
                 resizeMode="cover"
               />
-              <Animated.Image
-                source={require('./assets/jar-fluent-3d-1024.png')}
+              <Animated.View
                 style={{
                   width: glassSize,
                   height: glassSize,
                   opacity: glassOpacity,
                   transform: [{ scale: glassScale }],
-                  resizeMode: 'contain',
+                  overflow: 'visible',
                 }}
-              />
+              >
+                <StarJar variant="loop" size={glassSize} />
+              </Animated.View>
 
               {/* Confetti */}
               <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -340,6 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
+    overflow: 'visible',
   },
   overlayBg: {
     ...StyleSheet.absoluteFillObject,

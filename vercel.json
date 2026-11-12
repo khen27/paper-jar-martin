@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!_expo/|assets/|icons/|favicon.ico|manifest.json|sw.js).*)",
+      "source": "/((?!_expo/|assets/|icons/|star-jar/|favicon.ico|manifest.json|sw.js).*)",
       "destination": "/index.html"
     }
   ],

@@ -40,6 +40,7 @@ import JobSelect from '../journey/JobSelect';
 import PreviewSwitcher from '../journey/PreviewSwitcher';
 import ExitSurvey from '../journey/ExitSurvey';
 import FunIcon from '../components/FunIcon';
+import StarJar from '../components/StarJar';
 import { clearPath } from '../utils/experiment';
 
 // Feature Flag for OtázoJar Refresh
@@ -578,33 +579,17 @@ const ClassicHomeScreen = ({ navigation, homeLayout = 'full' }) => {
             ]}
           >
           <View style={splitLayout ? styles.heroColumn : styles.heroStack}>
-            <Animated.Image
-            source={require('../assets/jar-fluent-3d-1024.png')}
-            style={[
-              OTAZO_JAR_REFRESH_ENABLED ? styles.jarIconRefresh : styles.glassImage,
-              isWide && { width: fs(150), height: fs(150) },
-              {
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    rotate: glassRotation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['-3deg', '3deg'],
-                    }),
-                  },
-                  { 
-                    scale: OTAZO_JAR_REFRESH_ENABLED 
-                      ? jarScale.interpolate({
-                          inputRange: [0.9, 1],
-                          outputRange: [0.9, 1],
-                        })
-                      : fadeAnim 
-                  },
-                ],
-              },
-            ]}
-            resizeMode="contain"
-          />
+            <Animated.View style={[styles.jarWrap, { opacity: fadeAnim }]}>
+              <StarJar
+                size={isWide ? fs(200) : Math.min(width * 0.44, 200)}
+                interactive
+                onPeak={() => {
+                  recordPlay().then((s) => setStreakCount(s.streak || 0));
+                  track('jar_pulled');
+                  navigation.navigate('Game', { gameMode: 'partner', fromJar: true });
+                }}
+              />
+            </Animated.View>
 
           <View style={OTAZO_JAR_REFRESH_ENABLED ? styles.titleContainerRefresh : styles.titleContainer}>
             <Text style={[OTAZO_JAR_REFRESH_ENABLED ? styles.titleRefresh : styles.title, isWide && { fontSize: fs(44) }]}>
@@ -1122,6 +1107,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: Math.max(20, height * 0.03),
+    overflow: 'visible',
+  },
+  jarWrap: {
+    overflow: 'visible',
+    marginBottom: 10,
+    paddingTop: 16,
   },
   jarIconRefresh: {
     width: Math.min(width * 0.26, 132),
@@ -1620,8 +1611,8 @@ const styles = StyleSheet.create({
   topBarGroup: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   contentWide: { paddingHorizontal: 32, paddingTop: 16 },
   splitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 48 },
-  heroStack: { width: '100%', alignItems: 'center' },
-  heroColumn: { width: '36%', alignItems: 'center', paddingTop: 24 },
+  heroStack: { width: '100%', alignItems: 'center', overflow: 'visible' },
+  heroColumn: { width: '36%', alignItems: 'center', paddingTop: 24, overflow: 'visible' },
   menuColumn: { flex: 1, width: undefined },
   taglineWide: { paddingHorizontal: 0, fontSize: 18 },
   dailyWrapCentered: { maxWidth: 560, alignSelf: 'center' },

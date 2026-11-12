@@ -34,6 +34,7 @@ import DrinkTally from '../components/DrinkTally';
 import AdModal from '../components/AdModal';
 import SeasonalDecor from '../components/SeasonalDecor';
 import FunIcon from '../components/FunIcon';
+import StarJar from '../components/StarJar';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
 import { markSessionPlayed } from '../utils/experiment';
@@ -43,7 +44,6 @@ import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 import { isDeckLocked, FREE_SAMPLE_CARDS, favoritesLimit, hasPremium } from '../utils/entitlements';
 import { shareCard } from '../utils/share';
 
-const glassImage = require('../assets/jar-fluent-3d-1024.png');
 
 const buzz = () => {
   try {
@@ -72,12 +72,15 @@ const GameScreen = ({ route, navigation }) => {
   const gameMode = route.params?.gameMode || 'partner';
   const variant = route.params?.variant === 'drinks' ? 'drinks' : 'classic';
   const startCard = route.params?.startCard;
+  const fromJar = !!route.params?.fromJar;
   const deckLocked = isDeckLocked(gameMode, variant, settings);
   const modeTitle = t(`${gameMode}Mode`, `${gameMode} Mode`);
   const [questionType, setQuestionType] = useState('questions');
   const [burstKey, setBurstKey] = useState(0);
   const [cardCount, setCardCount] = useState(0);
   const cardPop = useRef(new Animated.Value(1)).current;
+  const fromJarY = useRef(new Animated.Value(0)).current;
+  const usedJarEntrance = useRef(false);
   const cardMeta = getCardTypeMeta(questionType, variant, language);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -224,8 +227,18 @@ const GameScreen = ({ route, navigation }) => {
       setShowHints(false);
       setBurstKey((k) => k + 1);
       setCardCount((n) => n + 1);
-      cardPop.setValue(0.85);
-      Animated.spring(cardPop, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
+      if (fromJar && !usedJarEntrance.current) {
+        usedJarEntrance.current = true;
+        cardPop.setValue(0.42);
+        fromJarY.setValue(-110);
+        Animated.parallel([
+          Animated.spring(cardPop, { toValue: 1, friction: 5, tension: 140, useNativeDriver: true }),
+          Animated.spring(fromJarY, { toValue: 0, friction: 6, tension: 90, useNativeDriver: true }),
+        ]).start();
+      } else {
+        cardPop.setValue(0.85);
+        Animated.spring(cardPop, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
+      }
 
       const cleanedText = getLocalizedText(questionObject, language);
       logAction('QUESTION_GENERATED', {
@@ -539,12 +552,10 @@ const GameScreen = ({ route, navigation }) => {
               </Text>
             </View>
           )}
-          {/* Glass Image */}
-          <Animated.Image
-            source={glassImage}
+          <Animated.View
             style={[
               styles.glassImage,
-              { width: fs(130), height: fs(130) },
+              { width: fs(130), height: fs(130), overflow: 'visible' },
               {
                 transform: [
                   {
@@ -556,8 +567,9 @@ const GameScreen = ({ route, navigation }) => {
                 ],
               },
             ]}
-            resizeMode="contain"
-          />
+          >
+            <StarJar size={fs(130)} interactive={false} />
+          </Animated.View>
 
           {/* Premium Question Box with Swipe Gesture */}
           <Animated.View
@@ -571,7 +583,7 @@ const GameScreen = ({ route, navigation }) => {
             ]}
             {...panResponder.panHandlers}
           >
-            <Animated.View style={[styles.playingCard, { transform: [{ scale: cardPop }] }]}>
+            <Animated.View style={[styles.playingCard, { transform: [{ translateY: fromJarY }, { scale: cardPop }] }]}>
               <LinearGradient
                 colors={cardMeta.colors}
                 start={{ x: 0, y: 0 }}

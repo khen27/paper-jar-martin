@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/jar-fluent-3d-1024.png",
+        "foregroundImage": "./assets/star-jar/layers/00-full.png",
         "backgroundColor": "#FF6B6B"
       },
       "edgeToEdgeEnabled": true,

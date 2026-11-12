@@ -1,0 +1,33 @@
+{
+  "canvas": "square, all layers share it; values are % from top-left",
+  "pivots": {
+    "jarBase": {
+      "x": 52.03,
+      "y": 89.94
+    },
+    "jarCenter": {
+      "x": 52.01,
+      "y": 63.81
+    },
+    "jarMouth": {
+      "x": 51.98,
+      "y": 37.02
+    },
+    "lidCenter": {
+      "x": 39.35,
+      "y": 20.17
+    },
+    "heroCenter": {
+      "x": 67.85,
+      "y": 31.05
+    },
+    "sparkCenter": {
+      "x": 80.01,
+      "y": 16.05
+    },
+    "starsCenter": {
+      "x": 52.01,
+      "y": 62.6
+    }
+  }
+}

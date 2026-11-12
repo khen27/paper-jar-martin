@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Star Jar – animated icon demo</title>
+<style>
+  :root { --bg: #66344a; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; gap: 24px;
+         background: var(--bg); font-family: system-ui, sans-serif; color: #fff; }
+  .row { display: flex; gap: 48px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .label { text-align: center; opacity: .75; font-size: 13px; margin-top: 8px; }
+
+  /* ---------- the layered icon ---------- */
+  .jar { position: relative; width: 320px; aspect-ratio: 1; cursor: pointer;
+         -webkit-tap-highlight-color: transparent; animation: jar-bob 3.2s ease-in-out infinite; }
+  .jar img, .jar .sparkle { position: absolute; inset: 0; width: 100%; height: 100%;
+         pointer-events: none; user-select: none; will-change: transform; }
+
+  /* pivots come from pivots.json (percent of the square canvas) */
+  .jar .body   { position: absolute; inset: 0; transform-origin: 52.03% 89.94%; } /* jarBase  */
+  .jar .lid    { transform-origin: 39.35% 20.17%; }                                 /* lidCenter */
+  .jar .hero   { transform-origin: 67.85% 31.05%; animation: hero-float 2.6s ease-in-out infinite; }
+  .jar .spark  { transform-origin: 80.01% 16.05%; animation: spark-twinkle 2.4s ease-in-out infinite; }
+  .jar .stars  { transform-origin: 52.01% 62.60%; }
+
+  .jar .sparkle { background: url(sparkle.png) center/contain no-repeat; inset: auto;
+                  width: 9%; height: 9%; opacity: 0; animation: twinkle 2.8s ease-in-out infinite; }
+  .s1 { left: 14%; top: 48%; animation-delay: .2s !important; }
+  .s2 { left: 84%; top: 56%; animation-delay: 1.1s !important; width: 7% !important; height: 7% !important; }
+  .s3 { left: 63%; top: 5%;  animation-delay: 1.9s !important; width: 6% !important; height: 6% !important; }
+
+  /* ---------- idle loops ---------- */
+  @keyframes jar-bob     { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-1.5%) } }
+  @keyframes hero-float  { 0%,100% { transform: translateY(0) rotate(0) } 50% { transform: translateY(-2%) rotate(-6deg) } }
+  @keyframes spark-twinkle { 0%,100% { transform: scale(1) rotate(0) } 50% { transform: scale(1.18) rotate(18deg) } }
+  @keyframes twinkle { 0%,100% { opacity: 0; transform: scale(.4) rotate(0) } 45% { opacity: 1; transform: scale(1) rotate(45deg) } 70% { opacity: 0; transform: scale(.5) rotate(90deg) } }
+
+  /* ---------- tap: pop! (add .pop to .jar, remove on animationend) ---------- */
+  .jar.pop .body  { animation: squash .9s cubic-bezier(.3,.7,.3,1) both; }
+  .jar.pop .stars { animation: jiggle .9s ease-out both; }
+  .jar.pop .lid   { animation: lid-pop 1.05s cubic-bezier(.3,.7,.35,1) both; }
+  .jar.pop .hero  { animation: hero-shoot 1.05s cubic-bezier(.25,.8,.3,1) both; }
+  .jar.pop .spark { animation: spark-burst .9s ease-out both; }
+
+  @keyframes squash {
+    0%   { transform: scale(1,1) }
+    18%  { transform: scale(1.06,.9) }
+    38%  { transform: scale(.95,1.08) }
+    58%  { transform: scale(1.02,.98) }
+    100% { transform: scale(1,1) }
+  }
+  @keyframes jiggle {
+    0%,15% { transform: translateY(0) rotate(0) }
+    35%  { transform: translateY(-4%) rotate(-2deg) }
+    55%  { transform: translateY(1%) rotate(1deg) }
+    75%  { transform: translateY(-.6%) rotate(-.4deg) }
+    100% { transform: translateY(0) rotate(0) }
+  }
+  @keyframes lid-pop {
+    0%   { transform: translate(0,0) rotate(0) }
+    15%  { transform: translate(0,1%) rotate(0) }
+    42%  { transform: translate(-4%,-16%) rotate(-24deg) }
+    62%  { transform: translate(-1%,-4%) rotate(-4deg) }
+    72%  { transform: translate(0,0) rotate(0) }
+    80%  { transform: translate(0,-3%) rotate(-2deg) }
+    90%,100% { transform: translate(0,0) rotate(0) }
+  }
+  @keyframes hero-shoot {
+    0%   { transform: translate(0,0) rotate(0) scale(1) }
+    15%  { transform: translate(0,2%) rotate(0) scale(.94) }
+    45%  { transform: translate(-3%,-20%) rotate(260deg) scale(1.2) }
+    70%  { transform: translate(0,1%) rotate(360deg) scale(.97) }
+    82%  { transform: translate(0,-3%) rotate(360deg) scale(1.02) }
+    100% { transform: translate(0,0) rotate(360deg) scale(1) }
+  }
+  @keyframes spark-burst {
+    0%,20% { transform: scale(1) rotate(0) }
+    40%  { transform: scale(1.7) rotate(40deg) }
+    65%  { transform: scale(.9) rotate(60deg) }
+    100% { transform: scale(1) rotate(72deg) }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .jar, .jar * { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div>
+      <div class="jar" id="jar" role="button" tabindex="0" aria-label="Pull a card">
+        <div class="body">
+          <img src="layers/01-glass-back.png" alt="" />
+          <img class="stars" src="layers/02-stars.png" alt="" />
+          <img src="layers/03-glass-front.png" alt="" />
+        </div>
+        <img class="lid"   src="layers/04-lid.png" alt="" />
+        <img class="hero"  src="layers/05-hero-star.png" alt="" />
+        <img class="spark" src="layers/06-spark-star.png" alt="" />
+        <span class="sparkle s1"></span><span class="sparkle s2"></span><span class="sparkle s3"></span>
+      </div>
+      <div class="label">Layered PNGs + CSS · tap it</div>
+    </div>
+    <div>
+      <img src="anim/jar-loop-320.webp" width="320" height="320" alt="Animated star jar" />
+      <div class="label">Blender loop · animated WebP</div>
+    </div>
+  </div>
+
+<script>
+  const jar = document.getElementById('jar');
+  const pop = () => {
+    if (jar.classList.contains('pop')) return;
+    jar.classList.add('pop');
+    // the hero star peaks ~45% into its 1.05s animation: good moment to reveal the card
+    setTimeout(() => jar.dispatchEvent(new CustomEvent('jarpeak')), 470);
+    jar.querySelector('.hero').addEventListener('animationend', () => jar.classList.remove('pop'), { once: true });
+  };
+  jar.addEventListener('click', pop);
+  jar.addEventListener('keydown', e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pop()));
+  jar.addEventListener('jarpeak', () => console.log('peak → show card'));
+</script>
+</body>
+</html>

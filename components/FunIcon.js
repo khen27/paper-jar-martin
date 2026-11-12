@@ -37,7 +37,7 @@ const ICONS = {
   spider: require('../assets/icons3d/spider.png'),
   soft: require('../assets/icons3d/soft.png'),
   newyear: require('../assets/icons3d/newyear.png'),
-  jar: require('../assets/jar-fluent-3d-1024.png'),
+  jar: require('../assets/star-jar/layers-webp/00-full.webp'),
 };
 
 export const hasFunIcon = (name) => !!ICONS[name];
