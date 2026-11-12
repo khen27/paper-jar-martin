@@ -1,0 +1,7 @@
+# Expo web export keeps hashed fonts/icons under dist/assets/node_modules.
+# Root .gitignore ignores every node_modules folder, so un-ignore this path
+# or Vercel ships a black screen (useFonts never resolves).
+!dist/assets/node_modules/
+!dist/assets/node_modules/**
+!assets/node_modules/
+!assets/node_modules/**

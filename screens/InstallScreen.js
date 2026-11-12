@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
 import { getWebPlatform } from '../utils/install';
+import FunIcon from '../components/FunIcon';
 
 const Step = ({ number, text }) => (
   <View style={styles.stepRow}>
@@ -48,7 +49,7 @@ const InstallScreen = ({ navigation }) => {
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.emoji}>⭐</Text>
+          <FunIcon name="homePack" size={72} style={styles.emoji} />
           <Text style={styles.title}>{t('installTitle', 'Unlock the Golden Jar')}</Text>
           <Text style={styles.subtitle}>
             {t(
@@ -68,7 +69,7 @@ const InstallScreen = ({ navigation }) => {
 
           {(platform === 'android' || platform === 'desktop' || platform === 'other') && (
             <ModernCard variant="surface" size="lg" style={styles.card}>
-              <Text style={styles.cardTitle}>🤖 Android</Text>
+              <Text style={styles.cardTitle}>Android</Text>
               {androidSteps.map((text, i) => (
                 <Step key={i} number={i + 1} text={text} />
               ))}
@@ -76,7 +77,7 @@ const InstallScreen = ({ navigation }) => {
           )}
 
           <Text style={styles.footer}>
-            {t('installFooter', 'Once added, open Talk Trap from the new icon — the pack unlocks automatically. 🎉')}
+            {t('installFooter', 'Once added, open Talk Trap from the new icon — the pack unlocks automatically.')}
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: { paddingHorizontal: 16, paddingVertical: 8 },
   scrollContent: { padding: 24, alignItems: 'center' },
-  emoji: { fontSize: 56, marginBottom: 12 },
+  emoji: { marginBottom: 12 },
   title: {
     fontSize: 26,
     fontWeight: '800',

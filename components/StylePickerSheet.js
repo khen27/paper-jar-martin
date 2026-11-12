@@ -3,8 +3,9 @@ import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native
 import { LinearGradient } from 'expo-linear-gradient';
 import { useResponsive } from '../utils/responsive';
 import FunIcon, { hasFunIcon } from './FunIcon';
+import { styleOptionsFor } from '../utils/modeStyles';
 
-const StyleOption = ({ icon, title, desc, chips, colors, onPress }) => {
+const StyleOption = ({ icon, title, desc, chips, colors, t, locked, onPress }) => {
   const scale = useRef(new Animated.Value(1)).current;
   return (
     <Pressable
@@ -23,12 +24,16 @@ const StyleOption = ({ icon, title, desc, chips, colors, onPress }) => {
         <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.option}>
           <FunIcon name={icon} size={58} style={styles.optionIcon} />
           <View style={styles.optionText}>
-            <Text style={styles.optionTitle}>{title}</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.optionTitle}>{title}</Text>
+              {locked ? <FunIcon name="crown" size={18} /> : null}
+            </View>
             <Text style={styles.optionDesc}>{desc}</Text>
             <View style={styles.chips}>
               {chips.map((c) => (
-                <View key={c} style={styles.chip}>
-                  <Text style={styles.chipText}>{c}</Text>
+                <View key={c.labelKey || c.label} style={styles.chip}>
+                  <FunIcon name={c.icon} size={14} />
+                  <Text style={styles.chipText}>{t(c.labelKey, c.label)}</Text>
                 </View>
               ))}
             </View>
@@ -40,12 +45,23 @@ const StyleOption = ({ icon, title, desc, chips, colors, onPress }) => {
 };
 
 /**
- * Bottom sheet that asks how to play a mode: Classic (talk & challenges) or Drinks.
+ * Bottom sheet that asks how to play a mode: Classic vs Drinks, or the
+ * Office/Workout special pair (Huddle / Intense).
  */
-const StylePickerSheet = ({ visible, modeEmoji, modeIcon, modeTitle, t, onPick, onClose, lockedVariants = [] }) => {
+const StylePickerSheet = ({
+  visible,
+  mode,
+  modeIcon,
+  modeTitle,
+  t,
+  onPick,
+  onClose,
+  lockedVariants = [],
+}) => {
   const slide = useRef(new Animated.Value(0)).current;
   const { isWide } = useResponsive();
-  const lockMark = (v) => (lockedVariants.includes(v) ? ' 👑' : '');
+  const options = styleOptionsFor(mode);
+  const showDrinksFooter = options.some((o) => o.id === 'drinks');
 
   useEffect(() => {
     if (visible) {
@@ -75,40 +91,34 @@ const StylePickerSheet = ({ visible, modeEmoji, modeIcon, modeTitle, t, onPick, 
             {hasFunIcon(modeIcon) ? (
               <FunIcon name={modeIcon} size={64} style={styles.modeIcon} />
             ) : (
-              <Text style={styles.modeEmoji}>{modeEmoji}</Text>
+              <FunIcon name="gift" size={64} style={styles.modeIcon} />
             )}
             <Text style={styles.title}>{modeTitle}</Text>
             <Text style={styles.subtitle}>{t('stylePickerTitle', 'How do you want to play?')}</Text>
 
-            <StyleOption
-              icon="classic"
-              title={t('classicTitle', 'Classic') + lockMark('classic')}
-              desc={t('classicDesc', 'Talk, laugh and do funny challenges.')}
-              chips={[
-                `💬 ${t('typeQuestion', 'Question')}`,
-                `🤪 ${t('typeWild', 'Wild card')}`,
-                `🎯 ${t('typeDare', 'Dare')}`,
-              ]}
-              colors={['#7C5CFF', '#4B32C3']}
-              onPress={() => onPick('classic')}
-            />
+            {options.map((o) => (
+              <StyleOption
+                key={o.id}
+                icon={o.icon}
+                title={t(o.titleKey, o.title)}
+                desc={t(o.descKey, o.desc)}
+                chips={o.chips}
+                colors={o.colors}
+                t={t}
+                locked={lockedVariants.includes(o.id)}
+                onPress={() => onPick(o.id)}
+              />
+            ))}
 
-            <StyleOption
-              icon="drinks"
-              title={t('drinksTitle', 'Drinks') + lockMark('drinks')}
-              desc={t('drinksDesc', 'Answer or drink. Vote together — the winner drinks.')}
-              chips={[
-                `🍻 ${t('typeAnswerOrDrink', 'Answer or drink')}`,
-                `🗳️ ${t('typeVote', 'Vote')}`,
-                `🎯 ${t('typeDoOrDrink', 'Do it or drink')}`,
-              ]}
-              colors={['#FFB020', '#E86A00']}
-              onPress={() => onPick('drinks')}
-            />
-
-            <Text style={styles.footer}>
-              {t('drinksFooter', '18+ for alcohol. Soft drinks count too — drink responsibly.')}
-            </Text>
+            {showDrinksFooter ? (
+              <Text style={styles.footer}>
+                {t('drinksFooter', '18+ for alcohol. Soft drinks count too — drink responsibly.')}
+              </Text>
+            ) : (
+              <Text style={styles.footer}>
+                {t('styleFooterSafe', 'No drinks in this mode. Pick the energy that fits the room.')}
+              </Text>
+            )}
           </Pressable>
         </Animated.View>
       </Pressable>
@@ -143,7 +153,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
     marginBottom: 12,
   },
-  modeEmoji: { fontSize: 44, textAlign: 'center' },
   title: { color: '#fff', fontSize: 26, fontWeight: '900', textAlign: 'center', marginTop: 4 },
   subtitle: {
     color: 'rgba(255,255,255,0.7)',
@@ -167,20 +176,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 24,
     padding: 16,
+    minHeight: 132,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
   },
   optionIcon: { marginRight: 12 },
   modeIcon: { alignSelf: 'center' },
   optionText: { flex: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   optionTitle: { color: '#fff', fontSize: 22, fontWeight: '900' },
   optionDesc: { color: 'rgba(255,255,255,0.95)', fontSize: 14, fontWeight: '600', marginTop: 2, lineHeight: 19 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: 'rgba(0,0,0,0.18)',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 10,
+    height: 26,
   },
   chipText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   footer: {

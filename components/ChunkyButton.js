@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import FunIcon from './FunIcon';
 
 /**
  * Big white "game" button with a 3D bottom edge that squishes when pressed.
  */
-const ChunkyButton = ({ title, onPress, disabled = false, style }) => (
+const ChunkyButton = ({ title, onPress, disabled = false, style, icon }) => (
   <Pressable
     onPress={onPress}
     disabled={disabled}
@@ -17,11 +18,15 @@ const ChunkyButton = ({ title, onPress, disabled = false, style }) => (
       style,
     ]}
   >
-    <Text style={styles.text}>{title}</Text>
+    <View style={styles.inner}>
+      {!!icon && <FunIcon name={icon} size={22} />}
+      <Text style={styles.text}>{title}</Text>
+    </View>
   </Pressable>
 );
 
 const styles = StyleSheet.create({
+  inner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   btn: {
     backgroundColor: '#FFFFFF',
     borderRadius: 30,

@@ -63,7 +63,7 @@ const UpgradeScreen = ({ navigation, route }) => {
     track(PAYMENTS_LIVE ? 'paywall_purchase' : 'paywall_free_trial', { plan, reason });
     updateSettings({ premiumUnlocked: true, premiumPlan: plan });
     setDialog({
-      title: t('premiumWelcome', 'Welcome to Premium! 👑'),
+      title: t('premiumWelcome', 'Welcome to Premium!'),
       message: t(
         'trialStartedMessage',
         'Your free trial is on. Every pack and skin is open on this device, and nothing is charged: we’ll let you know well before Premium starts costing money.'
@@ -93,7 +93,8 @@ const UpgradeScreen = ({ navigation, route }) => {
           <Text style={styles.eyebrow}>Talk Trap Premium</Text>
           {!PAYMENTS_LIVE && !isPremium && (
             <View style={styles.betaPill}>
-              <Text style={styles.betaText}>🎁 {t('betaFreeTrial', 'Free trial for everyone while we’re in beta')}</Text>
+              <FunIcon name="gift" size={18} />
+              <Text style={styles.betaText}>{t('betaFreeTrial', 'Free trial for everyone while we’re in beta')}</Text>
             </View>
           )}
           <Text style={styles.title}>{t(headKey, headFallback)}</Text>
@@ -109,7 +110,8 @@ const UpgradeScreen = ({ navigation, route }) => {
 
           {isPremium ? (
             <View style={styles.premiumBox}>
-              <Text style={styles.premiumText}>✅ {t('youArePremium', 'You have Premium on this device.')}</Text>
+              <FunIcon name="crown" size={22} />
+              <Text style={styles.premiumText}>{t('youArePremium', 'You have Premium on this device.')}</Text>
               <TouchableOpacity
                 onPress={() => updateSettings({ premiumUnlocked: false, premiumPlan: null })}
                 style={styles.linkBtn}
@@ -155,10 +157,11 @@ const UpgradeScreen = ({ navigation, route }) => {
               </View>
 
               <ChunkyButton
+                icon={!PAYMENTS_LIVE || selected?.trialDays ? 'gift' : 'crown'}
                 title={
                   !PAYMENTS_LIVE || selected?.trialDays
-                    ? `${t('startTrial', 'Start free trial')} 🎉`
-                    : `${t('continue', 'Continue')} 👑`
+                    ? t('startTrial', 'Start free trial')
+                    : t('continue', 'Continue')
                 }
                 onPress={purchase}
                 style={styles.cta}
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
   crown: { marginTop: 4 },
   shade: { backgroundColor: 'rgba(15,8,40,0.35)' },
-  betaPill: { backgroundColor: '#FFD43B', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5, marginTop: 8 },
+  betaPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFD43B', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5, marginTop: 8 },
   betaText: { color: '#5C3B00', fontWeight: '900', fontSize: 12 },
   benefitIcon: { marginRight: 10 },
   adBtn: {
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
   cta: { width: '100%' },
   fineprint: { color: 'rgba(255,255,255,0.75)', fontSize: 12, textAlign: 'center', marginTop: 10 },
   testNote: { color: '#FFE08A', fontSize: 12, fontWeight: '700', textAlign: 'center', marginTop: 6 },
-  premiumBox: { width: '100%', backgroundColor: 'rgba(22,199,154,0.25)', borderRadius: 18, padding: 16, alignItems: 'center' },
+  premiumBox: { width: '100%', backgroundColor: 'rgba(22,199,154,0.25)', borderRadius: 18, padding: 16, alignItems: 'center', gap: 8 },
   premiumText: { color: '#fff', fontWeight: '800', fontSize: 16, textAlign: 'center' },
   proof: { color: 'rgba(255,255,255,0.8)', fontWeight: '700', fontSize: 13, marginTop: 22, textAlign: 'center' },
   footerLinks: { flexDirection: 'row', gap: 16, marginTop: 8 },

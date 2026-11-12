@@ -22,6 +22,7 @@ import KnowMeScreen from './screens/KnowMeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import CustomCardsScreen from './screens/CustomCardsScreen';
 import LegalScreen from './screens/LegalScreen';
+import JourneyIntroScreen from './journey/IntroScreen';
 import { withScreenFrame } from './components/ScreenFrame';
 
 const Stack = createStackNavigator();
@@ -258,6 +259,11 @@ export default function App() {
               component={FramedInstall}
               options={{ presentation: 'modal', headerShown: false }}
             />
+            <Stack.Screen
+              name="JourneyIntro"
+              component={JourneyIntroScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
             </Stack.Navigator>
           </NavigationContainer>
 
@@ -269,7 +275,7 @@ export default function App() {
                 resizeMode="cover"
               />
               <Animated.Image
-                source={require('./assets/glass.png')}
+                source={require('./assets/jar-fluent-3d-1024.png')}
                 style={{
                   width: glassSize,
                   height: glassSize,

@@ -10,9 +10,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LanguageFlags from '../components/LanguageFlags';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ModernCard, ModernBackButton, ModernSelectionIndicator } from '../components/ui';
-import { tokens, gradients } from '../theme/tokens';
+import { useTheme } from '../contexts/ThemeContext';
+import { tokens } from '../theme/tokens';
 
 import { appWidth as width } from '../utils/layout';
 const COLUMN_GAP = 16;
@@ -44,7 +45,8 @@ const LANGUAGES = [
 
 const LanguageScreen = ({ navigation }) => {
   const { language, setLanguage, isLoading } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { getCurrentGradient } = useTheme();
+  const g = getCurrentGradient();
 
   const handleLanguageSelect = async (code) => {
     await setLanguage(code);
@@ -53,12 +55,11 @@ const LanguageScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Premium Background Gradient */}
       <LinearGradient
-        colors={gradients.primary.colors}
+        colors={g.colors}
         style={styles.backgroundGradient}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
+        start={g.start}
+        end={g.end}
       />
 
       <SafeAreaView style={styles.safeArea}>

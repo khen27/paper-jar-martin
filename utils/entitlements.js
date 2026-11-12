@@ -38,12 +38,12 @@ const gatingOn = (settings) => !!settings?.paywallPreview && !hasPremium(setting
 export const isDeckLocked = (mode, variant, settings) => {
   if (!gatingOn(settings)) return false;
   if (adUnlocked(settings, deckAdKey(mode, variant))) return false;
-  return PREMIUM_MODES.includes(mode) || variant === 'drinks';
+  return PREMIUM_MODES.includes(mode) || (variant && variant !== 'classic');
 };
 
 /** Variants of a mode that show a crown in the style picker. */
-export const lockedVariants = (mode, settings) =>
-  ['classic', 'drinks'].filter((v) => isDeckLocked(mode, v, settings));
+export const lockedVariants = (mode, settings, variantIds = ['classic', 'drinks']) =>
+  variantIds.filter((v) => isDeckLocked(mode, v, settings));
 
 export const isModeBadgedPremium = (mode, settings) =>
   gatingOn(settings) && PREMIUM_MODES.includes(mode);

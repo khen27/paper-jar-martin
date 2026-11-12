@@ -54,7 +54,8 @@ const AdModal = ({ visible, kind = 'rewarded', seconds = 15, rewardLabel, t, onR
           {kind === 'rewarded' ? (
             done ? (
               <ChunkyButton
-                title={`🎁 ${rewardLabel || t('adClaim', 'Claim reward')}`}
+                icon="gift"
+                title={rewardLabel || t('adClaim', 'Claim reward')}
                 onPress={() => {
                   track('ad_rewarded');
                   onReward && onReward();
@@ -66,7 +67,7 @@ const AdModal = ({ visible, kind = 'rewarded', seconds = 15, rewardLabel, t, onR
             )
           ) : (
             <ChunkyButton
-              title={done || canSkip ? `${t('adContinue', 'Back to the game')} 👉` : `${t('adSkipIn', 'Skip in')} ${Math.max(0, 5 - (duration - left))}s`}
+              title={done || canSkip ? t('adContinue', 'Back to the game') : `${t('adSkipIn', 'Skip in')} ${Math.max(0, 5 - (duration - left))}s`}
               disabled={!(done || canSkip)}
               onPress={onClose}
               style={styles.cta}

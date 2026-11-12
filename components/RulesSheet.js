@@ -36,15 +36,17 @@ const RulesSheet = ({ visible, mode, variant, title, language, t, onStart, onClo
         >
           <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
             {!isWide && <View style={styles.handle} />}
-            {hasFunIcon(mode) ? (
-              <FunIcon name={mode} size={fs(72)} style={styles.icon} />
-            ) : (
-              <Text style={[styles.emoji, { fontSize: fs(48) }]}>{rules.emoji}</Text>
-            )}
+            <FunIcon name={hasFunIcon(mode) ? mode : 'sparkles'} size={fs(72)} style={styles.icon} />
             <Text style={styles.eyebrow}>{t('howToPlay', 'How to play')}</Text>
             <Text style={[styles.title, { fontSize: fs(26) }]}>
               {title}
-              {variant === 'drinks' ? ` · ${t('drinksTitle', 'Drinks')} 🍻` : ''}
+              {variant === 'drinks'
+                ? ` · ${t('drinksTitle', 'Drinks')}`
+                : variant === 'intense'
+                  ? ` · ${t('intenseTitle', 'Intense')}`
+                  : variant === 'huddle'
+                    ? ` · ${t('huddleTitle', 'Huddle')}`
+                    : ''}
             </Text>
 
             <View style={styles.steps}>
@@ -84,7 +86,7 @@ const RulesSheet = ({ visible, mode, variant, title, language, t, onStart, onClo
               <Text style={[styles.pactText, { fontSize: fs(14) }]}>{rules.funPact}</Text>
             </View>
 
-            <ChunkyButton title={`${t('letsGo', "Let's go!")} 🎉`} onPress={onStart} style={styles.cta} />
+            <ChunkyButton title={t('letsGo', "Let's go!")} onPress={onStart} style={styles.cta} />
             <Pressable onPress={onClose} accessibilityRole="button" style={styles.backLink}>
               <Text style={styles.backLinkText}>{t('back', 'Back')}</Text>
             </Pressable>

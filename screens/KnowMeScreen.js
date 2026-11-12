@@ -18,11 +18,13 @@ import { knowMeDataset } from '../knowme_dataset';
 import ConfettiBurst from '../components/ConfettiBurst';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
+import { markSessionPlayed } from '../utils/experiment';
 import { useSettings } from '../contexts/SettingsContext';
 import RulesSheet from '../components/RulesSheet';
 import SeasonalDecor from '../components/SeasonalDecor';
 import { useResponsive } from '../utils/responsive';
 import { shareText } from '../utils/share';
+import FunIcon from '../components/FunIcon';
 
 const ROUNDS = 6;
 
@@ -39,7 +41,7 @@ const KnowMeScreen = ({ navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { cardMaxWidth } = useResponsive();
   const [rulesOpen, setRulesOpen] = useState(!!settings.showRules);
 
@@ -67,6 +69,7 @@ const KnowMeScreen = ({ navigation }) => {
     setGuessIndex(null);
     track('knowme_started');
     recordPlay();
+    markSessionPlayed(updateSettings, settings);
   };
 
   const confirmAnswer = () => {
@@ -99,7 +102,7 @@ const KnowMeScreen = ({ navigation }) => {
 
   const scoreTitle =
     score >= 5
-      ? t('knowMeScoreGreat', "You're basically telepathic 💞")
+      ? t('knowMeScoreGreat', "You're basically telepathic")
       : score >= 3
         ? t('knowMeScoreGood', 'Pretty in sync!')
         : t('knowMeScoreOk', 'Room to learn — play again!');
@@ -139,6 +142,7 @@ const KnowMeScreen = ({ navigation }) => {
 
           {phase === 'setup' && (
             <>
+              <FunIcon name="knowMe" size={64} style={styles.setupIcon} />
               <Text style={styles.title}>{t('knowMeSetupTitle', 'How well do you know me?')}</Text>
               <Text style={styles.subtitle}>
                 {t(
@@ -265,11 +269,14 @@ const KnowMeScreen = ({ navigation }) => {
 
           {phase === 'reveal' && (
             <>
-              <Text style={styles.title}>
-                {guessIndex === secretIndex
-                  ? t('knowMeMatch', 'Match! 🎉')
-                  : t('knowMeMiss', 'Not quite')}
-              </Text>
+              <View style={styles.titleRow}>
+                {guessIndex === secretIndex && <FunIcon name="party" size={28} />}
+                <Text style={styles.title}>
+                  {guessIndex === secretIndex
+                    ? t('knowMeMatch', 'Match!')
+                    : t('knowMeMiss', 'Not quite')}
+                </Text>
+              </View>
               <ModernCard variant="surface" size="lg" style={styles.card}>
                 <Text style={styles.revealLine}>
                   {nameA.trim()}: {options[secretIndex]}
@@ -302,14 +309,14 @@ const KnowMeScreen = ({ navigation }) => {
                 {score} {t('knowMeTimes', 'times')}.
               </Text>
               <ModernButton
-                title={`📤 ${t('shareResult', 'Share our result')}`}
+                title={t('shareResult', 'Share our result')}
                 size="lg"
                 variant="secondary"
                 onPress={() =>
                   shareText({
                     message: `${nameA.trim()} & ${nameB.trim()}: ${Math.round((score / ROUNDS) * 100)}% ${t(
                       'knowMeShareSync',
-                      'in sync on Talk Trap 🧠💞 Can you beat us?'
+                      'in sync on Talk Trap. Can you beat us?'
                     )}`,
                     mode: 'knowMe',
                     event: 'knowme_result_shared',
@@ -392,6 +399,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0A800',
   },
   rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
+  setupIcon: { alignSelf: 'center', marginBottom: 8 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 },
   title: {
     fontSize: 26,
     fontWeight: '800',

@@ -7,6 +7,7 @@ import {
   Animated,
   Platform,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,12 +19,14 @@ import { PartnerIcon, FriendIcon, PartyIcon, HeartIcon, BrnoIcon, ColorIcon } fr
 import { ModernButton, AppDialog } from '../components/ui';
 import GameTile from '../components/GameTile';
 import StylePickerSheet from '../components/StylePickerSheet';
-import { hasDrinksVariant, isKnownMode } from '../utils/decks';
+import { isKnownMode } from '../utils/decks';
+import { hasStyleChoice, styleBadgeChips, styleOptionsFor } from '../utils/modeStyles';
 import { useResponsive } from '../utils/responsive';
 import { lockedVariants, isModeBadgedPremium, isSkinUnlocked } from '../utils/entitlements';
 import { getSeasonalTiles } from '../utils/seasons';
 import SeasonalDecor from '../components/SeasonalDecor';
 import { consumeDeepLink, shareText } from '../utils/share';
+import { useIsFocused } from '@react-navigation/native';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -32,49 +35,55 @@ import { appWidth as width, appHeight as height } from '../utils/layout';
 import { getQuestionOfTheDay } from '../utils/dailyQuestion';
 import { getStreak, recordPlay } from '../utils/streaks';
 import { track } from '../utils/analytics';
+import JourneyApp from '../journey/JourneyApp';
+import JobSelect from '../journey/JobSelect';
+import PreviewSwitcher from '../journey/PreviewSwitcher';
+import ExitSurvey from '../journey/ExitSurvey';
+import FunIcon from '../components/FunIcon';
+import { clearPath } from '../utils/experiment';
 
 // Feature Flag for OtázoJar Refresh
 const OTAZO_JAR_REFRESH_ENABLED = true;
 
 const MODE_TILES = {
-  partner: { icon: 'partner', emoji: '💞', colors: ['#FF5E8A', '#E0245E'], titleKey: 'partnerMode', title: 'Partner', subKey: 'partnerTileSub', sub: 'Date night for two' },
-  friend: { icon: 'friend', emoji: '🍕', colors: ['#8F6BFF', '#5B3FD9'], titleKey: 'friendMode', title: 'Friends', subKey: 'friendTileSub', sub: 'Small crew, big laughs' },
-  party: { icon: 'party', emoji: '🎉', colors: ['#FF9F1C', '#FF4E50'], titleKey: 'partyMode', title: 'Party', subKey: 'partyTileSub', sub: 'Pass the phone · 2–8 players', wide: true },
-  adult: { icon: 'adult', emoji: '🔥', colors: ['#FF3D6E', '#8E2DE2'], titleKey: 'adultMode', title: 'Adult Fun', subKey: 'adultTileSub', sub: 'Flirty truths & dares', corner: '18+' },
-  workout: { icon: 'workout', emoji: '💪', colors: ['#2ED47A', '#0C9F8C'], titleKey: 'workoutMode', title: 'Workout', subKey: 'workoutTileSub', sub: 'Sweat, reps & gym talk' },
-  knowMe: { icon: 'knowMe', emoji: '🧠', colors: ['#3DA9FC', '#1F6FEB'], titleKey: 'knowMeMode', title: 'How well do you know me?', subKey: 'knowMeTileSub', sub: 'Guess answers, score points' },
-  brnoPrague: { icon: 'brnoPrague', emoji: '🍺', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
-  office: { icon: 'office', emoji: '💼', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
-  homePack: { icon: 'homePack', emoji: '⭐', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
-  custom: { icon: 'custom', emoji: '✍️', colors: ['#22D3EE', '#0E7490'], titleKey: 'customMode', title: 'Your cards', subKey: 'customTileSub', sub: 'Write your own questions & dares' },
-  halloween: { icon: 'halloween', emoji: '🎃', colors: ['#3B0F5C', '#F76707'], titleKey: 'halloweenMode', title: 'Halloween', subKey: 'halloweenTileSub', sub: 'Spooky questions & dares' },
-  autumn: { icon: 'autumn', emoji: '🍂', colors: ['#B45309', '#F59E0B'], titleKey: 'autumnMode', title: 'Cozy Fall', subKey: 'autumnTileSub', sub: 'Blankets, tea & stories' },
-  christmas: { icon: 'christmas', emoji: '🎄', colors: ['#166534', '#DC2626'], titleKey: 'christmasMode', title: 'Christmas', subKey: 'christmasTileSub', sub: 'Festive fun for the whole family' },
-  invite: { icon: 'invite', emoji: '💌', colors: ['#F472B6', '#BE185D'], titleKey: 'inviteTile', title: 'Invite friends', subKey: 'inviteTileSub', sub: 'Send a link and play together' },
+  partner: { icon: 'partner', colors: ['#FF5E8A', '#E0245E'], titleKey: 'partnerMode', title: 'Partner', subKey: 'partnerTileSub', sub: 'Date night for two' },
+  friend: { icon: 'friend', colors: ['#8F6BFF', '#5B3FD9'], titleKey: 'friendMode', title: 'Friends', subKey: 'friendTileSub', sub: 'Small crew, big laughs' },
+  party: { icon: 'party', colors: ['#FF9F1C', '#FF4E50'], titleKey: 'partyMode', title: 'Party', subKey: 'partyTileSub', sub: 'Pass the phone · 2–8 players', wide: true },
+  adult: { icon: 'adult', colors: ['#FF3D6E', '#8E2DE2'], titleKey: 'adultMode', title: 'Adult Fun', subKey: 'adultTileSub', sub: 'Flirty truths & dares', corner: '18+' },
+  workout: { icon: 'workout', colors: ['#2ED47A', '#0C9F8C'], titleKey: 'workoutMode', title: 'Workout', subKey: 'workoutTileSub', sub: 'Sweat, reps & gym talk' },
+  knowMe: { icon: 'knowMe', colors: ['#3DA9FC', '#1F6FEB'], titleKey: 'knowMeMode', title: 'How well do you know me?', subKey: 'knowMeTileSub', sub: 'Guess answers, score points' },
+  brnoPrague: { icon: 'brnoPrague', colors: ['#FFC94D', '#F28B1D'], titleKey: 'brnoPragueMode', title: 'Brno vs. Prague', subKey: 'brnoTileSub', sub: 'The great rivalry' },
+  office: { icon: 'office', colors: ['#5C7CFA', '#364FC7'], titleKey: 'officeMode', title: 'Office', subKey: 'officeTileSub', sub: 'Team icebreakers' },
+  homePack: { icon: 'homePack', colors: ['#FFD95A', '#E8A100'], titleKey: 'homePackMode', title: 'Golden Jar', subKey: 'homePackSubtext', sub: 'Bonus cards — your install reward' },
+  custom: { icon: 'custom', colors: ['#22D3EE', '#0E7490'], titleKey: 'customMode', title: 'Your cards', subKey: 'customTileSub', sub: 'Write your own questions & dares' },
+  halloween: { icon: 'halloween', colors: ['#3B0F5C', '#F76707'], titleKey: 'halloweenMode', title: 'Halloween', subKey: 'halloweenTileSub', sub: 'Spooky questions & dares' },
+  autumn: { icon: 'autumn', colors: ['#B45309', '#F59E0B'], titleKey: 'autumnMode', title: 'Cozy Fall', subKey: 'autumnTileSub', sub: 'Blankets, tea & stories' },
+  christmas: { icon: 'christmas', colors: ['#166534', '#DC2626'], titleKey: 'christmasMode', title: 'Christmas', subKey: 'christmasTileSub', sub: 'Festive fun for the whole family' },
+  invite: { icon: 'invite', colors: ['#F472B6', '#BE185D'], titleKey: 'inviteTile', title: 'Invite friends', subKey: 'inviteTileSub', sub: 'Send a link and play together' },
 };
 
 const MODE_SECTIONS = [
-  { key: 'duo', titleKey: 'sectionDuo', fallback: '💘 For two', modes: ['partner', 'knowMe'] },
-  { key: 'group', titleKey: 'sectionGroup', fallback: '🥳 Group games', modes: ['party', 'friend', 'brnoPrague'] },
-  { key: 'packs', titleKey: 'packsSection', fallback: '🎁 Packs', modes: ['adult', 'workout', 'office', 'homePack'] },
-  { key: 'yours', titleKey: 'sectionYours', fallback: '✨ Make it yours', modes: ['custom', 'invite'] },
+  { key: 'duo', titleKey: 'sectionDuo', fallback: 'For two', icon: 'partner', modes: ['partner', 'knowMe'] },
+  { key: 'group', titleKey: 'sectionGroup', fallback: 'Group games', icon: 'party', modes: ['party', 'friend', 'brnoPrague'] },
+  { key: 'packs', titleKey: 'packsSection', fallback: 'Packs', icon: 'gift', modes: ['adult', 'workout', 'office', 'homePack'] },
+  { key: 'yours', titleKey: 'sectionYours', fallback: 'Make it yours', icon: 'sparkles', modes: ['custom', 'invite'] },
 ];
 
 // 3-column layouts (tablet/desktop/TV): every row full, no lonely tiles.
 const MODE_SECTIONS_WIDE = [
-  { key: 'duo', titleKey: 'sectionDuo', fallback: '💘 For two', modes: ['partner', 'knowMe', 'custom'] },
-  { key: 'group', titleKey: 'sectionGroup', fallback: '🥳 Group games', modes: ['party', 'friend', 'brnoPrague'] },
-  { key: 'packs', titleKey: 'packsSection', fallback: '🎁 Packs', modes: ['adult', 'workout', 'office'] },
-  { key: 'yours', titleKey: 'sectionYours', fallback: '✨ Make it yours', modes: ['homePack', 'invite'] },
+  { key: 'duo', titleKey: 'sectionDuo', fallback: 'For two', icon: 'partner', modes: ['partner', 'knowMe', 'custom'] },
+  { key: 'group', titleKey: 'sectionGroup', fallback: 'Group games', icon: 'party', modes: ['party', 'friend', 'brnoPrague'] },
+  { key: 'packs', titleKey: 'packsSection', fallback: 'Packs', icon: 'gift', modes: ['adult', 'workout', 'office'] },
+  { key: 'yours', titleKey: 'sectionYours', fallback: 'Make it yours', icon: 'sparkles', modes: ['homePack', 'invite'] },
 ];
 
-const HomeScreen = ({ navigation }) => {
+const ClassicHomeScreen = ({ navigation, homeLayout = 'full' }) => {
   const { language } = useLanguage();
   const { getCurrentGradient, currentTheme, changeTheme } = useTheme();
   const { settings, updateSettings } = useSettings();
   const seasonalTiles = getSeasonalTiles(new Date(), !!settings.seasonPreview);
   const seasonalSection = seasonalTiles.length
-    ? [{ key: 'season', titleKey: 'sectionSeason', fallback: '🍂 Seasonal', modes: seasonalTiles.map((p) => p.mode) }]
+    ? [{ key: 'season', titleKey: 'sectionSeason', fallback: 'Seasonal', icon: 'maple', modes: seasonalTiles.map((p) => p.mode) }]
     : [];
   const [comingSoon, setComingSoon] = useState(null);
   const [pendingDrinks, setPendingDrinks] = useState(null);
@@ -190,11 +199,11 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [logAction, navigation, settings.drinksAgeConfirmed]);
 
-  // Modes with a Drinks deck ask Classic vs Drinks first; the rest start straight away.
+  // Modes with two styles ask first; the rest start straight away.
   const handleGameModeSelect = useCallback((mode) => {
     logAction('GAME_MODE_SELECTED', { selectedMode: mode });
     setSelectedMode(mode);
-    if (hasDrinksVariant(mode)) {
+    if (hasStyleChoice(mode)) {
       setPendingStyleMode(mode);
       return;
     }
@@ -208,7 +217,7 @@ const HomeScreen = ({ navigation }) => {
       shareText({
         message:
           translations[language]?.inviteMessage ||
-          'Come play Talk Trap with us 🎉 Party cards, dares and laughs, free in your browser.',
+          'Come play Talk Trap with us. Party cards, dares and laughs, free in your browser.',
         event: 'invite_shared',
       });
     } else if (seasonalTiles.some((p) => p.mode === mode && !p.open)) {
@@ -544,6 +553,14 @@ const HomeScreen = ({ navigation }) => {
       
       <SeasonalDecor />
       <SafeAreaView style={OTAZO_JAR_REFRESH_ENABLED ? styles.safeAreaRefresh : styles.safeArea}>
+        <View style={[styles.homeChrome, isWide && styles.topBar, { maxWidth: columnMax, alignSelf: 'center' }]}>
+          <View style={styles.topBarGroup}>{favoritesButton}</View>
+          <View style={styles.topBarGroup}>
+            {languageButton}
+            {colorButton}
+            {settingsButton}
+          </View>
+        </View>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
@@ -552,31 +569,6 @@ const HomeScreen = ({ navigation }) => {
           overScrollMode="always"
         >
         <View style={[styles.pageColumn, { maxWidth: columnMax }]}>
-        {isWide ? (
-          <View style={styles.topBar}>
-            <View style={styles.topBarGroup}>{favoritesButton}</View>
-            <View style={styles.topBarGroup}>
-              {languageButton}
-              {colorButton}
-              {settingsButton}
-            </View>
-          </View>
-        ) : (
-          <>
-            <Animated.View
-              style={[styles.topButtonContainer, styles.languageButton, { transform: [{ scale: buttonScale }] }]}
-            >
-              {languageButton}
-            </Animated.View>
-            <Animated.View
-              style={[styles.topButtonContainer, styles.languageButtonDuplicate, { transform: [{ scale: buttonScale }] }]}
-            >
-              {colorButton}
-            </Animated.View>
-            <View style={[styles.topButtonContainer, styles.settingsButton]}>{settingsButton}</View>
-            <View style={[styles.topButtonContainer, styles.favoritesButton]}>{favoritesButton}</View>
-          </>
-        )}
 
           <View
             style={[
@@ -587,7 +579,7 @@ const HomeScreen = ({ navigation }) => {
           >
           <View style={splitLayout ? styles.heroColumn : styles.heroStack}>
             <Animated.Image
-            source={require('../assets/glass.png')}
+            source={require('../assets/jar-fluent-3d-1024.png')}
             style={[
               OTAZO_JAR_REFRESH_ENABLED ? styles.jarIconRefresh : styles.glassImage,
               isWide && { width: fs(150), height: fs(150) },
@@ -627,10 +619,44 @@ const HomeScreen = ({ navigation }) => {
             {translations[language]?.tagline || 'Spark meaningful conversations'}
           </Text>
 
+          {!!settings.experimentUx && !!settings.experimentJob && (
+            <View style={styles.previewBlock}>
+              <PreviewSwitcher />
+            </View>
+          )}
+
+          {!settings.journeyPointerDismissed && !settings.experimentUx && (
+            <Pressable
+              onPress={() => navigation.navigate('JourneyIntro')}
+              style={[styles.journeyPointer, isWide && styles.journeyPointerWide]}
+              accessibilityRole="button"
+            >
+              <FunIcon name="candle" size={28} style={styles.journeyPointerEmoji} />
+              <View style={styles.journeyPointerText}>
+                <Text style={styles.journeyPointerTitle}>
+                  {translations[language]?.journeyPointerTitle || 'New: a 14-night journey for two'}
+                </Text>
+                <Text style={styles.journeyPointerSub}>
+                  {translations[language]?.journeyPointerSub || 'See what we are building next →'}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => updateSettings({ journeyPointerDismissed: true })}
+                hitSlop={10}
+                style={styles.journeyPointerClose}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss"
+              >
+                <Text style={styles.journeyPointerCloseText}>×</Text>
+              </Pressable>
+            </Pressable>
+          )}
+
           {streakCount > 0 && (
             <View style={styles.streakChip}>
+              <FunIcon name="sparkles" size={16} />
               <Text style={styles.streakChipText}>
-                🔥 {streakCount} {(translations[language]?.streakShort || 'day streak')}
+                {streakCount} {(translations[language]?.streakShort || 'day streak')}
               </Text>
             </View>
           )}
@@ -647,9 +673,12 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.dailyCardBack} />
             <View style={styles.dailyCard}>
               <View style={styles.dailyHeader}>
-                <Text style={styles.dailyEyebrow}>
-                  🃏 {translations[language]?.questionOfDay || 'Card of the day'}
-                </Text>
+                <View style={styles.dailyEyebrowRow}>
+                  <FunIcon name="dice" size={16} />
+                  <Text style={styles.dailyEyebrow}>
+                    {translations[language]?.questionOfDay || 'Card of the day'}
+                  </Text>
+                </View>
                 <Text style={styles.dailyCta}>
                   {translations[language]?.tapToPlay || 'Tap to play →'}
                 </Text>
@@ -665,11 +694,14 @@ const HomeScreen = ({ navigation }) => {
             style={[styles.gameMenu, splitLayout && styles.menuColumn]}
             onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}
           >
-            {[...seasonalSection, ...(isPhone ? MODE_SECTIONS : MODE_SECTIONS_WIDE)].map((section) => (
+            {menuSections(isPhone, seasonalSection, homeLayout).map((section) => (
               <View key={section.key} style={styles.menuSection}>
-                <Text style={[styles.menuTitle, isWide && { fontSize: fs(20) }]}>
-                  {translations[language]?.[section.titleKey] || section.fallback}
-                </Text>
+                <View style={styles.menuTitleRow}>
+                  {!!section.icon && <FunIcon name={section.icon} size={22} />}
+                  <Text style={[styles.menuTitle, isWide && { fontSize: fs(20) }]}>
+                    {translations[language]?.[section.titleKey] || section.fallback}
+                  </Text>
+                </View>
                 <View style={[styles.tileGrid, !isPhone && { justifyContent: 'flex-start', gap: GRID_GAP }]}>
                   {section.modes.map((mode, idx) => {
                     const tile = MODE_TILES[mode];
@@ -682,7 +714,6 @@ const HomeScreen = ({ navigation }) => {
                     return (
                       <GameTile
                         key={mode}
-                        emoji={tile.emoji}
                         icon={tile.icon}
                         colors={tile.colors}
                         wide={(tile.wide || oddLast) && isPhone}
@@ -691,9 +722,9 @@ const HomeScreen = ({ navigation }) => {
                         locked={locked}
                         corner={
                           season && season.open
-                            ? t('limitedCorner', '⏳ Limited')
+                            ? t('limitedCorner', 'Limited')
                             : premium
-                              ? `👑${tile.corner ? ` ${tile.corner}` : ''}`
+                              ? tile.corner || t('premiumCorner', 'Premium')
                               : tile.corner
                         }
                         title={translations[language]?.[tile.titleKey] || tile.title}
@@ -705,9 +736,12 @@ const HomeScreen = ({ navigation }) => {
                                 'Add Talk Trap to your home screen to unlock'
                               : translations[language]?.[tile.subKey] || tile.sub
                         }
-                        badge={
-                          hasDrinksVariant(mode)
-                            ? translations[language]?.twoStylesBadge || '🎤 Classic · 🍻 Drinks'
+                        badgeChips={
+                          hasStyleChoice(mode)
+                            ? styleBadgeChips(mode).map((c) => ({
+                                icon: c.icon,
+                                label: translations[language]?.[c.titleKey] || c.title,
+                              }))
                             : null
                         }
                         onPress={() => onTilePress(mode)}
@@ -729,7 +763,8 @@ const HomeScreen = ({ navigation }) => {
 
       <AppDialog
         visible={showUnlockDialog}
-        title={translations[language]?.homePackUnlockedTitle || '⭐ Golden Jar unlocked!'}
+        icon="homePack"
+        title={translations[language]?.homePackUnlockedTitle || 'Golden Jar unlocked!'}
         message={
           translations[language]?.homePackUnlockedMsg ||
           'Thanks for adding Talk Trap to your home screen. The bonus cards are yours.'
@@ -771,7 +806,8 @@ const HomeScreen = ({ navigation }) => {
 
       <AppDialog
         visible={!!pendingDrinks}
-        title={t('drinksAgeTitle', '🔞 Drinks edition')}
+        icon="drinks"
+        title={t('drinksAgeTitle', 'Drinks edition')}
         message={t(
           'drinksAgeMsg',
           'Only people who are of legal drinking age where you are playing may drink alcohol. Everyone else plays with soft drinks — they count exactly the same. Drink responsibly and never drive after drinking.'
@@ -804,10 +840,11 @@ const HomeScreen = ({ navigation }) => {
 
       <AppDialog
         visible={!!comingSoon}
-        title={comingSoon ? `${MODE_TILES[comingSoon.mode].emoji} ${t(MODE_TILES[comingSoon.mode].titleKey, MODE_TILES[comingSoon.mode].title)}` : ''}
+        icon={comingSoon ? MODE_TILES[comingSoon.mode].icon : undefined}
+        title={comingSoon ? t(MODE_TILES[comingSoon.mode].titleKey, MODE_TILES[comingSoon.mode].title) : ''}
         message={
           comingSoon
-            ? `${t('seasonComingSoon', 'This seasonal pack opens on')} ${comingSoon.opensOn[1]}. ${comingSoon.opensOn[0]}. (${comingSoon.days} ${t('seasonDays', 'days')}) 🎁`
+            ? `${t('seasonComingSoon', 'This seasonal pack opens on')} ${comingSoon.opensOn[1]}. ${comingSoon.opensOn[0]}. (${comingSoon.days} ${t('seasonDays', 'days')})`
             : ''
         }
         buttons={[{ text: 'OK' }]}
@@ -816,7 +853,7 @@ const HomeScreen = ({ navigation }) => {
 
       <StylePickerSheet
         visible={!!pendingStyleMode}
-        modeEmoji={MODE_TILES[pendingStyleMode]?.emoji}
+        mode={pendingStyleMode}
         modeIcon={MODE_TILES[pendingStyleMode]?.icon}
         modeTitle={
           pendingStyleMode
@@ -825,7 +862,11 @@ const HomeScreen = ({ navigation }) => {
             : ''
         }
         t={(key, fallback) => translations[language]?.[key] || fallback}
-        lockedVariants={pendingStyleMode ? lockedVariants(pendingStyleMode, settings) : []}
+        lockedVariants={
+          pendingStyleMode
+            ? lockedVariants(pendingStyleMode, settings, styleOptionsFor(pendingStyleMode).map((o) => o.id))
+            : []
+        }
         onPick={(variant) => {
           const mode = pendingStyleMode;
           setPendingStyleMode(null);
@@ -851,12 +892,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  languageButton: {
-    position: 'absolute',
-    top: Math.max(70, height * 0.08),
-    right: Math.max(20, width * 0.05),
-    zIndex: 1,
-  },
   languageButtonGlass: {
     padding: 12,
     borderRadius: 20,
@@ -869,12 +904,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
-  },
-  favoritesButton: {
-    position: 'absolute',
-    top: Math.max(70, height * 0.08),
-    left: Math.max(20, width * 0.05),
-    zIndex: 1,
   },
   favoritesButtonGlass: {
     padding: 12,
@@ -1090,14 +1119,14 @@ const styles = StyleSheet.create({
   contentRefresh: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingTop: Math.max(40, height * 0.05), // Reduced top padding
-    paddingBottom: Math.max(20, height * 0.03), // Reduced bottom padding
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: Math.max(20, height * 0.03),
   },
   jarIconRefresh: {
-    width: Math.min(width * 0.3, 160), // Smaller jar size to save space
-    height: Math.min(width * 0.3, 160),
-    marginBottom: 16, // Reduced margin below jar
+    width: Math.min(width * 0.26, 132),
+    height: Math.min(width * 0.26, 132),
+    marginBottom: 10,
   },
   titleContainerRefresh: {
     justifyContent: 'center',
@@ -1119,16 +1148,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.92)',
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: 'center',
-    letterSpacing: 0.8, // More open letter spacing for readability
-    lineHeight: 24, // Increased line height for breathing room
-    paddingHorizontal: Math.max(20, width * 0.1), // Responsive padding
+    letterSpacing: 0.8,
+    lineHeight: 22,
+    paddingHorizontal: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowOpacity: 1,
     textShadowRadius: 4,
-    fontStyle: 'normal', // Ensure clean rendering
   },
   gameModeContainerRefresh: {
     width: '100%',
@@ -1476,12 +1504,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(96, 165, 250, 1)',
   },
-  settingsButton: {
-    right: Math.max(20, width * 0.05),
-    top: Math.max(170, height * 0.2),
-  },
   settingsGlyph: { color: '#fff', fontSize: 22, fontWeight: '600' },
+  homeChrome: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 4,
+    width: '100%',
+  },
   streakChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#FFD43B',
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -1491,6 +1527,35 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0A800',
   },
   streakChipText: { color: '#5C3B00', fontWeight: '900', fontSize: 13 },
+  previewBlock: { width: '100%', maxWidth: 560, alignSelf: 'center', marginBottom: 12, marginTop: 4 },
+  journeyPointer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,212,59,0.55)',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 14,
+    marginBottom: 6,
+  },
+  journeyPointerWide: { maxWidth: 560, alignSelf: 'center' },
+  journeyPointerEmoji: { marginRight: 12 },
+  journeyPointerText: { flex: 1 },
+  journeyPointerTitle: { color: '#fff', fontWeight: '900', fontSize: 14 },
+  journeyPointerSub: { color: 'rgba(255,255,255,0.78)', fontWeight: '700', fontSize: 12.5, marginTop: 2 },
+  journeyPointerClose: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  journeyPointerCloseText: { color: '#fff', fontSize: 18, fontWeight: '900', marginTop: -2 },
   dailyWrap: {
     width: '100%',
     marginBottom: 28,
@@ -1524,6 +1589,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  dailyEyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dailyEyebrow: {
     color: '#E0245E',
     fontSize: 12,
@@ -1551,7 +1617,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingTop: 24,
   },
-  topBarGroup: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  topBarGroup: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   contentWide: { paddingHorizontal: 32, paddingTop: 16 },
   splitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 48 },
   heroStack: { width: '100%', alignItems: 'center' },
@@ -1562,11 +1628,12 @@ const styles = StyleSheet.create({
   legalLink: { alignSelf: 'center', padding: 12, marginTop: 4 },
   legalLinkText: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' },
   menuSection: { width: '100%', marginBottom: 10 },
+  menuTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   menuTitle: {
     color: '#fff',
     fontSize: 20,
     fontWeight: '900',
-    marginBottom: 12,
+    marginBottom: 0,
     letterSpacing: 0.3,
     textShadowColor: 'rgba(0,0,0,0.2)',
     textShadowOffset: { width: 0, height: 2 },
@@ -1603,28 +1670,82 @@ const styles = StyleSheet.create({
     lineHeight: tokens.typography.sizes.sm * tokens.typography.lineHeights.relaxed,
   },
 
-  // Modern top button styles
-  topButtonContainer: {
-    position: 'absolute',
-    top: Math.max(50, height * 0.06),
-    zIndex: 1,
-  },
   topButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
   },
-  favoritesButton: {
-    left: Math.max(20, width * 0.05),
-  },
-  languageButton: {
-    right: Math.max(20, width * 0.05),
-  },
-  languageButtonDuplicate: {
-    right: Math.max(20, width * 0.05),
-    top: Math.max(110, height * 0.13), // Position beneath the first language button
-  },
 
 });
+
+const menuSections = (isPhone, seasonalSection, layout) => {
+  const catalog = isPhone ? MODE_SECTIONS : MODE_SECTIONS_WIDE;
+  if (layout === 'duo') {
+    const duo = catalog.filter((s) => s.key === 'duo');
+    const yours = catalog
+      .filter((s) => s.key === 'yours')
+      .map((s) => ({ ...s, modes: s.modes.filter((m) => m === 'custom') }));
+    return [...seasonalSection, ...duo, ...yours];
+  }
+  if (layout === 'group') {
+    const order = ['group', 'packs', 'yours']
+      .map((key) => catalog.find((s) => s.key === key))
+      .filter(Boolean);
+    return [...seasonalSection, ...order];
+  }
+  return [...seasonalSection, ...catalog];
+};
+
+/**
+ * Home: experiment preview (job select → group / couple classic / journey)
+ * or the lab nextGen toggle when experimentUx is off.
+ */
+const HomeScreen = (props) => {
+  const { settings, updateSettings, isLoading } = useSettings();
+  const focused = useIsFocused();
+
+  useEffect(() => {
+    if (isLoading || !focused || !settings.experimentUx || !settings.experimentJob) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      clearPath(updateSettings);
+      return true;
+    });
+    return () => sub.remove();
+  }, [isLoading, focused, settings.experimentUx, settings.experimentJob, updateSettings]);
+
+  if (isLoading) return null; // avoid a one-frame flash of the wrong experience
+
+  let body;
+  if (settings.experimentUx && !settings.experimentJob) {
+    body = <JobSelect navigation={props.navigation} />;
+  } else if (settings.experimentUx && settings.experimentJob === 'couple' && settings.experimentArm === 'journey') {
+    body = <JourneyApp navigation={props.navigation} />;
+  } else if (settings.experimentUx && settings.experimentJob === 'group') {
+    body = <ClassicHomeScreen {...props} homeLayout="group" />;
+  } else if (settings.experimentUx && settings.experimentJob === 'couple') {
+    body = <ClassicHomeScreen {...props} homeLayout="duo" />;
+  } else if (settings.nextGen) {
+    body = <JourneyApp navigation={props.navigation} />;
+  } else {
+    body = <ClassicHomeScreen {...props} />;
+  }
+
+  const showSurvey =
+    focused &&
+    settings.experimentUx &&
+    settings.experimentJob &&
+    settings.exitSurveyPending &&
+    !settings.exitSurveyDone;
+
+  return (
+    <View style={{ flex: 1 }}>
+      {body}
+      <ExitSurvey
+        visible={!!showSurvey}
+        onDone={() => updateSettings({ exitSurveyPending: false, exitSurveyDone: true })}
+      />
+    </View>
+  );
+};
 
 export default HomeScreen; 

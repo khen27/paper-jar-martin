@@ -65,9 +65,10 @@ const DrinkTally = ({ fixedPlayers, highlight, t, defaultPlayers = [] }) => {
       <View style={styles.header}>
         <FunIcon name="cheers" size={26} />
         <Text style={styles.title}>{t('tallyTitle', 'Sip tally')}</Text>
-        <Text style={styles.total}>
-          {total} 🍻
-        </Text>
+        <View style={styles.totalRow}>
+          <Text style={styles.total}>{total}</Text>
+          <FunIcon name="drinks" size={18} />
+        </View>
         {players.length > 0 && (
           <Pressable onPress={() => setShowResults(true)} style={styles.resultsBtn} accessibilityRole="button">
             <FunIcon name="trophy" size={20} />
@@ -105,7 +106,7 @@ const DrinkTally = ({ fixedPlayers, highlight, t, defaultPlayers = [] }) => {
             </Pressable>
           ))}
       </View>
-      <Text style={styles.help}>{t('tallyHelp', 'Tap a name = +1 sip · hold = −1 · soft drinks count too 🥤')}</Text>
+      <Text style={styles.help}>{t('tallyHelp', 'Tap a name = +1 sip · hold = −1 · soft drinks count too')}</Text>
 
       <Modal visible={showResults} transparent animationType="fade" onRequestClose={() => setShowResults(false)}>
         <View style={styles.backdrop}>
@@ -115,19 +116,25 @@ const DrinkTally = ({ fixedPlayers, highlight, t, defaultPlayers = [] }) => {
             <ScrollView style={styles.resultsList}>
               {ranking.map((name, i) => {
                 const n = counts[name] || 0;
-                const badge =
-                  n > 0 && n === top
-                    ? t('tallyChampion', '🏆 Sip champion')
-                    : n === 0
-                      ? t('tallyHero', '😇 Hydration hero')
-                      : '';
+                const isChamp = n > 0 && n === top;
+                const isHero = n === 0;
+                const badge = isChamp
+                  ? t('tallyChampion', 'Sip champion')
+                  : isHero
+                    ? t('tallyHero', 'Hydration hero')
+                    : '';
                 return (
                   <View key={name} style={styles.resultRow}>
                     <Text style={styles.rank}>{i + 1}.</Text>
                     <Text style={styles.resultName} numberOfLines={1}>
                       {name}
                     </Text>
-                    {!!badge && <Text style={styles.badge}>{badge}</Text>}
+                    {!!badge && (
+                      <View style={styles.badgeRow}>
+                        <FunIcon name={isChamp ? 'trophy' : 'soft'} size={16} />
+                        <Text style={styles.badge}>{badge}</Text>
+                      </View>
+                    )}
                     <Text style={styles.resultCount}>{n}</Text>
                   </View>
                 );
@@ -163,6 +170,7 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   title: { color: '#fff', fontWeight: '900', fontSize: 15, flex: 1 },
+  totalRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   total: { color: '#FFE08A', fontWeight: '900', fontSize: 14 },
   resultsBtn: { backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 14, padding: 4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -225,7 +233,8 @@ const styles = StyleSheet.create({
   },
   rank: { color: 'rgba(255,255,255,0.6)', fontWeight: '900', width: 24 },
   resultName: { color: '#fff', fontWeight: '800', flex: 1 },
-  badge: { color: '#FFE08A', fontWeight: '800', fontSize: 12, marginRight: 8 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 8 },
+  badge: { color: '#FFE08A', fontWeight: '800', fontSize: 12 },
   resultCount: { color: '#fff', fontWeight: '900', fontSize: 16 },
   resultsNote: { color: 'rgba(255,255,255,0.7)', fontSize: 12, textAlign: 'center', marginBottom: 12 },
   reset: { alignSelf: 'center', padding: 10 },

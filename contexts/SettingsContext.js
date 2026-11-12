@@ -14,6 +14,14 @@ const DEFAULTS = {
   adUnlocks: {}, // { 'deck:workout:classic' | 'skin:halloween': expiresAt }
   drinksAgeConfirmed: false, // legal-drinking-age notice acknowledged
   seasonPreview: false, // test-only: open every seasonal pack
+  nextGen: false, // test-only: swap Home for the next-generation journey experience
+  journeyNoDailyLimit: false, // test-only: let journey nights be played without the once-a-day rule
+  journeyPointerDismissed: false, // test-only: hide the classic-home pointer to the next-gen journey
+  experimentUx: true, // preview: job select + three paths. Testers do not need the lab nextGen toggle.
+  experimentJob: null, // 'group' | 'couple' | null
+  experimentArm: null, // 'classic' | 'journey' | null (couple only)
+  exitSurveyPending: false,
+  exitSurveyDone: false,
 };
 
 const SettingsContext = createContext(null);

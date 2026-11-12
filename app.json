@@ -21,8 +21,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/jar-fluent-3d-1024.png",
+        "backgroundColor": "#FF6B6B"
       },
       "edgeToEdgeEnabled": true,
       "package": "cz.mpap.jarwpapers"

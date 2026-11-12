@@ -21,6 +21,7 @@ const GameTile = ({
   subtitle,
   colors,
   badge,
+  badgeChips,
   corner,
   locked = false,
   wide = false,
@@ -90,13 +91,11 @@ const GameTile = ({
               </View>
             )}
             <View style={wide ? styles.wideRow : null}>
-              {icon && !locked ? (
-                <FunIcon name={icon} size={(wide ? 64 : 54) * textScale} style={styles.icon} />
-              ) : (
-                <Text style={[styles.emoji, wide && styles.emojiWide, textScale !== 1 && { fontSize: (wide ? 52 : 40) * textScale }]}>
-                  {locked ? '🔒' : emoji}
-                </Text>
-              )}
+              <FunIcon
+                name={locked ? 'lock' : icon || 'gift'}
+                size={(wide ? 64 : 54) * textScale}
+                style={styles.icon}
+              />
               <View style={wide ? styles.wideText : null}>
                 <Text
                   style={[styles.title, wide && styles.titleWide, textScale !== 1 && { fontSize: (wide ? 24 : 19) * textScale }]}
@@ -112,7 +111,17 @@ const GameTile = ({
                     {subtitle}
                   </Text>
                 )}
-                {!!badge && (
+                {!!badgeChips?.length && (
+                  <View style={styles.badgeRow}>
+                    {badgeChips.map((c) => (
+                      <View key={c.icon} style={styles.badgeChip}>
+                        <FunIcon name={c.icon} size={14} />
+                        <Text style={styles.badgeChipText}>{c.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {!!badge && !badgeChips?.length && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{badge}</Text>
                   </View>
@@ -204,6 +213,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  badgeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 24,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  badgeChipText: { color: '#fff', fontSize: 11, fontWeight: '800' },
 });
 
 export default GameTile;

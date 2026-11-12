@@ -9,9 +9,9 @@ import { partnerDrinksDataset } from '../partner_drinks_dataset';
 import { friendsDrinksDataset } from '../friends_drinks_dataset';
 import { partyDrinksDataset } from '../party_drinks_dataset';
 import { adultDrinksDataset } from '../adult_drinks_dataset';
-import { workoutDrinksDataset } from '../workout_drinks_dataset';
+import { workoutIntenseDataset } from '../workout_intense_dataset';
 import { brnoDrinksDataset } from '../brno_drinks_dataset';
-import { officeDrinksDataset } from '../office_drinks_dataset';
+import { officeHuddleDataset } from '../office_huddle_dataset';
 import { halloweenDataset } from '../halloween_dataset';
 import { halloweenDrinksDataset } from '../halloween_drinks_dataset';
 import { autumnDataset } from '../autumn_dataset';
@@ -19,8 +19,7 @@ import { christmasDataset } from '../christmas_dataset';
 import { christmasDrinksDataset } from '../christmas_drinks_dataset';
 import { getCustomDataset } from './customCards';
 
-// Every game mode with a Classic and a Drinks deck. Shuffle-bag keys must stay stable
-// so saved no-repeat progress survives app updates.
+// Shuffle-bag keys must stay stable so saved no-repeat progress survives app updates.
 const DECKS = {
   partner: {
     classic: { key: 'main', data: dataset },
@@ -40,7 +39,7 @@ const DECKS = {
   },
   workout: {
     classic: { key: 'workout', data: workoutDataset },
-    drinks: { key: 'workout_drinks', data: workoutDrinksDataset },
+    intense: { key: 'workout_intense', data: workoutIntenseDataset },
   },
   brnoPrague: {
     classic: { key: 'brno', data: brnoDataset },
@@ -48,7 +47,7 @@ const DECKS = {
   },
   office: {
     classic: { key: 'office', data: officeDataset },
-    drinks: { key: 'office_drinks', data: officeDrinksDataset },
+    huddle: { key: 'office_huddle', data: officeHuddleDataset },
   },
   homePack: {
     classic: { key: 'homePack', data: bonusDataset },
@@ -78,8 +77,10 @@ export const hasDrinksVariant = (mode) => !!DECKS[mode]?.drinks;
 
 export const getDeck = (mode, variant = 'classic') => {
   const entry = DECKS[mode] || DECKS.partner;
-  const deck = (variant === 'drinks' && entry.drinks) || entry.classic;
+  const deck = (variant && variant !== 'classic' && entry[variant]) || entry.classic;
   return { key: deck.key, data: deck.data };
 };
 
 export const isKnownMode = (mode) => !!DECKS[mode];
+
+export const variantsFor = (mode) => Object.keys(DECKS[mode] || { classic: true });

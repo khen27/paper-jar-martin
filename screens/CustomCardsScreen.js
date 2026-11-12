@@ -8,6 +8,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../translations';
 import { ModernBackButton } from '../components/ui';
 import ChunkyButton from '../components/ChunkyButton';
+import FunIcon from '../components/FunIcon';
 import { getCardTypeMeta } from '../utils/cardTypes';
 import { CUSTOM_TYPES, loadCustomCards, saveCustomCards } from '../utils/customCards';
 import { customCardsLimit } from '../utils/entitlements';
@@ -60,7 +61,7 @@ const CustomCardsScreen = ({ navigation }) => {
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.hero}>✍️</Text>
+          <FunIcon name="custom" size={72} style={styles.hero} />
           <Text style={styles.title}>{t('customTitle', 'Your cards')}</Text>
           <Text style={styles.subtitle}>
             {t('customSubtitle', 'Write inside jokes, questions for your crew or dares for tonight. Saved on this device only.')}
@@ -79,8 +80,9 @@ const CustomCardsScreen = ({ navigation }) => {
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
                   >
+                    <FunIcon name={meta.icon} size={16} />
                     <Text style={[styles.typeChipText, active && styles.typeChipTextActive]}>
-                      {meta.emoji} {meta.label}
+                      {meta.label}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -113,26 +115,27 @@ const CustomCardsScreen = ({ navigation }) => {
           </View>
 
           <ChunkyButton
-            title={`🎲 ${t('customPlay', 'Play my cards')} (${cards.length})`}
+            icon="dice"
+            title={`${t('customPlay', 'Play my cards')} (${cards.length})`}
             disabled={cards.length === 0}
             onPress={play}
             style={styles.playBtn}
           />
           {limit !== Infinity && (
             <Text style={styles.limitText}>
-              {cards.length}/{limit} {t('customFreeLimit', 'free cards · 👑 Premium = unlimited')}
+              {cards.length}/{limit} {t('customFreeLimit', 'free cards · Premium = unlimited')}
             </Text>
           )}
 
           {cards.length === 0 ? (
-            <Text style={styles.empty}>{t('customEmpty', 'No cards yet. Add your first one above 👆')}</Text>
+            <Text style={styles.empty}>{t('customEmpty', 'No cards yet. Add your first one above.')}</Text>
           ) : (
             cards.map((c) => {
               const meta = getCardTypeMeta(c.type, 'classic', language);
               return (
                 <View key={c.id} style={styles.cardRow}>
                   <View style={[styles.cardStripe, { backgroundColor: meta.colors[0] }]} />
-                  <Text style={styles.cardEmoji}>{meta.emoji}</Text>
+                  <FunIcon name={meta.icon} size={22} style={styles.cardEmoji} />
                   <Text style={styles.cardText}>{c.text}</Text>
                   <TouchableOpacity
                     onPress={() => removeCard(c.id)}
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   header: { paddingHorizontal: 16, paddingVertical: 8 },
   content: { padding: 24, paddingTop: 0, paddingBottom: 60, alignItems: 'center' },
-  hero: { fontSize: 52 },
+  hero: { marginBottom: 4 },
   title: { color: '#fff', fontSize: 30, fontWeight: '900', marginTop: 4 },
   subtitle: {
     color: 'rgba(255,255,255,0.88)',
@@ -178,6 +181,9 @@ const styles = StyleSheet.create({
   },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 16,
@@ -215,7 +221,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardStripe: { width: 6, alignSelf: 'stretch', marginRight: 10 },
-  cardEmoji: { fontSize: 20, marginRight: 8 },
+  cardEmoji: { marginRight: 8 },
   cardText: { flex: 1, color: '#22163F', fontWeight: '700', fontSize: 15, lineHeight: 21 },
   deleteBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   deleteText: { color: 'rgba(34,22,63,0.4)', fontSize: 26, fontWeight: '700' },

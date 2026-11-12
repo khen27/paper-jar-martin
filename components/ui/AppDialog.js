@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import FunIcon from '../FunIcon';
 import { tokens } from '../../theme/tokens';
 
 /**
@@ -12,10 +13,11 @@ import { tokens } from '../../theme/tokens';
  *   onRequestClose={() => ...}
  * />
  */
-const AppDialog = ({ visible, title, message, buttons = [], onRequestClose }) => (
+const AppDialog = ({ visible, title, message, buttons = [], onRequestClose, icon }) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onRequestClose}>
     <View style={styles.backdrop}>
       <View style={styles.card}>
+        {!!icon && <FunIcon name={icon} size={48} style={styles.icon} />}
         {!!title && <Text style={styles.title}>{title}</Text>}
         {!!message && <Text style={styles.message}>{message}</Text>}
         <View style={[styles.buttonRow, buttons.length > 2 && styles.buttonColumn]}>
@@ -71,6 +73,7 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 12,
   },
+  icon: { alignSelf: 'center', marginBottom: 10 },
   title: {
     fontSize: 19,
     fontWeight: '700',

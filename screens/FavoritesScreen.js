@@ -4,7 +4,7 @@ import {
   Text,
   View,
   FlatList,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,62 +12,39 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { translations } from '../translations';
-import { ModernCard, ModernButton, ModernBackButton, AppDialog } from '../components/ui';
-import { tokens } from '../theme/tokens';
+import { ModernBackButton, AppDialog } from '../components/ui';
 import { getLocalizedText, stripTags } from '../utils/i18n';
-import { appWidth as width, appHeight as height } from '../utils/layout';
+import { useResponsive } from '../utils/responsive';
+import FunIcon from '../components/FunIcon';
+import SeasonalDecor from '../components/SeasonalDecor';
 
 const FavoritesScreen = ({ navigation }) => {
   const { language } = useLanguage();
-  const { getCurrentGradient, currentTheme } = useTheme();
+  const { getCurrentGradient } = useTheme();
+  const { fs } = useResponsive();
   const [favorites, setFavorites] = useState([]);
-  const [removeIndex, setRemoveIndex] = useState(null); // index pending delete confirmation
+  const [removeIndex, setRemoveIndex] = useState(null);
+  const t = (k, f) => translations[language]?.[k] || f;
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  // Reload favorites when language changes to update displayed text
   useEffect(() => {
     loadFavorites();
   }, [language]);
-
-  // Force re-render when theme changes to update gradient
-  useEffect(() => {
-    // This effect will trigger a re-render when theme changes
-    // The getCurrentGradient() call in the render will pick up the new theme
-  }, [getCurrentGradient]);
 
   const loadFavorites = async () => {
     try {
       const stored = await AsyncStorage.getItem('favorites');
       const favoritesData = stored ? JSON.parse(stored) : [];
-      
-      // Filter out invalid/empty favorites and ensure they have valid structure
-      const validFavorites = favoritesData.filter(item => {
-        // Check if item exists and has question data
+      const validFavorites = favoritesData.filter((item) => {
         if (!item || !item.question) return false;
-        
-        // If question is a string (old format), try to keep it
-        if (typeof item.question === 'string') {
-          return item.question.trim().length > 0;
-        }
-        
-        // If question is an object (new format), check if it has content
+        if (typeof item.question === 'string') return item.question.trim().length > 0;
         if (typeof item.question === 'object') {
-          const questionText = item.question[language] || 
-                              item.question.en || 
-                              item.question.cs || 
-                              Object.values(item.question)[0];
-          return questionText && questionText.trim().length > 0;
+          const questionText =
+            item.question[language] || item.question.en || item.question.cs || Object.values(item.question)[0];
+          return questionText && String(questionText).trim().length > 0;
         }
-        
         return false;
       });
-      
       setFavorites(validFavorites);
-      
-      // If we filtered out items, update storage
       if (validFavorites.length !== favoritesData.length) {
         await AsyncStorage.setItem('favorites', JSON.stringify(validFavorites));
       }
@@ -77,88 +54,28 @@ const FavoritesScreen = ({ navigation }) => {
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp || isNaN(timestamp)) {
-      return translations[language]?.invalidDate || 'Invalid Date';
-    }
-
+    if (!timestamp || isNaN(timestamp)) return t('invalidDate', 'Invalid Date');
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // Get localized day names
-    const dayNames = {
-      cs: ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'],
-      en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      es: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-      fr: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-      pt: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-      ru: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
-      zh: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
-      hi: ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'],
-      ur: ['اتوار', 'پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'],
-      bn: ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার']
-    };
-
-    // Get localized month names
-    const monthNames = {
-      cs: ['Led', 'Úno', 'Bře', 'Dub', 'Kvě', 'Čer', 'Čer', 'Srp', 'Zář', 'Říj', 'Lis', 'Pro'],
-      en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      es: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-      fr: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
-      pt: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-      ru: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
-      zh: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-      hi: ['जन', 'फर', 'मार', 'अप्र', 'मई', 'जून', 'जुल', 'अग', 'सित', 'अक्ट', 'नव', 'दिस'],
-      ur: ['جن', 'فر', 'مار', 'اپر', 'مئی', 'جون', 'جول', 'اگ', 'ست', 'اکت', 'نو', 'دس'],
-      bn: ['জন', 'ফেব', 'মার', 'এপ্র', 'মে', 'জুন', 'জুল', 'আগ', 'সেপ', 'অক্ট', 'নভ', 'ডিস']
-    };
-
-    const days = dayNames[language] || dayNames.en;
-    const months = monthNames[language] || monthNames.en;
-
-    // If within the last week, show day of week
-    if (diffDays <= 7) {
-      return days[date.getDay()];
-    }
-    
-    // If within the same year, show Month Day
-    if (date.getFullYear() === now.getFullYear()) {
-      return `${months[date.getMonth()]} ${date.getDate()}`;
-    }
-    
-    // If different year, show Month Year
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    return date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-GB', {
+      day: 'numeric',
+      month: 'short',
+    });
   };
 
   const getQuestionText = (questionItem) => {
-    if (!questionItem || !questionItem.question) {
-      return translations[language]?.noQuestion || 'No question';
-    }
-
-    // Handle old format (string) - strip tags and numbers
-    if (typeof questionItem.question === 'string') {
-      return stripTags(questionItem.question);
-    }
-
-    // Handle new format (object with multiple languages) - use same logic as GameScreen
+    if (!questionItem || !questionItem.question) return t('noQuestion', 'No question');
+    if (typeof questionItem.question === 'string') return stripTags(questionItem.question);
     if (typeof questionItem.question === 'object') {
-      const localizedText = getLocalizedText(questionItem.question, language);
-      return localizedText || translations[language]?.noQuestion || 'No question';
+      return getLocalizedText(questionItem.question, language) || t('noQuestion', 'No question');
     }
-
-    return translations[language]?.noQuestion || 'No question';
-  };
-
-  const confirmRemove = (index) => {
-    setRemoveIndex(index);
+    return t('noQuestion', 'No question');
   };
 
   const removeFavorite = async (index) => {
     try {
-      const newFavorites = favorites.filter((_, i) => i !== index);
-      await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
-      setFavorites(newFavorites);
+      const next = favorites.filter((_, i) => i !== index);
+      await AsyncStorage.setItem('favorites', JSON.stringify(next));
+      setFavorites(next);
     } catch (e) {
       console.error('Error removing favorite:', e);
     }
@@ -168,72 +85,68 @@ const FavoritesScreen = ({ navigation }) => {
     <View style={styles.container}>
       <LinearGradient
         colors={getCurrentGradient().colors}
-        style={styles.gradient}
+        style={StyleSheet.absoluteFill}
         start={getCurrentGradient().start}
         end={getCurrentGradient().end}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <ModernBackButton 
-              onPress={() => navigation.goBack()}
-              size="md"
-            />
-          </View>
+      />
+      <SeasonalDecor />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <ModernBackButton onPress={() => navigation.goBack()} size="md" />
+        </View>
 
-          {/* Title Section */}
-          <View style={styles.titleSection}>
-            <Text style={styles.title}>
-              {translations[language]?.favoritesTitle || translations.cs.favoritesTitle}
-            </Text>
-          </View>
+        <View style={styles.hero}>
+          <FunIcon name="sparkles" size={64} />
+          <Text style={[styles.title, { fontSize: fs(28) }]}>{t('favoritesTitle', 'Favorite cards')}</Text>
+          <Text style={styles.sub}>
+            {favorites.length
+              ? t('favoritesCount', '{n} saved for later').replace('{n}', String(favorites.length))
+              : t('noFavoritesSubtext', 'Tap the heart on a card you love.')}
+          </Text>
+        </View>
 
-          {/* Favorites List */}
-          <FlatList
-            data={favorites}
-            keyExtractor={(_, index) => index.toString()}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item, index }) => (
-              <ModernCard variant="surface" size="md" style={{ marginBottom: 16, position: 'relative' }}>
-                <Text style={styles.favoriteText}>
-                  {getQuestionText(item)}
-                </Text>
-                <Text style={styles.favoriteDate}>
-                  {formatDate(item.timestamp)}
-                </Text>
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => confirmRemove(index)}
-                >
-                  <Text style={styles.removeButtonText}>×</Text>
-                </TouchableOpacity>
-              </ModernCard>
-            )}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <ModernCard variant="surface" size="md">
-                  <Text style={styles.emptyText}>
-                    {translations[language]?.noFavorites || translations.cs.noFavorites}
-                  </Text>
-                  <Text style={styles.emptySubtext}>
-                    {translations[language]?.noFavoritesSubtext || translations.cs.noFavoritesSubtext}
-                  </Text>
-                </ModernCard>
-              </View>
-            )}
-          />
-        </SafeAreaView>
-      </LinearGradient>
+        <FlatList
+          data={favorites}
+          keyExtractor={(_, index) => String(index)}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <LinearGradient colors={['#7C5CFF', '#5A3FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.band}>
+                <FunIcon name="sparkles" size={18} />
+                <Text style={styles.bandText}>{formatDate(item.timestamp)}</Text>
+              </LinearGradient>
+              <Text style={styles.favoriteText}>{getQuestionText(item)}</Text>
+              <Pressable
+                style={styles.removeButton}
+                onPress={() => setRemoveIndex(index)}
+                accessibilityRole="button"
+                accessibilityLabel={t('remove', 'Remove')}
+              >
+                <Text style={styles.removeButtonText}>×</Text>
+              </Pressable>
+            </View>
+          )}
+          ListEmptyComponent={() => (
+            <View style={styles.empty}>
+              <FunIcon name="gift" size={72} />
+              <Text style={styles.emptyText}>{t('noFavorites', 'No favorites yet')}</Text>
+              <Text style={styles.emptySubtext}>
+                {t('noFavoritesSubtext', 'Tap the heart on a card you love. It will wait for you here.')}
+              </Text>
+            </View>
+          )}
+        />
+      </SafeAreaView>
 
       <AppDialog
         visible={removeIndex !== null}
-        title={translations[language]?.removeFavorite || translations.cs.removeFavorite}
-        message={translations[language]?.removeFavoriteConfirm || translations.cs.removeFavoriteConfirm}
+        title={t('removeFavorite', 'Remove favorite?')}
+        message={t('removeFavoriteConfirm', 'This card leaves your list. You can heart it again anytime.')}
         buttons={[
-          { text: translations[language]?.cancel || translations.cs.cancel, style: 'cancel' },
+          { text: t('cancel', 'Cancel'), style: 'cancel' },
           {
-            text: translations[language]?.remove || translations.cs.remove,
+            text: t('remove', 'Remove'),
             style: 'destructive',
             onPress: () => removeFavorite(removeIndex),
           },
@@ -245,144 +158,60 @@ const FavoritesScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  header: { paddingHorizontal: 16, paddingTop: 8 },
+  hero: { alignItems: 'center', paddingHorizontal: 24, marginBottom: 12 },
+  title: { color: '#fff', fontWeight: '900', marginTop: 8, textAlign: 'center' },
+  sub: { color: 'rgba(255,255,255,0.82)', fontWeight: '600', fontSize: 14, marginTop: 6, textAlign: 'center' },
+  listContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderBottomWidth: 6,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
+  band: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingTop: Math.max(16, height * 0.02),
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-  },
-  backButtonGlass: {
-    padding: 12,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  titleSection: {
-    paddingHorizontal: Math.max(20, width * 0.05),
-    marginBottom: 32,
-    marginTop: 20,
-  },
-  title: {
-    fontSize: Math.min(28, width * 0.07),
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowOpacity: 1,
-    textShadowRadius: 4,
-  },
-  listContent: {
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingBottom: Math.max(40, height * 0.05),
-  },
-  
+  bandText: { color: '#fff', fontWeight: '800', fontSize: 13 },
   favoriteText: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '800',
+    color: '#22163F',
     lineHeight: 24,
-    marginBottom: 8,
-    letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowOpacity: 1,
-    textShadowRadius: 2,
-    paddingRight: 40, // Space for remove button
-  },
-  favoriteDate: {
-    fontSize: 13,
-    fontWeight: '300',
-    color: 'rgba(255, 255, 255, 0.7)',
-    letterSpacing: 0.2,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    paddingRight: 44,
   },
   removeButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 8,
+    right: 10,
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: tokens.colors.surface.strong,
-    borderWidth: 1,
-    borderColor: tokens.colors.border.light,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 4,
   },
-  removeButtonText: {
-    fontSize: 18,
-    color: tokens.colors.text.primary,
-    fontWeight: '800',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Math.max(60, height * 0.1),
-    paddingHorizontal: Math.max(40, width * 0.1),
-  },
-  emptyMessageGlass: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(20px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 6,
-    width: '100%',
-    maxWidth: 320,
-  },
-  emptyMessageOverlay: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowOpacity: 1,
-    textShadowRadius: 2,
-  },
+  removeButtonText: { fontSize: 18, color: '#fff', fontWeight: '800' },
+  empty: { alignItems: 'center', paddingTop: 48, paddingHorizontal: 28 },
+  emptyText: { color: '#fff', fontWeight: '900', fontSize: 20, marginTop: 14, textAlign: 'center' },
   emptySubtext: {
-    fontSize: 16,
-    fontWeight: '300',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255,255,255,0.82)',
+    fontWeight: '600',
+    fontSize: 15,
+    marginTop: 8,
     textAlign: 'center',
     lineHeight: 22,
-    letterSpacing: 0.2,
   },
 });
 
-export default FavoritesScreen; 
+export default FavoritesScreen;

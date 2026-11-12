@@ -59,7 +59,8 @@ export const consumeDeepLink = async () => {
     window.history.replaceState(null, '', window.location.pathname);
     const mode = q.get('m');
     if (mode) track('deeplink_opened', { mode, hasCard: !!card });
-    return mode ? { mode, variant: q.get('v') === 'drinks' ? 'drinks' : 'classic', card } : null;
+    const variant = q.get('v') || 'classic';
+    return mode ? { mode, variant, card } : null;
   } catch (e) {
     return null;
   }
@@ -110,40 +111,52 @@ const renderStoryImage = ({ text, label, colors, footer }) =>
 
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
-      ctx.font = '900 84px -apple-system, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Talk Trap 🪤', W / 2, 260);
+      ctx.font = '900 72px -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Talk Trap', W / 2, 220);
+      ctx.font = '700 32px -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.fillText('Pull a card. The rest is up to you.', W / 2, 280);
 
-      const font = '800 64px -apple-system, "Segoe UI", Roboto, sans-serif';
+      const font = '800 56px -apple-system, "Segoe UI", Roboto, sans-serif';
       ctx.font = font;
-      const lines = wrapLines(ctx, text, W - 280).slice(0, 9);
-      const lineH = 88;
-      const cardH = Math.max(560, lines.length * lineH + 300);
-      const cardY = (H - cardH) / 2;
+      const lines = wrapLines(ctx, text, W - 280).slice(0, 8);
+      const lineH = 78;
+      const bandH = 110;
+      const cardH = Math.max(640, lines.length * lineH + bandH + 220);
+      const cardY = (H - cardH) / 2 + 40;
 
       ctx.save();
       ctx.translate(W / 2, H / 2);
-      ctx.rotate(-0.02);
+      ctx.rotate(-0.015);
       ctx.translate(-W / 2, -H / 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      roundRect(ctx, 100, cardY + 24, W - 200, cardH, 56);
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      roundRect(ctx, 90, cardY + 22, W - 180, cardH, 48);
       ctx.fill();
       ctx.fillStyle = '#fff';
-      roundRect(ctx, 100, cardY, W - 200, cardH, 56);
+      roundRect(ctx, 90, cardY, W - 180, cardH, 48);
       ctx.fill();
+      ctx.fillStyle = colors[0];
+      roundRect(ctx, 90, cardY, W - 180, bandH, 48);
+      ctx.fill();
+      ctx.fillStyle = colors[0];
+      ctx.fillRect(90, cardY + 40, W - 180, bandH - 40);
       ctx.restore();
 
-      ctx.fillStyle = colors[1];
-      ctx.font = '900 44px -apple-system, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(label, W / 2, cardY + 120);
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 36px -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(label, W / 2, cardY + 72);
 
       ctx.fillStyle = '#22163F';
       ctx.font = font;
-      const textTop = cardY + 120 + (cardH - 160 - lines.length * lineH) / 2 + lineH * 0.8;
+      const textTop = cardY + bandH + 80;
       lines.forEach((l, i) => ctx.fillText(l, W / 2, textTop + i * lineH));
 
-      ctx.fillStyle = '#fff';
-      ctx.font = '800 46px -apple-system, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(footer, W / 2, H - 220);
+      ctx.fillStyle = '#FFD43B';
+      roundRect(ctx, 220, H - 340, W - 440, 96, 48);
+      ctx.fill();
+      ctx.fillStyle = '#5C3B00';
+      ctx.font = '900 36px -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(footer || 'Play free →', W / 2, H - 278);
 
       canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('toBlob failed'))), 'image/png');
     } catch (e) {
@@ -175,36 +188,44 @@ const copyText = async (text) => {
  * Share a card. Returns 'shared' | 'downloaded' | 'copied' | 'cancelled'.
  * Adult cards are never shared as text — only a teaser for the mode.
  */
-export const shareCard = async ({ text, label, colors, mode, variant, card, teaser, footer }) => {
+export const shareCard = async ({ text, label, colors, mode, variant, card, teaser, footer, message }) => {
   const ref = await getReferralCode();
   const isTeaser = !!teaser;
   const link = buildLink({ mode, variant, card: isTeaser ? null : card, ref });
   const shownText = isTeaser ? teaser : text;
-  const message = `${label}: „${shownText}“\n\n${link}`;
+  const base =
+    message ||
+    `Having a great time with Talk Trap\n\nThis card got us:\n“${shownText}”\n\nPull a card. The rest is up to you.\nPlay free →`;
+  const copy = base.includes(link) ? base : `${base}\n${link}`;
   track('card_shared', { mode, variant, teaser: isTeaser });
 
   if (Platform.OS !== 'web') {
-    const res = await Share.share({ message });
+    const res = await Share.share({ message: copy });
     return res.action === Share.dismissedAction ? 'cancelled' : 'shared';
   }
 
   let blob = null;
   try {
-    blob = await renderStoryImage({ text: shownText, label, colors, footer: footer || link.replace(/^https?:\/\//, '').split('?')[0].replace(/\/$/, '') });
+    blob = await renderStoryImage({
+      text: shownText,
+      label,
+      colors,
+      footer: footer || 'Play free →',
+    });
   } catch (e) {
     blob = null;
   }
 
   try {
     if (blob && navigator.canShare) {
-      const file = new File([blob], 'paper-jar-card.png', { type: 'image/png' });
+      const file = new File([blob], 'talk-trap-card.png', { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: message });
+        await navigator.share({ files: [file], text: copy, title: 'Talk Trap' });
         return 'shared';
       }
     }
     if (navigator.share) {
-      await navigator.share({ text: message, url: link });
+      await navigator.share({ text: copy, url: link, title: 'Talk Trap' });
       return 'shared';
     }
   } catch (e) {
@@ -212,11 +233,11 @@ export const shareCard = async ({ text, label, colors, mode, variant, card, teas
   }
 
   if (blob) {
-    download(blob, 'paper-jar-card.png');
-    await copyText(message);
+    download(blob, 'talk-trap-card.png');
+    await copyText(copy);
     return 'downloaded';
   }
-  return (await copyText(message)) ? 'copied' : 'cancelled';
+  return (await copyText(copy)) ? 'copied' : 'cancelled';
 };
 
 /** Share plain text + link (invites, Know Me results). */

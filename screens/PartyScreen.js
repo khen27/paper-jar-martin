@@ -18,6 +18,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../translations';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
+import { markSessionPlayed } from '../utils/experiment';
 import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { getDeck } from '../utils/decks';
@@ -30,6 +31,7 @@ import RulesSheet from '../components/RulesSheet';
 import DrinkTally from '../components/DrinkTally';
 import AdModal from '../components/AdModal';
 import SeasonalDecor from '../components/SeasonalDecor';
+import FunIcon from '../components/FunIcon';
 import { useResponsive } from '../utils/responsive';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 import { isDeckLocked, FREE_SAMPLE_CARDS, hasPremium } from '../utils/entitlements';
@@ -127,6 +129,7 @@ const PartyScreen = ({ navigation, route }) => {
     setTurnIndex(0);
     track('party_started', { players: players.length, timer: timerOn, variant });
     recordPlay();
+    markSessionPlayed(updateSettings, settings);
     await drawPrompt();
   };
 
@@ -151,7 +154,7 @@ const PartyScreen = ({ navigation, route }) => {
 
   const inviteFriends = () =>
     shareText({
-      message: t('inviteMessage', 'Come play Talk Trap with us 🎉 Party cards, dares and laughs, free in your browser.'),
+      message: t('inviteMessage', 'Come play Talk Trap with us. Party cards, dares and laughs, free in your browser.'),
       mode: 'party',
       event: 'invite_shared',
     });
@@ -169,13 +172,15 @@ const PartyScreen = ({ navigation, route }) => {
         <View style={styles.header}>
           <ModernBackButton onPress={() => navigation.goBack()} size="md" />
           <View style={styles.headerPills}>
-            <ModernCard variant="surface" size="sm" style={styles.pill}>
+            <View style={styles.modePill}>
+              <FunIcon name="party" size={16} />
               <Text style={styles.pillText}>{t('partyMode', 'Party')}</Text>
-            </ModernCard>
+            </View>
             {variant === 'drinks' && (
-              <ModernCard variant="surface" size="sm" style={[styles.pill, styles.drinksPill]}>
-                <Text style={styles.pillText}>{t('drinksEdition', 'Drinks 🍻')}</Text>
-              </ModernCard>
+              <View style={[styles.modePill, styles.drinksPill]}>
+                <FunIcon name="drinks" size={16} />
+                <Text style={styles.pillText}>{t('drinksTitle', 'Drinks')}</Text>
+              </View>
             )}
             <TouchableOpacity
               onPress={() => setRulesOpen(true)}
@@ -193,7 +198,7 @@ const PartyScreen = ({ navigation, route }) => {
             contentContainerStyle={[styles.content, { maxWidth: cardMaxWidth + 48 }]}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.heroEmoji}>{variant === 'drinks' ? '🍻' : '🎉'}</Text>
+            <FunIcon name={variant === 'drinks' ? 'drinks' : 'party'} size={72} style={styles.heroEmoji} />
             <Text style={styles.title}>{t('partySetupTitle', 'Pass the phone')}</Text>
             <Text style={styles.subtitle}>
               {variant === 'drinks'
@@ -246,26 +251,31 @@ const PartyScreen = ({ navigation, route }) => {
             >
               <Text style={styles.toggleText}>
                 {timerOn
-                  ? t('timerOn', `⏱ ${TIMER_SECONDS}s timer on`)
-                  : t('timerOff', '⏱ Timer off (default)')}
+                  ? t('timerOn', `${TIMER_SECONDS}s timer on`)
+                  : t('timerOff', 'Timer off (default)')}
               </Text>
               <Text style={styles.toggleHint}>
                 {t('timerSettingsHint', 'Also in Settings — stays off unless you turn it on.')}
               </Text>
             </TouchableOpacity>
 
-            <Text style={styles.muteHint}>
-              📵 {t('muteHintShort', 'Passing the phone around? Turn on Do Not Disturb first.')}
-            </Text>
+            <View style={styles.muteHintRow}>
+              <FunIcon name="mute" size={18} />
+              <Text style={styles.muteHint}>
+                {t('muteHintShort', 'Passing the phone around? Turn on Do Not Disturb first.')}
+              </Text>
+            </View>
 
             <ChunkyButton
-              title={`🎉  ${t('startParty', 'Start party')}`}
+              icon="party"
+              title={t('startParty', 'Start party')}
               disabled={players.length < 2}
               onPress={startGame}
               style={styles.startBtn}
             />
             <TouchableOpacity onPress={inviteFriends} style={styles.inviteBtn} accessibilityRole="button">
-              <Text style={styles.inviteText}>💌 {t('inviteFriends', 'Invite friends to play')}</Text>
+              <FunIcon name="invite" size={18} />
+              <Text style={styles.inviteText}>{t('inviteFriends', 'Invite friends to play')}</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
@@ -277,20 +287,27 @@ const PartyScreen = ({ navigation, route }) => {
             ]}
           >
             <ConfettiBurst burstKey={burstKey} />
-            <Text style={styles.passLabel}>📱 {t('passPhoneTo', 'Pass the phone to')}</Text>
+            <View style={styles.passRow}>
+              <FunIcon name="mute" size={22} />
+              <Text style={styles.passLabel}>{t('passPhoneTo', 'Pass the phone to')}</Text>
+            </View>
             <View style={styles.playerChip}>
               <Text style={[styles.playerName, { fontSize: fs(32) }]}>{currentPlayer}</Text>
             </View>
             {deckLocked && (
-              <Text style={styles.sampleText}>
-                👑 {t('sampleLabel', 'Free sample')} · {Math.min(round, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
-              </Text>
+              <View style={styles.sampleRow}>
+                <FunIcon name="crown" size={16} />
+                <Text style={styles.sampleText}>
+                  {t('sampleLabel', 'Free sample')} · {Math.min(round, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
+                </Text>
+              </View>
             )}
 
             {variant === 'drinks' && (
               <View style={styles.drinksRule}>
+                <FunIcon name="drinks" size={22} />
                 <Text style={styles.drinksRuleText}>
-                  🍻 {t('drinksRule', 'Don’t want to answer? Take a sip. Soft drinks count.')}
+                  {t('drinksRule', 'Don’t want to answer? Take a sip. Soft drinks count.')}
                 </Text>
               </View>
             )}
@@ -302,9 +319,10 @@ const PartyScreen = ({ navigation, route }) => {
                 end={{ x: 1, y: 0 }}
                 style={styles.cardBand}
               >
-                <Text style={styles.cardBandText}>
-                  {cardMeta.emoji}  {cardMeta.label}
-                </Text>
+                <View style={styles.cardBandLeft}>
+                  <FunIcon name={cardMeta.icon} size={22} />
+                  <Text style={styles.cardBandText}>{cardMeta.label}</Text>
+                </View>
                 <Text style={styles.cardNumber}>
                   {t('cardLabel', 'Card')} #{round}
                 </Text>
@@ -321,7 +339,7 @@ const PartyScreen = ({ navigation, route }) => {
             )}
 
             <ChunkyButton
-              title={`${t('nextPlayer', 'Next player')}  👉`}
+              title={t('nextPlayer', 'Next player')}
               onPress={nextTurn}
               style={styles.startBtn}
             />
@@ -376,11 +394,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     maxWidth: '70%',
   },
-  pill: { paddingHorizontal: 14, paddingVertical: 6, minHeight: 32 },
-  drinksPill: {
-    backgroundColor: 'rgba(251, 191, 36, 0.25)',
-    borderColor: 'rgba(251, 191, 36, 0.7)',
+  modePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+  },
+  drinksPill: {
+    backgroundColor: 'rgba(255,212,59,0.28)',
+    borderColor: 'rgba(255,212,59,0.7)',
   },
   pillText: {
     color: tokens.colors.text.primary,
@@ -399,8 +426,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0A800',
   },
   rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
-  inviteBtn: { marginTop: 18, padding: 10 },
-  muteHint: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
+  inviteBtn: { marginTop: 18, padding: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  muteHintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 },
+  muteHint: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   inviteText: { color: '#fff', fontWeight: '800', fontSize: 15, textDecorationLine: 'underline' },
   sampleText: { color: '#FFE08A', fontWeight: '900', fontSize: 12, marginBottom: 10 },
   title: {
@@ -431,7 +459,7 @@ const styles = StyleSheet.create({
   },
   addBtn: { minWidth: 72 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
-  heroEmoji: { fontSize: 56, marginBottom: 4 },
+  heroEmoji: { marginBottom: 8, alignSelf: 'center' },
   chip: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -471,6 +499,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   drinksRule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: '#FFD43B',
     borderRadius: 16,
     paddingHorizontal: 14,
@@ -479,7 +510,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderBottomColor: '#E0A800',
   },
-  drinksRuleText: { color: '#5C3B00', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  drinksRuleText: { flex: 1, color: '#5C3B00', fontSize: 13, fontWeight: '800' },
+  passRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
+  sampleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  cardBandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   playingCard: {
     width: '100%',
     backgroundColor: '#FFFFFF',

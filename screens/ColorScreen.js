@@ -48,7 +48,12 @@ const ThemeCard = ({ theme, selected, locked, badge, onPress, label }) => (
       )}
     </LinearGradient>
     <Text style={styles.name}>{label}</Text>
-    {!!badge && <Text style={styles.badge}>{badge}</Text>}
+    {!!badge && (
+      <View style={styles.badgeRow}>
+        <FunIcon name="ad" size={14} />
+        <Text style={styles.badge}>{badge}</Text>
+      </View>
+    )}
   </TouchableOpacity>
 );
 
@@ -77,7 +82,7 @@ const ColorScreen = ({ navigation }) => {
   const skinBadge = (theme) => {
     if (hasPremium(settings)) return null;
     const ms = adUnlockRemaining(settings, skinAdKey(theme.id));
-    return ms > 0 ? `🎬 ${Math.ceil(ms / 3600000)} h` : null;
+    return ms > 0 ? `${Math.ceil(ms / 3600000)} h` : null;
   };
 
   return (
@@ -113,7 +118,10 @@ const ColorScreen = ({ navigation }) => {
             ))}
           </View>
 
-          <Text style={[styles.sectionTitle, styles.colorsTitle]}>🎨 {t('colorThemes', 'Colors')}</Text>
+          <View style={[styles.sectionHead, styles.colorsTitle]}>
+            <FunIcon name="sparkles" size={28} />
+            <Text style={styles.sectionTitle}>{t('colorThemes', 'Colors')}</Text>
+          </View>
           <View style={styles.grid}>
             {basic.map((theme) => (
               <ThemeCard
@@ -130,7 +138,8 @@ const ColorScreen = ({ navigation }) => {
 
       <AppDialog
         visible={!!lockedTheme}
-        title={lockedTheme ? `👑 ${skinLabel(lockedTheme)}` : ''}
+        icon="crown"
+        title={lockedTheme ? skinLabel(lockedTheme) : ''}
         message={t('skinLockedMsg', 'This skin is part of Premium. Start the free trial to unlock every skin, or watch a short ad to use it for 24 hours.')}
         buttons={[
           {
@@ -141,7 +150,7 @@ const ColorScreen = ({ navigation }) => {
             },
           },
           {
-            text: `🎬 ${t('watchAdSkin', 'Watch an ad: 24 h')}`,
+            text: t('watchAdSkin', 'Watch an ad: 24 h'),
             onPress: () => {
               const theme = lockedTheme;
               setLockedTheme(null);
@@ -215,7 +224,8 @@ const styles = StyleSheet.create({
   },
   checkText: { color: '#22163F', fontWeight: '900' },
   name: { color: '#fff', fontWeight: '800', fontSize: 15, textAlign: 'center', marginTop: 8 },
-  badge: { color: '#FFE08A', fontWeight: '800', fontSize: 12, textAlign: 'center', marginTop: 2 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 2 },
+  badge: { color: '#FFE08A', fontWeight: '800', fontSize: 12, textAlign: 'center' },
 });
 
 export default ColorScreen;

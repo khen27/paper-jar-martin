@@ -17,10 +17,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../translations';
-import { HintIcon } from '../components/GameIcons';
 import { HeartIcon } from '../components/GameModeIcons';
 
-import { ModernCard, ModernButton, ModernBackButton } from '../components/ui';
+import { ModernButton, ModernBackButton } from '../components/ui';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../contexts/ThemeContext';
 import { getLocalizedText } from '../utils/i18n';
@@ -34,15 +33,17 @@ import RulesSheet from '../components/RulesSheet';
 import DrinkTally from '../components/DrinkTally';
 import AdModal from '../components/AdModal';
 import SeasonalDecor from '../components/SeasonalDecor';
+import FunIcon from '../components/FunIcon';
 import { track } from '../utils/analytics';
 import { recordPlay } from '../utils/streaks';
+import { markSessionPlayed } from '../utils/experiment';
 import { useSettings } from '../contexts/SettingsContext';
 import { useResponsive } from '../utils/responsive';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 import { isDeckLocked, FREE_SAMPLE_CARDS, favoritesLimit, hasPremium } from '../utils/entitlements';
 import { shareCard } from '../utils/share';
 
-const glassImage = require('../assets/glass.png');
+const glassImage = require('../assets/jar-fluent-3d-1024.png');
 
 const buzz = () => {
   try {
@@ -55,7 +56,7 @@ const buzz = () => {
 const GameScreen = ({ route, navigation }) => {
   const { language } = useLanguage();
   const { getCurrentGradient } = useTheme();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const isFocused = useIsFocused();
   const { fs, cardMaxWidth, isWide, height: winHeight } = useResponsive();
   const t = (key, fallback) => translations[language]?.[key] || fallback;
@@ -200,7 +201,8 @@ const GameScreen = ({ route, navigation }) => {
   useEffect(() => {
     track('game_opened', { gameMode, variant });
     recordPlay();
-  }, [gameMode, variant]);
+    markSessionPlayed(updateSettings, settings);
+  }, [gameMode, variant, updateSettings, settings]);
 
   // Draw the next question from the shuffle bag (no repeats until the deck is exhausted).
   // `forcedRef` shows a specific card (deep link) instead.
@@ -411,20 +413,27 @@ const GameScreen = ({ route, navigation }) => {
   const [shareNote, setShareNote] = useState('');
   const handleShare = async () => {
     if (!currentQuestion) return;
+    const linkHint = t('shareCta', 'Play free →');
+    const body = t('shareCardBody', 'Having a great time with Talk Trap\n\nThis card got us:\n“{text}”\n\nPull a card. The rest is up to you.').replace(
+      '{text}',
+      currentQuestion
+    );
     const result = await shareCard({
       text: currentQuestion,
-      label: `${cardMeta.emoji} ${cardMeta.label}`,
+      label: cardMeta.label,
       colors: cardMeta.colors,
       mode: gameMode === 'custom' ? null : gameMode,
       variant,
       card: gameMode === 'custom' ? null : currentRef,
+      footer: linkHint,
+      message: `${body}\n${linkHint}`,
       teaser:
         gameMode === 'adult'
-          ? t('shareAdultTeaser', 'We’re playing Adult Fun on Talk Trap 🔥 Spicy truths & dares, 18+ only.')
+          ? t('shareAdultTeaser', 'We’re playing Adult Fun on Talk Trap. Spicy truths & dares, 18+ only.')
           : null,
     });
-    if (result === 'downloaded') setShareNote(t('shareDownloaded', 'Image saved, link copied 📋'));
-    else if (result === 'copied') setShareNote(t('shareCopied', 'Link copied 📋'));
+    if (result === 'downloaded') setShareNote(t('shareDownloaded', 'Image saved, link copied'));
+    else if (result === 'copied') setShareNote(t('shareCopied', 'Link copied'));
     else setShareNote('');
     if (result === 'downloaded' || result === 'copied') setTimeout(() => setShareNote(''), 2500);
   };
@@ -474,15 +483,24 @@ const GameScreen = ({ route, navigation }) => {
           {/* Game Mode Display - Top Right */}
           {gameMode && (
             <View style={styles.headerPills}>
-              <ModernCard variant="surface" size="sm" style={styles.modernGameModePill}>
+              <View style={styles.modePill}>
+                <FunIcon name={gameMode} size={16} />
                 <Text style={styles.modernGameModeText}>{modeTitle}</Text>
-              </ModernCard>
-              {variant === 'drinks' && (
-                <ModernCard variant="surface" size="sm" style={styles.drinksPill}>
+              </View>
+              {variant && variant !== 'classic' && (
+                <View style={[styles.modePill, variant === 'drinks' && styles.drinksPill]}>
+                  <FunIcon
+                    name={variant === 'drinks' ? 'drinks' : variant === 'intense' ? 'workout' : 'handshake'}
+                    size={16}
+                  />
                   <Text style={styles.modernGameModeText}>
-                    {translations[language]?.drinksEdition || 'Drinks 🍻'}
+                    {variant === 'drinks'
+                      ? t('drinksTitle', 'Drinks')
+                      : variant === 'intense'
+                        ? t('intenseTitle', 'Intense')
+                        : t('huddleTitle', 'Huddle')}
                   </Text>
-                </ModernCard>
+                </View>
               )}
               <Pressable
                 onPress={() => setRulesOpen(true)}
@@ -507,15 +525,17 @@ const GameScreen = ({ route, navigation }) => {
           <ConfettiBurst burstKey={burstKey} />
           {deckLocked && (
             <View style={styles.sampleChip}>
+              <FunIcon name="crown" size={16} />
               <Text style={styles.sampleChipText}>
-                👑 {t('sampleLabel', 'Free sample')} · {Math.min(cardCount, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
+                {t('sampleLabel', 'Free sample')} · {Math.min(cardCount, FREE_SAMPLE_CARDS)}/{FREE_SAMPLE_CARDS}
               </Text>
             </View>
           )}
           {variant === 'drinks' && (
             <View style={styles.drinksRule}>
+              <FunIcon name="drinks" size={22} />
               <Text style={styles.drinksRuleText}>
-                🍻 {translations[language]?.drinksRule || 'Don’t want to answer? Take a sip. Soft drinks count.'}
+                {translations[language]?.drinksRule || 'Don’t want to answer? Take a sip. Soft drinks count.'}
               </Text>
             </View>
           )}
@@ -558,9 +578,10 @@ const GameScreen = ({ route, navigation }) => {
                 end={{ x: 1, y: 0 }}
                 style={styles.cardBand}
               >
-                <Text style={styles.cardBandText}>
-                  {cardMeta.emoji}  {cardMeta.label}
-                </Text>
+                <View style={styles.cardBandLeft}>
+                  <FunIcon name={cardMeta.icon} size={22} />
+                  <Text style={styles.cardBandText}>{cardMeta.label}</Text>
+                </View>
                 <Text style={styles.cardNumber}>
                   {translations[language]?.cardLabel || 'Card'} #{cardCount}
                 </Text>
@@ -576,15 +597,16 @@ const GameScreen = ({ route, navigation }) => {
               ]}>
                 {currentQuestion || translations[language]?.loading || 'Loading...'}
               </Text>
-              <Text style={[styles.cardCornerEmoji, { color: cardMeta.colors[1] }]}>{cardMeta.emoji}</Text>
+              <View style={styles.cardCornerIcon}>
+                <FunIcon name={cardMeta.icon} size={28} />
+              </View>
             </Animated.View>
           </Animated.View>
 
           {showHints && (
-            <ModernCard variant="surface" size="sm" style={styles.hintCard}>
-              <Text style={styles.hintTitle}>
-                {translations[language]?.hint || 'Hint'}
-              </Text>
+            <View style={styles.hintCard}>
+              <FunIcon name="sparkles" size={36} style={styles.hintIcon} />
+              <Text style={styles.hintKicker}>{translations[language]?.hint || 'Hint'}</Text>
               <Text style={styles.hintBody}>
                 {questionType === 'challenges'
                   ? translations[language]?.hintChallenge ||
@@ -595,7 +617,7 @@ const GameScreen = ({ route, navigation }) => {
                     : translations[language]?.hintQuestion ||
                       'Share a story, not just a one-word answer. Ask “why?” once.'}
               </Text>
-            </ModernCard>
+            </View>
           )}
 
           {/* Action Buttons */}
@@ -610,7 +632,7 @@ const GameScreen = ({ route, navigation }) => {
               }}
               style={[styles.modernActionButton, showHints && styles.activeActionButton]}
             >
-              <HintIcon color={showHints ? '#fff' : 'rgba(255,255,255,0.8)'} />
+              <FunIcon name="sparkles" size={22} />
             </ModernButton>
 
             <Pressable
@@ -621,8 +643,9 @@ const GameScreen = ({ route, navigation }) => {
               accessibilityRole="button"
               style={({ pressed }) => [styles.nextCardBtn, pressed && styles.nextCardBtnPressed]}
             >
+              <FunIcon name="dice" size={22} />
               <Text style={styles.nextCardText}>
-                🎲  {translations[language]?.nextCard || 'Next card'}
+                {translations[language]?.nextCard || 'Next card'}
               </Text>
             </Pressable>
 
@@ -647,7 +670,8 @@ const GameScreen = ({ route, navigation }) => {
           )}
 
           <Pressable onPress={handleShare} accessibilityRole="button" style={styles.shareBtn}>
-            <Text style={styles.shareBtnText}>📤 {shareNote || t('shareCard', 'Share this card')}</Text>
+            <FunIcon name="invite" size={18} />
+            <Text style={styles.shareBtnText}>{shareNote || t('shareCard', 'Share this card')}</Text>
           </Pressable>
           {isWide && Platform.OS === 'web' && (
             <Text style={styles.keysHint}>
@@ -810,16 +834,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
   },
+  cardBandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardBandText: { color: '#fff', fontSize: 15, fontWeight: '900', letterSpacing: 0.3 },
   cardNumber: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '800' },
-  cardCornerEmoji: {
+  cardCornerIcon: {
     position: 'absolute',
     right: 14,
     bottom: 8,
-    fontSize: 22,
-    opacity: 0.35,
+    opacity: 0.28,
   },
   drinksRule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: '#FFD43B',
     borderRadius: 16,
     paddingHorizontal: 14,
@@ -828,7 +855,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderBottomColor: '#E0A800',
   },
-  drinksRuleText: { color: '#5C3B00', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  drinksRuleText: { flex: 1, color: '#5C3B00', fontSize: 13, fontWeight: '800' },
   column: { width: '100%', alignItems: 'center', alignSelf: 'center' },
   tallyWrap: { width: '100%', marginTop: -tokens.spacing.md, marginBottom: tokens.spacing.lg },
   rulesBtn: {
@@ -843,6 +870,9 @@ const styles = StyleSheet.create({
   },
   rulesBtnText: { color: '#5C3B00', fontWeight: '900', fontSize: 18 },
   sampleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: 'rgba(0,0,0,0.25)',
     borderRadius: 14,
     paddingHorizontal: 12,
@@ -856,6 +886,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.18)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   shareBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   keysHint: {
@@ -873,6 +906,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderBottomWidth: 5,
     borderBottomColor: 'rgba(0,0,0,0.18)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   nextCardBtnPressed: {
     transform: [{ translateY: 3 }],
@@ -1077,21 +1113,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     maxWidth: '70%',
   },
-  modernGameModePill: {
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.sm,
-    borderRadius: tokens.radius.full,
-    minHeight: 32,
-    alignSelf: 'flex-start',
+  modePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
   },
   drinksPill: {
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
-    borderRadius: tokens.radius.full,
-    minHeight: 32,
-    backgroundColor: 'rgba(251, 191, 36, 0.25)',
-    borderColor: 'rgba(251, 191, 36, 0.7)',
-    borderWidth: 1,
+    backgroundColor: 'rgba(255,212,59,0.28)',
+    borderColor: 'rgba(255,212,59,0.7)',
   },
   modernGameModeText: {
     fontSize: tokens.typography.sizes.sm,
@@ -1110,6 +1145,21 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: -tokens.spacing['2xl'],
     marginBottom: tokens.spacing.xl,
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    padding: 16,
+    alignItems: 'center',
+    borderBottomWidth: 5,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  hintIcon: { marginBottom: 4 },
+  hintKicker: {
+    color: '#7C3AED',
+    fontWeight: '900',
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 6,
   },
   hintTitle: {
     color: tokens.colors.text.primary,
@@ -1119,10 +1169,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   hintBody: {
-    color: tokens.colors.text.secondary,
-    fontSize: tokens.typography.sizes.sm,
+    color: '#22163F',
+    fontSize: 15,
+    fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 });
 

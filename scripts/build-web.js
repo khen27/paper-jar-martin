@@ -58,4 +58,38 @@ if (!html.includes('serviceWorker')) {
 html = html.replace(/<title>[^<]*<\/title>/, '<title>Talk Trap</title>');
 
 fs.writeFileSync(indexPath, html);
+
+// Vercel/Netlify skip any folder named node_modules (gitignore + host rules).
+// Expo export stores hashed fonts there — move them so static hosts actually upload them.
+const nmDir = path.join(root, 'dist', 'assets', 'node_modules');
+const vendorDir = path.join(root, 'dist', 'assets', 'vendor');
+if (fs.existsSync(nmDir)) {
+  console.log('▶ Moving dist/assets/node_modules → dist/assets/vendor for static hosts...');
+  if (fs.existsSync(vendorDir)) fs.rmSync(vendorDir, { recursive: true, force: true });
+  fs.renameSync(nmDir, vendorDir);
+  const expoDir = path.join(root, 'dist', '_expo');
+  const rewrite = (file) => {
+    const before = fs.readFileSync(file, 'utf8');
+    const after = before.replaceAll('/assets/node_modules/', '/assets/vendor/');
+    if (after !== before) fs.writeFileSync(file, after);
+  };
+  rewrite(indexPath);
+  const walk = (dir) => {
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name);
+      if (fs.statSync(full).isDirectory()) walk(full);
+      else if (/\.(js|css|html|json)$/.test(name)) rewrite(full);
+    }
+  };
+  if (fs.existsSync(expoDir)) walk(expoDir);
+}
+
+const vercelSrc = path.join(root, 'vercel.json');
+const vercelDest = path.join(root, 'dist', 'vercel.json');
+if (fs.existsSync(vercelSrc)) {
+  const cfg = JSON.parse(fs.readFileSync(vercelSrc, 'utf8'));
+  const staticCfg = { rewrites: cfg.rewrites, headers: cfg.headers };
+  fs.writeFileSync(vercelDest, JSON.stringify(staticCfg, null, 2) + '\n');
+}
+
 console.log('✅ PWA build ready in dist/. Serve with: npm run serve:web');
