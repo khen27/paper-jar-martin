@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
   jarWrap: {
     overflow: 'visible',
     marginBottom: 10,
-    paddingTop: 16,
+    paddingTop: 40,
   },
   jarIconRefresh: {
     width: Math.min(width * 0.26, 132),

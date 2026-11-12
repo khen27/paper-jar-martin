@@ -41,10 +41,15 @@ const FramedLegal = withScreenFrame(LegalScreen, 760);
 // Native splash will auto-hide when JS is ready; we overlay our own animation.
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     NotoNaskhArabic_400Regular,
     NotoNaskhArabic_700Bold,
   });
+  const [fontsGaveUp, setFontsGaveUp] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setFontsGaveUp(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
   const [overlayVisible, setOverlayVisible] = React.useState(true);
   const hasAnimatedRef = React.useRef(false);
 
@@ -194,7 +199,7 @@ export default function App() {
     }
   }, [fontsLoaded, startOverlayAnimation]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError && !fontsGaveUp) {
     return null;
   }
   return (

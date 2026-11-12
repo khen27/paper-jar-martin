@@ -1,6 +1,6 @@
 // Ported 1:1 from assets/star-jar/demo.html — do not "improve" the motion.
 export const STAR_JAR_CSS = `
-.sj { position: relative; width: var(--sj-size, 200px); aspect-ratio: 1; overflow: visible;
+.sj { position: relative; width: 100%; height: 100%; aspect-ratio: 1; overflow: visible;
       -webkit-tap-highlight-color: transparent; outline: none; }
 .sj.sj-interactive { cursor: pointer; }
 .sj.sj-idle { animation: sj-jar-bob 3.2s ease-in-out infinite; }
@@ -13,8 +13,8 @@ export const STAR_JAR_CSS = `
 .sj .spark  { transform-origin: 80.01% 16.05%; }
 .sj.sj-idle .spark { animation: sj-spark-twinkle 2.4s ease-in-out infinite; }
 .sj .stars  { transform-origin: 52.01% 62.60%; will-change: transform; }
-.sj .sparkle { background: var(--sj-sparkle) center/contain no-repeat; inset: auto;
-                width: 9%; height: 9%; opacity: 0; }
+.sj .sparkle { background: url(/star-jar/sparkle.webp) center/contain no-repeat; inset: auto;
+               width: 9%; height: 9%; opacity: 0; object-fit: contain; }
 .sj.sj-idle .sparkle { animation: sj-twinkle 2.8s ease-in-out infinite; }
 .sj .s1 { left: 14%; top: 48%; animation-delay: .2s !important; }
 .sj .s2 { left: 84%; top: 56%; animation-delay: 1.1s !important; width: 7% !important; height: 7% !important; }
@@ -35,7 +35,7 @@ export const STAR_JAR_CSS = `
   0%   { transform: scale(1,1) }
   18%  { transform: scale(1.06,.9) }
   38%  { transform: scale(.95,1.08) }
-  50%  { transform: scale(1.02,.98) }
+  58%  { transform: scale(1.02,.98) }
   100% { transform: scale(1,1) }
 }
 @keyframes sj-jiggle {
@@ -79,8 +79,8 @@ export const STAR_JAR_CSS = `
   .sj.pop .hero { animation: sj-hero-reduced .35s ease both !important; }
 }
 
-.sj-loop { position: relative; width: var(--sj-size, 200px); aspect-ratio: 1; overflow: visible; }
+.sj-loop { position: relative; width: 100%; height: 100%; aspect-ratio: 1; overflow: visible; }
 .sj-loop video, .sj-loop img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
-.sj-static { width: var(--sj-size, 200px); aspect-ratio: 1; }
+.sj-static { width: 100%; height: 100%; aspect-ratio: 1; }
 .sj-static img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
 `;

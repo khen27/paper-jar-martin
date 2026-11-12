@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     marginBottom: 10,
   },
-  iconWrap: { marginBottom: 10 },
+  iconWrap: { marginBottom: 10, overflow: 'visible', paddingTop: 8 },
   title: { color: JC.onDark, fontWeight: '900', marginTop: 8 },
   sub: { color: JC.onDarkSoft, fontWeight: '600', fontSize: 15, marginTop: 10, lineHeight: 22, maxWidth: 460 },
   card: {

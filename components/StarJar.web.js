@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image } from 'react-native';
+import React, { createElement as h, useCallback, useEffect, useRef, useState } from 'react';
+import { Image, View } from 'react-native';
 import { STAR_JAR_CSS } from './starJarCss';
 
 const full = require('../assets/star-jar/layers-webp/00-full.webp');
@@ -13,10 +13,7 @@ const sparkle = require('../assets/star-jar/sparkle.webp');
 
 const LAYER_ASSETS = [full, glassBack, stars, glassFront, lid, hero, spark, sparkle];
 
-const uri = (asset) => {
-  const resolved = Image.resolveAssetSource(asset);
-  return resolved?.uri || '';
-};
+const uri = (asset) => Image.resolveAssetSource(asset)?.uri || '';
 
 let cssInjected = false;
 const injectCss = () => {
@@ -28,18 +25,8 @@ const injectCss = () => {
   document.head.appendChild(el);
 };
 
-const preload = () =>
-  Promise.all(
-    LAYER_ASSETS.map(
-      (asset) =>
-        new Promise((resolve) => {
-          const img = new window.Image();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-          img.src = uri(asset);
-        })
-    )
-  );
+const img = (source, className, key) =>
+  h('img', { key, src: uri(source), className: className || undefined, alt: '', draggable: false });
 
 const preferWebpLoop = () => {
   if (typeof navigator === 'undefined') return true;
@@ -48,8 +35,7 @@ const preferWebpLoop = () => {
   const safari = /safari/i.test(ua) && !/chrome|chromium|android|crios|fxios/i.test(ua);
   if (iOS || safari) return true;
   try {
-    const v = document.createElement('video');
-    return v.canPlayType('video/webm; codecs="vp9"') === '';
+    return document.createElement('video').canPlayType('video/webm; codecs="vp9"') === '';
   } catch (e) {
     return true;
   }
@@ -79,23 +65,37 @@ const StarJar = ({
   useEffect(() => {
     injectCss();
     let live = true;
-    preload().then(() => {
+    const done = () => {
       if (live) setReady(true);
-    });
+    };
+    Promise.all(
+      LAYER_ASSETS.map((asset) => {
+        const u = uri(asset);
+        if (!u) return Promise.resolve();
+        if (Image.prefetch) return Image.prefetch(u).catch(() => {});
+        return new Promise((resolve) => {
+          const el = document.createElement('img');
+          el.onload = resolve;
+          el.onerror = resolve;
+          el.src = u;
+        });
+      })
+    ).then(done);
+    const t = setTimeout(done, 600);
     return () => {
       live = false;
+      clearTimeout(t);
     };
   }, []);
 
   useEffect(() => {
     if (variant !== 'loop') return undefined;
-    let id = 0;
     const kick = () => setLoopReady(true);
     if (typeof requestIdleCallback === 'function') {
-      id = requestIdleCallback(kick, { timeout: 1200 });
+      const id = requestIdleCallback(kick, { timeout: 1200 });
       return () => cancelIdleCallback(id);
     }
-    id = setTimeout(kick, 50);
+    const id = setTimeout(kick, 50);
     return () => clearTimeout(id);
   }, [variant]);
 
@@ -123,11 +123,8 @@ const StarJar = ({
       popping.current = false;
       onPopEnd && onPopEnd();
     };
-    if (heroEl) {
-      heroEl.addEventListener('animationend', finish, { once: true });
-    } else {
-      setTimeout(finish, 1050);
-    }
+    if (heroEl) heroEl.addEventListener('animationend', finish, { once: true });
+    else setTimeout(finish, 1050);
   }, [onPeak, onPopEnd]);
 
   useEffect(() => {
@@ -136,34 +133,14 @@ const StarJar = ({
     return () => clearInterval(id);
   }, [interactive, autoPopEvery, ready, pop]);
 
-  const sizeStyle = { '--sj-size': cssSize(size), '--sj-sparkle': `url(${uri(sparkle)})` };
-  const wrapStyle = { overflow: 'visible', ...(style || {}) };
-
-  if (variant === 'static' || !ready) {
-    return (
-      <div className="sj-static" style={{ ...sizeStyle, ...wrapStyle }}>
-        <img src={uri(full)} alt="" />
-      </div>
-    );
-  }
-
-  if (variant === 'loop') {
-    const fallback = (
-      <div className="sj-static" style={{ ...sizeStyle, ...wrapStyle }}>
-        <img src={uri(full)} alt="" />
-      </div>
-    );
-    if (!loopReady) return fallback;
-    return (
-      <div className="sj-loop" style={{ ...sizeStyle, ...wrapStyle }} aria-hidden="true">
-        {webpLoop ? (
-          <img src="/star-jar/anim/jar-loop-320.webp" alt="" />
-        ) : (
-          <video autoPlay loop muted playsInline src="/star-jar/anim/jar-loop.webm" />
-        )}
-      </div>
-    );
-  }
+  const host = { width: size, height: size, overflow: 'visible', ...(style || {}) };
+  const box = {
+    width: cssSize(size),
+    height: cssSize(size),
+    overflow: 'visible',
+    position: 'relative',
+  };
+  const wrap = (child) => h(View, { style: host, children: child });
 
   const onKeyDown = (e) => {
     if (!interactive) return;
@@ -173,29 +150,70 @@ const StarJar = ({
     }
   };
 
-  return (
-    <div
-      ref={rootRef}
-      className={`sj sj-idle${interactive ? ' sj-interactive' : ''}`}
-      style={{ ...sizeStyle, ...wrapStyle }}
-      role={interactive ? 'button' : 'img'}
-      tabIndex={interactive ? 0 : undefined}
-      aria-label={ariaLabel}
-      onClick={interactive ? pop : undefined}
-      onKeyDown={onKeyDown}
-    >
-      <div className="body">
-        <img src={uri(glassBack)} alt="" />
-        <img className="stars" src={uri(stars)} alt="" />
-        <img src={uri(glassFront)} alt="" />
-      </div>
-      <img className="lid" src={uri(lid)} alt="" />
-      <img className="hero" src={uri(hero)} alt="" />
-      <img className="spark" src={uri(spark)} alt="" />
-      <span className="sparkle s1" />
-      <span className="sparkle s2" />
-      <span className="sparkle s3" />
-    </div>
+  if (variant === 'static' || !ready) {
+    return wrap(h('div', { className: 'sj-static', style: box, children: img(full, undefined, 'full') }));
+  }
+
+  if (variant === 'loop') {
+    if (!loopReady) {
+      return wrap(h('div', { className: 'sj-static', style: box, children: img(full, undefined, 'full') }));
+    }
+    if (webpLoop) {
+      return wrap(
+        h('div', {
+          className: 'sj-loop',
+          style: box,
+          'aria-hidden': 'true',
+          children: h('img', { src: '/star-jar/anim/jar-loop-320.webp', alt: '' }),
+        })
+      );
+    }
+    return wrap(
+      h('div', {
+        className: 'sj-loop',
+        style: box,
+        'aria-hidden': 'true',
+        children: h('video', {
+          autoPlay: true,
+          loop: true,
+          muted: true,
+          playsInline: true,
+          src: '/star-jar/anim/jar-loop.webm',
+        }),
+      })
+    );
+  }
+
+  return wrap(
+    h('div', {
+      ref: (n) => {
+        rootRef.current = n;
+      },
+      className: `sj sj-idle${interactive ? ' sj-interactive' : ''}`,
+      style: box,
+      role: interactive ? 'button' : 'img',
+      tabIndex: interactive ? 0 : undefined,
+      'aria-label': ariaLabel,
+      onClick: interactive ? pop : undefined,
+      onKeyDown,
+      children: [
+        h('div', {
+          key: 'body',
+          className: 'body',
+          children: [
+            img(glassBack, undefined, 'back'),
+            img(stars, 'stars', 'stars'),
+            img(glassFront, undefined, 'front'),
+          ],
+        }),
+        img(lid, 'lid', 'lid'),
+        img(hero, 'hero', 'hero'),
+        img(spark, 'spark', 'spark'),
+        h('span', { key: 's1', className: 'sparkle s1' }),
+        h('span', { key: 's2', className: 'sparkle s2' }),
+        h('span', { key: 's3', className: 'sparkle s3' }),
+      ],
+    })
   );
 };
 
